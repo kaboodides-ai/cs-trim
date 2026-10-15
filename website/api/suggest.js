@@ -18,9 +18,21 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Invalid word pair" });
         }
 
-        const token = (process.env.GITHUB_TOKEN || process.env.GH_TOKEN || process.env.GIT_TOKEN || "").trim();
-        const repo = process.env.GITHUB_REPO || "kaboodides-ai/cs-trim";
+        const tokenCandidates = [
+            process.env.GITHUB_TOKEN,
+            process.env.GH_TOKEN,
+            process.env.GIT_TOKEN,
+            process.env.GITHUB_PAT,
+            process.env.GITHUB_ACCESS_TOKEN,
+            process.env.PERSONAL_ACCESS_TOKEN,
+            process.env.PAT,
+            process.env.TOKEN
+        ];
+        const token = (tokenCandidates.find(t => typeof t === "string" && t.trim().length > 0) || "").trim();
+        const repo = (process.env.GITHUB_REPO || "kaboodides-ai/cs-trim").trim();
         const filePath = "website/corrections.json";
+
+        const matchingKeys = Object.keys(process.env).filter(k => /token|git|github|key|pat/i.test(k));
 
         if (!token) {
             console.log(`[Typo Suggestion Logged] "${wrong}" -> "${correct}" (Example: "${exampleSentence || ''}")`);
@@ -28,7 +40,10 @@ export default async function handler(req, res) {
                 success: true,
                 message: "המילה נקלטה בהצלחה במערכת",
                 automated: false,
-                debug: { hasToken: false }
+                debug: { 
+                    hasToken: false,
+                    matchingEnvKeys: matchingKeys
+                }
             });
         }
 
@@ -43,7 +58,8 @@ export default async function handler(req, res) {
         });
 
         if (!getRes.ok) {
-            throw new Error(`Failed to read corrections.json from GitHub: ${getRes.status}`);
+            const errBody = await getRes.text();
+            throw new Error(`Failed to read corrections.json from GitHub (${getRes.status}): ${errBody}`);
         }
 
         const fileData = await getRes.json();

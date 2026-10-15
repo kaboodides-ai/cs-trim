@@ -2,7 +2,7 @@ Unicode True
 
 ; --------------------------------
 ; CS Trim Windows Installer Script
-; Modern UI 2 (MUI2) with Hebrew & English Support
+; Modern UI 2 (MUI2) with Full Metadata & Compatibility
 ; --------------------------------
 
 !include "MUI2.nsh"
@@ -12,6 +12,18 @@ OutFile "website/download/CS-Trim-v1.0.0-Windows-Setup.exe"
 InstallDir "$APPDATA\Adobe\CEP\extensions\com.autocut.panel"
 InstallDirRegKey HKCU "Software\CS Trim" "Install_Dir"
 RequestExecutionLevel user
+
+; --------------------------------
+; Version Metadata (Prevents Defender Heuristic Flags)
+; --------------------------------
+VIProductVersion "1.0.0.0"
+VIAddVersionKey "ProductName" "CS Trim"
+VIAddVersionKey "CompanyName" "CS Trim"
+VIAddVersionKey "LegalCopyright" "© 2026 CS Trim"
+VIAddVersionKey "FileDescription" "CS Trim Extension Installer for Adobe Premiere Pro"
+VIAddVersionKey "FileVersion" "1.0.0.0"
+
+SetCompressor /SOLID zlib
 
 ; --------------------------------
 ; Interface Settings
@@ -27,7 +39,7 @@ RequestExecutionLevel user
 !insertmacro MUI_PAGE_INSTFILES
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_FINISHPAGE_TITLE "ההתקנה הושלמה בהצלחה!"
-!define MUI_FINISHPAGE_TEXT "CS Trim הותקן בהצלחה עבור Adobe Premiere Pro.$\r$\n$\r$\nכעת פתח את Premiere Pro והיכנס ל:$\r$\nWindow > Extensions > CS Trim"
+!define MUI_FINISHPAGE_TEXT "CS Trim הותקן בהצלחה עבור Adobe Premiere Pro.$\r$\n$\r$\nכעת סגור ופתח מחדש את Premiere Pro והיכנס ל:$\r$\nWindow > Extensions > CS Trim$\r$\n(חלון > הרחבות > CS Trim)"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller Pages
@@ -55,7 +67,11 @@ Section "CS Trim Extension" SecMain
     File "index.html"
     File ".debug"
 
-    ; Write registry keys for Adobe CEP PlayerDebugMode
+    ; Also try to copy to Common Files if permissions allow
+    CreateDirectory "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
+    CopyFiles /SILENT "$INSTDIR\*" "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
+
+    ; Write registry keys for Adobe CEP PlayerDebugMode for CSXS 7 through 17
     WriteRegStr HKCU "Software\Adobe\CSXS.7" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.8" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.9" "PlayerDebugMode" "1"
@@ -66,6 +82,7 @@ Section "CS Trim Extension" SecMain
     WriteRegStr HKCU "Software\Adobe\CSXS.14" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.15" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.16" "PlayerDebugMode" "1"
+    WriteRegStr HKCU "Software\Adobe\CSXS.17" "PlayerDebugMode" "1"
 
     ; Create Uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"

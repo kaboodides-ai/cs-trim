@@ -117,7 +117,7 @@
     <div class="ambient-glow glow-2"></div>
 
     <!-- Header / Navbar -->
-    <header class="site-header">
+    <header class="site-header" id="navbar">
         <div class="container header-container">
             <a href="index.html" class="brand-logo">
                 <img src="assets/logo.png" alt="CS Trim Logo" style="width: 40px; height: 40px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);">
@@ -127,12 +127,21 @@
                 </div>
             </a>
 
+            <nav class="nav-links">
+                <a href="index.html#features">יתרונות</a>
+                <a href="index.html#how-it-works">איך זה עובד</a>
+                <a href="index.html#install">התקנה</a>
+                <a href="index.html#faq">שאלות נפוצות</a>
+                <a href="terms.html" style="color: white; font-weight: 700;">תקנון ותנאי שימוש</a>
+            </nav>
+
             <div class="header-actions">
-                <a href="index.html" class="btn btn-nav-cta">
-                    <span>חזרה לאתר הראשי</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
+                <a href="index.html#download" class="btn btn-nav-cta">
+                    <span>הורדה חינם</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
                 </a>
             </div>
@@ -276,3 +285,4 @@
     </footer>
 </body>
 </html>
+

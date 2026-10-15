@@ -714,6 +714,11 @@
                 <p class="section-desc">עזרו לנו להפוך את כתוביות ה-AI למדויקות ב-100% לכל עורכי הווידאו בישראל. שלחו את המילה השגויה והצורה הנכונה — ונתקן אותה ישירות במערכת!</p>
 
                 <form class="suggest-form" id="suggestForm" onsubmit="handleSuggestSubmit(event)">
+                    <!-- Anti-bot honeypot trap -->
+                    <div style="display:none !important; position:absolute; left:-9999px;" aria-hidden="true">
+                        <input type="text" id="website_trap" name="website_trap" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <div class="suggest-grid">
                         <div class="form-group">
                             <label for="wrongWord">המילה שיצאה בשגיאה <span class="req">*</span></label>

@@ -262,6 +262,8 @@ function handleSuggestSubmit(event) {
 
     // Prepare quick whatsapp report url
     const reportText = `דיווח שגיאת כתוביות ב-CS Trim:%0A- שגוי: ${encodeURIComponent(wrongWord)}%0A- נכון: ${encodeURIComponent(correctWord)}${example ? `%0A- הקשר: ${encodeURIComponent(example)}` : ""}`;
+    const trapInput = document.getElementById("website_trap");
+    const trapValue = (trapInput ? trapInput.value : "").trim();
     const whatsappUrl = `https://api.whatsapp.com/send?text=${reportText}`;
 
     fetch("/api/suggest", {
@@ -270,11 +272,17 @@ function handleSuggestSubmit(event) {
         body: JSON.stringify({
             wrongWord: wrongWord,
             correctWord: correctWord,
-            exampleSentence: example
+            exampleSentence: example,
+            website_trap: trapValue
         })
     })
-    .then(res => res.json())
-    .catch(() => ({ success: true }))
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            throw new Error(data.error || "אירעה שגיאה בקליטת המילה במערכת");
+        }
+        return data;
+    })
     .then(data => {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<span>שלח מילה לתיקון במערכת</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
@@ -284,7 +292,7 @@ function handleSuggestSubmit(event) {
             statusBox.style.display = "block";
             statusBox.innerHTML = `
                 <strong>תודה רבה! המילה נקלטה בהצלחה במערכת.</strong><br>
-                ${data && data.automated ? "התיקון פורסם באופן אוטומטי לכל המשתמשים!" : "התיקון נרשם ומתעדכן במילון הכתוביות של הפלאגין."}<br>
+                ${data && data.automated ? (data.message || "התיקון פורסם באופן אוטומטי לכל המשתמשים!") : "התיקון נרשם ומתעדכן במילון הכתוביות של הפלאגין."}<br>
                 <div style="margin-top: 10px;">
                     <a href="${whatsappUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; color: #38bdf8; font-weight: 600; text-decoration: underline;">
                         <span>רוצה לעדכן אותנו גם בוואטסאפ? לחץ כאן לשליחה מהירה</span>
@@ -296,5 +304,18 @@ function handleSuggestSubmit(event) {
         if (wrongInput) wrongInput.value = "";
         if (correctInput) correctInput.value = "";
         if (exampleInput) exampleInput.value = "";
+    })
+    .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>שלח מילה לתיקון במערכת</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+
+        if (statusBox) {
+            statusBox.className = "suggest-status error";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = `
+                <strong>שימו לב:</strong> ${err.message || "הבקשה לא אושרה על ידי מערכת הסינון."}<br>
+                <span style="font-size: 0.85rem; opacity: 0.85;">נא לוודא שמדובר בשגיאת כתיב או תעתיק עברית אמיתית.</span>
+            `;
+        }
     });
 }

@@ -24,6 +24,9 @@ var CaptionGenerator = {
 
     // Built-in dictionary of Hebrew spelling and terminology corrections for Whisper
     HEBREW_CORRECTIONS: {
+        "מקאבי": "מכבי",
+        "מקבי": "מכבי",
+        "מכאבי": "מכבי",
         "טיק טוק": "טיקטוק",
         "יו טיוב": "יוטיוב",
         "פייס בוק": "פייסבוק",
@@ -62,8 +65,15 @@ var CaptionGenerator = {
                 if (map.hasOwnProperty(wrong) && wrong) {
                     var correct = map[wrong];
                     var escaped = wrong.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                    var regex = new RegExp("(^|\\s|[.,!?;:״׳\"'\\(])" + escaped + "($|\\s|[.,!?;:״׳\"'\\)])", "gi");
-                    result = result.replace(regex, "$1" + correct + "$2");
+                    if (wrong.indexOf(" ") === -1) {
+                        // Single word: support optional Hebrew prefixes (ב, ל, מ, ש, ו, כ, ה)
+                        var regex = new RegExp("(^|\\s|[.,!?;:״׳\"'\\(])([ובשמכלה]{0,3})" + escaped + "($|\\s|[.,!?;:״׳\"'\\)])", "g");
+                        result = result.replace(regex, "$1$2" + correct + "$3");
+                    } else {
+                        // Multi-word phrase
+                        var regex = new RegExp("(^|\\s|[.,!?;:״׳\"'\\(])" + escaped + "($|\\s|[.,!?;:״׳\"'\\)])", "gi");
+                        result = result.replace(regex, "$1" + correct + "$2");
+                    }
                 }
             }
         }
@@ -197,7 +207,7 @@ var CaptionGenerator = {
             }
 
             // Guiding prompt in Hebrew for Whisper to maintain correct spelling, ktiv male and technical terminology
-            var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
+            var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, מכבי, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
             formData.append("prompt", hebrewPrompt);
 
             fetch("https://api.groq.com/openai/v1/audio/transcriptions", {

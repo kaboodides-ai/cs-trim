@@ -226,12 +226,64 @@ window.addEventListener("DOMContentLoaded", () => {
     // Auto open first FAQ
     const firstFaq = document.querySelector(".faq-item");
     if (firstFaq) firstFaq.classList.add("active");
-
-    // Track hero download clicks
-    const downloadBtns = document.querySelectorAll('a[download]');
-    downloadBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            console.log("Download started: CS Trim v1.0.0");
-        });
-    });
 });
+
+// -----------------------------------------------------------------------------
+// Typo Report & Suggestion Handler
+// -----------------------------------------------------------------------------
+function handleSuggestSubmit(event) {
+    event.preventDefault();
+    const wrongInput = document.getElementById("wrongWord");
+    const correctInput = document.getElementById("correctWord");
+    const exampleInput = document.getElementById("exampleSentence");
+    const statusBox = document.getElementById("suggestStatus");
+    const submitBtn = document.getElementById("btnSubmitSuggest");
+
+    const wrongWord = (wrongInput ? wrongInput.value : "").trim();
+    const correctWord = (correctInput ? correctInput.value : "").trim();
+    const example = (exampleInput ? exampleInput.value : "").trim();
+
+    if (!wrongWord || !correctWord) return;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "<span>שולח למערכת...</span>";
+
+    // Store in localStorage for user session history
+    try {
+        const stored = JSON.parse(localStorage.getItem("cs_trim_typo_suggestions") || "[]");
+        stored.push({
+            wrong: wrongWord,
+            correct: correctWord,
+            example: example,
+            date: new Date().toISOString()
+        });
+        localStorage.setItem("cs_trim_typo_suggestions", JSON.stringify(stored));
+    } catch (e) {}
+
+    // Prepare quick whatsapp report url
+    const reportText = `דיווח שגיאת כתוביות ב-CS Trim:%0A- שגוי: ${encodeURIComponent(wrongWord)}%0A- נכון: ${encodeURIComponent(correctWord)}${example ? `%0A- הקשר: ${encodeURIComponent(example)}` : ""}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${reportText}`;
+
+    setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>שלח מילה לתיקון במערכת</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+
+        if (statusBox) {
+            statusBox.className = "suggest-status success";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = `
+                <strong>תודה רבה! המילה נקלטה בהצלחה.</strong><br>
+                התיקון ייבדק ויתווסף ישירות למילון הכתוביות של הפלאגין.<br>
+                <div style="margin-top: 10px;">
+                    <a href="${whatsappUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; color: #38bdf8; font-weight: 600; text-decoration: underline;">
+                        <span>רוצה לעדכן אותנו גם בוואטסאפ? לחץ כאן לשליחה מהירה</span>
+                    </a>
+                </div>
+            `;
+        }
+
+        if (wrongInput) wrongInput.value = "";
+        if (correctInput) correctInput.value = "";
+        if (exampleInput) exampleInput.value = "";
+    }, 600);
+}

@@ -325,9 +325,28 @@ a {
 }
 
 .hero-title {
-    font-size: 3.4rem;
     margin-bottom: 22px;
     max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.hero-brand {
+    display: block;
+    font-size: 4.4rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.hero-tagline {
+    display: block;
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--text-primary);
 }
 
 .hero-subtitle {
@@ -1493,8 +1512,11 @@ a {
    Responsive Breakpoints
    ========================================================================== */
 @media (max-width: 992px) {
-    .hero-title {
-        font-size: 2.6rem;
+    .hero-brand {
+        font-size: 3.5rem;
+    }
+    .hero-tagline {
+        font-size: 1.75rem;
     }
     .preview-body {
         grid-template-columns: 1fr;
@@ -1521,8 +1543,11 @@ a {
     .nav-links {
         display: none;
     }
-    .hero-title {
-        font-size: 2.1rem;
+    .hero-brand {
+        font-size: 2.7rem;
+    }
+    .hero-tagline {
+        font-size: 1.35rem;
     }
     .hero-subtitle {
         font-size: 1.05rem;

@@ -18,7 +18,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Invalid word pair" });
         }
 
-        const token = process.env.GITHUB_TOKEN;
+        const token = (process.env.GITHUB_TOKEN || process.env.GH_TOKEN || process.env.GIT_TOKEN || "").trim();
         const repo = process.env.GITHUB_REPO || "kaboodides-ai/cs-trim";
         const filePath = "website/corrections.json";
 
@@ -27,7 +27,8 @@ export default async function handler(req, res) {
             return res.status(200).json({
                 success: true,
                 message: "המילה נקלטה בהצלחה במערכת",
-                automated: false
+                automated: false,
+                debug: { hasToken: false }
             });
         }
 
@@ -95,3 +96,4 @@ export default async function handler(req, res) {
         });
     }
 }
+

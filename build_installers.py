@@ -79,84 +79,18 @@ exit 0
     print(f"Created Mac PKG: {final_mac_pkg} ({os.path.getsize(final_mac_pkg)} bytes)")
 
     # -------------------------------------------------------------
-    # 2. Build Windows Installer ZIP
+    # 2. Build Windows Setup.exe Installer (Modern GUI Wizard)
     # -------------------------------------------------------------
-    win_temp = os.path.join(base, "win_build_temp")
-    win_plugin = os.path.join(win_temp, "com.autocut.panel")
-    final_win_zip = os.path.join(dl_dir, "CS-Trim-v1.0.0-Windows.zip")
+    nsis_bin = os.path.join(base, "makensis", "3.13", "bin", "makensis")
+    nsis_share = os.path.join(base, "makensis", "3.13", "share", "nsis")
+    nsi_script = os.path.join(base, "installer.nsi")
+    final_win_exe = os.path.join(dl_dir, "CS-Trim-v1.0.0-Windows-Setup.exe")
 
-    if os.path.exists(win_temp):
-        shutil.rmtree(win_temp)
-    os.makedirs(win_plugin, exist_ok=True)
-
-    for item in items:
-        src = os.path.join(base, item)
-        dst = os.path.join(win_plugin, item)
-        if os.path.isdir(src):
-            shutil.copytree(src, dst)
-        elif os.path.isfile(src):
-            shutil.copy2(src, dst)
-
-    win_bat = """@echo off
-chcp 65001 >nul
-echo =================================================
-echo    מתקין את CS Trim עבור Adobe Premiere Pro
-echo =================================================
-
-set "TARGET_DIR=%APPDATA%\\Adobe\\CEP\\extensions\\com.autocut.panel"
-set "SCRIPT_DIR=%~dp0"
-set "PLUGIN_SRC=%SCRIPT_DIR%com.autocut.panel"
-
-if not exist "%PLUGIN_SRC%" (
-    echo שגיאה: תיקיית com.autocut.panel לא נמצאה.
-    pause
-    exit /b 1
-)
-
-echo יוצר תיקייה ומעתיק קבצים...
-if not exist "%APPDATA%\\Adobe\\CEP\\extensions" mkdir "%APPDATA%\\Adobe\\CEP\\extensions"
-if exist "%TARGET_DIR%" rmdir /s /q "%TARGET_DIR%"
-xcopy /E /I /Y "%PLUGIN_SRC%" "%TARGET_DIR%" >nul
-
-echo מגדיר הרשאות PlayerDebugMode ב-Registry...
-for %%v in (7 8 9 10 11 12 13 14 15 16) do (
-    reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-)
-
-echo.
-echo =================================================
-echo  ההתקנה הושלמה בהצלחה!
-echo  כעת פתח את Premiere Pro והיכנס ל:
-echo  Window ^> Extensions ^> CS Trim
-echo =================================================
-pause
-"""
-    win_bat_path = os.path.join(win_temp, "התקנה_בווינדוס_Install_Windows.bat")
-    with open(win_bat_path, "w", encoding="utf-8") as f:
-        f.write(win_bat)
-
-    readme_win = """מדריך התקנה מהיר - CS Trim ל-Adobe Premiere Pro (Windows)
-=====================================================
-
-1. חלצו את קובץ ה-ZIP למחשב (קליק ימני > Extract All / חלץ הכל).
-2. לחצו לחיצה כפולה על הקובץ "התקנה_בווינדוס_Install_Windows.bat".
-3. פתחו את Premiere Pro ובחרו בתפריט: Window > Extensions > CS Trim.
-"""
-    with open(os.path.join(win_temp, "מדריך_התקנה.txt"), "w", encoding="utf-8") as f:
-        f.write(readme_win)
-
-    with zipfile.ZipFile(final_win_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(win_temp):
-            for file in files:
-                file_path = os.path.join(root, file)
-                arcname = os.path.relpath(file_path, win_temp)
-                zipf.write(file_path, arcname)
-
-    shutil.rmtree(win_temp)
-    print(f"Created Windows ZIP: {final_win_zip} ({os.path.getsize(final_win_zip)} bytes)")
-
-    # Also copy to legacy filename for backwards compatibility
-    shutil.copy2(final_win_zip, os.path.join(dl_dir, "cs-trim-v1.0.0.zip"))
+    if os.path.exists(nsis_bin) and os.path.exists(nsi_script):
+        env = os.environ.copy()
+        env["NSISDIR"] = nsis_share
+        subprocess.run([nsis_bin, "-INPUTCHARSET", "UTF8", nsi_script], env=env, check=True, stdout=subprocess.DEVNULL)
+        print(f"Created Windows Setup EXE: {final_win_exe} ({os.path.getsize(final_win_exe)} bytes)")
 
 if __name__ == "__main__":
     build()

@@ -11,3 +11,4 @@ package_temp/
 # Adobe Premiere / CEP cache
 .debug.bak
 
+makensis/

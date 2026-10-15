@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Trim</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Top Status Bar (Integrated Sequence & Connection, no redundant double title) -->
+    <div class="top-bar">
+        <div class="seq-info">
+            <span class="seq-label">סיקוונס</span>
+            <span id="seqName">טוען...</span>
+        </div>
+        <div id="connectionStatus" class="status-badge" title="מצב חיבור לפרמייר">
+            <span class="status-dot"></span>
+            <span id="statusText">בודק חיבור...</span>
+        </div>
+    </div>
+
+    <!-- Segmented Navigation Tabs -->
+    <div class="tabs-nav" id="tabsNav">
+        <button type="button" class="tab-btn active" data-tab="view-trim">חיתוך שקט</button>
+        <button type="button" class="tab-btn" data-tab="view-captions">כתוביות AI</button>
+    </div>
+
+    <!-- View: Silence Trim -->
+    <div id="view-trim" class="tab-view active">
+        <div class="profiles" id="profiles">
+            <button type="button" class="profile active" data-profile="normal">רגיל (Normal)</button>
+            <button type="button" class="profile" data-profile="high">גבוה (High)</button>
+            <button type="button" class="profile" data-profile="aggressive">אגרסיבי (Aggressive)</button>
+        </div>
+
+        <div id="resultsCard" class="results" style="display:none;">
+            <div id="resultsText"></div>
+        </div>
+
+        <button type="button" id="btnAutoCut" class="btn btn-primary">חיתוך שקט</button>
+        <button type="button" id="btnSilenceMarkers" class="btn btn-secondary">סימון שקט בלבד (תצוגה מקדימה)</button>
+    </div>
+
+    <!-- View: AI Captions -->
+    <div id="view-captions" class="tab-view" style="display:none;">
+        <div class="row api-row">
+            <label for="groqApiKey">מפתח API</label>
+            <div class="api-control-wrap">
+                <div class="api-input-wrap">
+                    <input type="password" id="groqApiKey" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+                    <button type="button" id="btnToggleKey" class="btn-api-toggle" title="הצג/הסתר מפתח">הצג</button>
+                </div>
+                <a href="#" id="linkGetApiKey" class="link-groq-hint">קבלת מפתח API חינמי</a>
+            </div>
+        </div>
+
+        <div class="row row-slider">
+            <label for="captionWordCount">מילים במשפט</label>
+            <div class="slider-control-wrap" id="sliderWrap" title="גרור או גלול עם העכבר לשינוי מספר המילים (1-8)">
+                <span class="slider-badge" id="captionWordCountVal">3 מילים</span>
+                <div class="slider-track-wrap">
+                    <input type="range" id="captionWordCount" min="1" max="8" step="1" value="3" aria-label="מילים במשפט">
+                </div>
+            </div>
+        </div>
+
+        <label class="row row-toggle" for="captionPunctuation" id="rowPunctuation" title="סימני פיסוק: מופעל (עם פסיקים ונקודות)">
+            <span class="toggle-label">סימני פיסוק</span>
+            <span class="custom-checkbox-wrap">
+                <input type="checkbox" id="captionPunctuation" checked>
+                <span class="custom-checkbox" aria-hidden="true">
+                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
+                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </span>
+        </label>
+
+        <label class="row row-toggle" for="captionStretchGaps" id="rowStretchGaps" title="מתיחת כתוביות: מופעל (ללא רווחים ריקים)">
+            <span class="toggle-label">מתיחת כתוביות</span>
+            <span class="custom-checkbox-wrap">
+                <input type="checkbox" id="captionStretchGaps" checked>
+                <span class="custom-checkbox" aria-hidden="true">
+                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
+                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </span>
+        </label>
+
+        <button type="button" id="btnCaptions" class="btn btn-primary btn-captions-primary">יצירת כתוביות AI</button>
+    </div>
+
+    <!-- Shared Progress Area -->
+    <div id="progressArea" class="progress-area" style="display:none;">
+        <div class="progress-head">
+            <span id="progressStatus">מעבד...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+    </div>
+
+    <!-- Console Log Box -->
+    <div class="console-box" id="consoleBox"></div>
+
+    <!-- Footer Credit -->
+    <div class="footer-credit">Created by Kaboodi</div>
+
+    <!-- Plugin Logo -->
+    <div class="plugin-logo-wrap">
+        <img src="img/logo.png" alt="CS Trim - Auto Cut & Captions" class="plugin-logo">
+    </div>
+
+    <script src="js/CSInterface.js"></script>
+    <script src="js/audioAnalyzer.js"></script>
+    <script src="js/captionGenerator.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

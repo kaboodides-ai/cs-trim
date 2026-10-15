@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temp & build files
+package_temp/
+*.tmp
+*.log
+
+# Adobe Premiere / CEP cache
+.debug.bak

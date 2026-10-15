@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Trim - תוסף חיתוך שקט וכתוביות AI ל-Adobe Premiere Pro</title>
+    <meta name="description" content="התוסף החכם ל-Adobe Premiere Pro: חיתוך שקט אוטומטי מהטיימליין וכתוביות AI מדויקות ומהירות שיא בעברית (Groq Whisper). חסוך שעות של עבודה סיזיפית, 100% בחינם!">
+    <meta name="keywords" content="CS Trim, Adobe Premiere Pro, תוסף פרמייר, חיתוך שקט אוטומטי, כתוביות AI, עריכת וידאו, טיקטוק, רילס, Groq Whisper">
+    <meta property="og:title" content="CS Trim - ערוך פי 5 מהר יותר ב-Adobe Premiere Pro">
+    <meta property="og:description" content="חיתוך שקט אוטומטי וכתוביות AI מהירות שיא ישירות על הטיימליין בפרמייר. הורדה חינם למק ול-Windows!">
+    <meta property="og:type" content="website">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body>
+    <!-- Top Glowing Ambient Background -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Header / Navbar -->
+    <header class="site-header" id="navbar">
+        <div class="container header-container">
+            <a href="#" class="brand-logo">
+                <img src="assets/logo.png" alt="CS Trim Logo" style="width: 40px; height: 40px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);">
+                <div class="brand-text">
+                    <span class="brand-name">CS Trim</span>
+                    <span class="brand-badge">לפרמייר פרו</span>
+                </div>
+            </a>
+
+            <nav class="nav-links">
+                <a href="#features">יתרונות</a>
+                <a href="#simulator">סימולטור חי</a>
+                <a href="#how-it-works">איך זה עובד</a>
+                <a href="#install">התקנה</a>
+                <a href="#faq">שאלות נפוצות</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="#download" class="btn btn-nav-cta">
+                    <span>הורדה חינם</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container hero-container">
+            <div class="hero-badge-wrap">
+                <span class="hero-pill">
+                    <span class="pulse-dot"></span>
+                    <span>גרסה 1.0.0 זמינה • תמיכה ב-Premiere Pro 2020-2026</span>
+                </span>
+            </div>
+
+            <h1 class="hero-title">
+                ערוך סרטונים <span class="gradient-text">במהירות פי 5</span><br>
+                ישירות בתוך Premiere Pro
+            </h1>
+
+            <p class="hero-subtitle">
+                התוסף שמשחרר עורכי וידאו ויוצרי תוכן משעות של עבודה סיזיפית: <strong>חיתוך שקט אוטומטי</strong> מהטיימליין ו<strong>כתוביות AI מהירות שיא בעברית</strong> בלחיצת כפתור אחת.
+            </p>
+
+            <div class="hero-cta-group">
+                <a href="download/cs-trim-v1.0.0.zip" class="btn btn-primary btn-lg" id="btnHeroDownload" download>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>הורד עכשיו בחינם</span>
+                    <span class="btn-subtext">Mac & Windows • v1.0.0</span>
+                </a>
+                
+                <a href="#simulator" class="btn btn-secondary btn-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>נסה את הסימולטור בחינם</span>
+                </a>
+            </div>
+
+            <div class="hero-features-list">
+                <div class="hero-feat-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>ללא מנוי וללא עלות</span>
+                </div>
+                <div class="hero-feat-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>התקנה מהירה ב-15 שניות</span>
+                </div>
+                <div class="hero-feat-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>פאנל טבעי בתוך פרמייר</span>
+                </div>
+                <div class="hero-feat-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>תמיכה מלאה בעברית</span>
+                </div>
+            </div>
+
+            <!-- Interactive Panel Visual Preview Mockup -->
+            <div class="hero-preview-window">
+                <div class="preview-header">
+                    <div class="window-dots">
+                        <span class="dot dot-red"></span>
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-green"></span>
+                    </div>
+                    <div class="window-title">Adobe Premiere Pro — CS Trim Panel</div>
+                    <div class="window-actions">
+                        <span class="badge-live">מחובר לפרמייר</span>
+                    </div>
+                </div>
+
+                <div class="preview-body">
+                    <!-- Left: CS Trim Panel Simulation -->
+                    <div class="mockup-panel">
+                        <div class="mockup-top-bar">
+                            <div class="mockup-seq-info">
+                                <span class="mock-label">סיקוונס פעיל</span>
+                                <span class="mock-val">Podcast_Episode_12_Final.prproj</span>
+                            </div>
+                            <span class="mock-status-pill">
+                                <span class="status-dot-green"></span>
+                                מחובר
+                            </span>
+                        </div>
+
+                        <div class="mockup-tabs">
+                            <button class="mock-tab active" id="heroTabTrim" onclick="switchHeroMockupTab('trim')">חיתוך שקט</button>
+                            <button class="mock-tab" id="heroTabCaptions" onclick="switchHeroMockupTab('captions')">כתוביות AI</button>
+                        </div>
+
+                        <!-- Panel View: Trim -->
+                        <div class="mock-view active" id="heroViewTrim">
+                            <div class="mock-profiles">
+                                <span class="mock-prof active">רגיל (Normal)</span>
+                                <span class="mock-prof">גבוה (High)</span>
+                                <span class="mock-prof">אגרסיבי (Aggressive)</span>
+                            </div>
+                            <div class="mock-stat-box">
+                                <div class="stat-row">
+                                    <span>שתיקות שזוהו:</span>
+                                    <strong class="text-accent">42 קטעים (03:18 דק')</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>חיסכון מוערך בזמן:</span>
+                                    <strong class="text-success">65% מתוך הסרטון!</strong>
+                                </div>
+                            </div>
+                            <button class="mock-btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                <span>בצע חיתוך שקט אוטומטי</span>
+                            </button>
+                            <button class="mock-btn-secondary">סימון שקט בלבד (Markers)</button>
+                        </div>
+
+                        <!-- Panel View: Captions -->
+                        <div class="mock-view" id="heroViewCaptions" style="display:none;">
+                            <div class="mock-input-row">
+                                <label>מפתח API (Groq AI Whisper)</label>
+                                <div class="mock-input">•••••••••••••••••••••••••</div>
+                            </div>
+                            <div class="mock-slider-row">
+                                <div class="slider-head">
+                                    <span>מילים במשפט:</span>
+                                    <span class="badge-words">3 מילים (מושלם לרילס)</span>
+                                </div>
+                                <div class="mock-slider-track">
+                                    <div class="mock-slider-fill" style="width: 40%;"></div>
+                                </div>
+                            </div>
+                            <div class="mock-toggles">
+                                <span class="mock-check active"> סימני פיסוק</span>
+                                <span class="mock-check active"> מתיחת כתוביות (ללא רווחים)</span>
+                            </div>
+                            <button class="mock-btn-primary">יצירת כתוביות AI בעברית</button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Premiere Pro Timeline Simulation -->
+                    <div class="mockup-timeline">
+                        <div class="timeline-header">
+                            <span class="timeline-label">טיימליין פרמייר פרו</span>
+                            <span class="timeline-time">00:04:12:15</span>
+                        </div>
+                        <div class="timeline-tracks">
+                            <!-- Video Track -->
+                            <div class="track-row">
+                                <span class="track-name">V1</span>
+                                <div class="track-clips">
+                                    <div class="clip clip-video clip-active">Main_Cam_4K.mp4</div>
+                                </div>
+                            </div>
+
+                            <!-- Audio Track with Cuts -->
+                            <div class="track-row">
+                                <span class="track-name">A1</span>
+                                <div class="track-clips audio-waveform-track" id="heroTimelineClips">
+                                    <div class="clip clip-audio">דיבור 1</div>
+                                    <div class="clip clip-silence" title="שקט נחתך"></div>
+                                    <div class="clip clip-audio">דיבור 2</div>
+                                    <div class="clip clip-silence" title="שקט נחתך"></div>
+                                    <div class="clip clip-audio">דיבור 3</div>
+                                    <div class="clip clip-silence" title="שקט נחתך"></div>
+                                    <div class="clip clip-audio">דיבור 4</div>
+                                </div>
+                            </div>
+
+                            <!-- Captions Track -->
+                            <div class="track-row">
+                                <span class="track-name">C1</span>
+                                <div class="track-clips">
+                                    <div class="clip clip-caption">ברוכים הבאים</div>
+                                    <div class="clip clip-caption">לפודקאסט שלנו</div>
+                                    <div class="clip clip-caption">היום נדבר על</div>
+                                    <div class="clip clip-caption">חיתוך שקט אוטומטי</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-playhead"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-section">
+        <div class="container stats-container">
+            <div class="stat-card">
+                <div class="stat-number">x5</div>
+                <div class="stat-label">מהירות עבודה על ה-Rough Cut</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">80%</div>
+                <div class="stat-label">חיסכון בזמן גזירה ידנית</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">&lt; 10s</div>
+                <div class="stat-label">מהירות תמלול דקת דיבור מלאה</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">חינמי לחלוטין ליוצרים בישראל</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-badge-wrap">
+                <span class="section-badge">ארגז כלים מנצח</span>
+            </div>
+            <h2 class="section-title">שני כלים שכל עורך וידאו חייב בפרמייר</h2>
+            <p class="section-desc">במקום לשלם מאות שקלים בחודש על שירותים חיצוניים או לעבוד שעות בידיים — CS Trim עושה את הכל בתוך הפרויקט שלך.</p>
+
+            <div class="features-grid">
+                <!-- Feature 1: Silence Trim -->
+                <div class="feature-card highlight-card">
+                    <div class="card-icon-wrap icon-purple">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="6" cy="6" r="3"></circle>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>חיתוך שקט אוטומטי ואדפטיבי</h3>
+                    <p class="feature-lead">גזירת כל שתיקה, הפסקה או היסוס מהסרטון בלחיצת כפתור אחת.</p>
+                    <ul class="feature-points">
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>זיהוי אדפטיבי חכם:</strong> לא סתם סף דציבלים קבוע — האלגוריתם לומד את רעש הרקע בסרטון ומבדיל במדויק בין שקט לדיבור.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>3 פרופילי חיתוך מוכנים:</strong> רגיל (פודקאסטים וראיונות), גבוה (יוטיוב ולוגים), ואגרסיבי (רילס וטיקטוק קצביים).
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>בדיקה מוקדמת עם מרקרים (Markers):</strong> רוצה לראות מה ייחתך לפני השינוי? צור מרקרים בלחיצה אחת בלי לפגוע בקליפים.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>Ripple Delete אוטומטי:</strong> סוגר את כל הרווחים ומייצר סיקוונס מהודק שמוכן מיד להמשך העבודה.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2: AI Captions -->
+                <div class="feature-card highlight-card">
+                    <div class="card-icon-wrap icon-indigo">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            <path d="M8 9h8"></path>
+                            <path d="M8 13h6"></path>
+                        </svg>
+                    </div>
+                    <h3>כתוביות AI מהירות שיא בעברית</h3>
+                    <p class="feature-lead">מנוע Whisper Large v3 עם מעבדי Groq המהירים בעולם — חינמי וללא הגבלה.</p>
+                    <ul class="feature-points">
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>תמלול עברית ברמת דיוק מירבית:</strong> זיהוי מושלם של מילים, מבטאים ועגה ישראלית ללא טעויות מביכות.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>שליטה במספר מילים (1 עד 8):</strong> מיועד בול לסגנון Alex Hormozi ו-MrBeast — חלק את הכתוביות למילים בודדות או משפטים קצרים.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>מתיחת כתוביות (Gap Stretching):</strong> מונע הבהובים ומרווחים ריקים בין משפטים, לשטף קריאה קולנועי שמשאיר את הצופים דבוקים למסך.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
+                                <strong>יצירה ישירה בטיימליין:</strong> מייצר קובץ כתוביות וטראק ייעודי ישירות בתוך הפרויקט שלך בפרמייר.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- More perks row -->
+            <div class="perks-row">
+                <div class="perk-box">
+                    <div class="perk-icon">⚡</div>
+                    <h4>עובד מקומית ומהיר</h4>
+                    <p>אלגוריתם זיהוי השקט רץ 100% על המחשב שלך (Mac afconvert / Win ffmpeg) ללא צורך בהעלאת קבצי ענק לרשת.</p>
+                </div>
+                <div class="perk-box">
+                    <div class="perk-icon">🎯</div>
+                    <h4>סנכרון מלא לסיקוונס</h4>
+                    <p>התוסף עובד על הסיקוונס הפעיל שלך בזמן אמת, מזהה את הקליפים ועובד בתיאום מושלם עם ה-Timeline.</p>
+                </div>
+                <div class="perk-box">
+                    <div class="perk-icon">🔑</div>
+                    <h4>מפתח Groq חינם ב-10 שניות</h4>
+                    <p>התוסף משתמש ב-Groq Cloud API שמעניק שכבת שימוש חינמית ומהירה בטירוף ללא תשלום חודשי.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Simulator Section -->
+    <section class="simulator-section" id="simulator">
+        <div class="container">
+            <div class="section-badge-wrap">
+                <span class="section-badge">התנסות אינטראקטיבית</span>
+            </div>
+            <h2 class="section-title">ראה את הקסם בעיניים שלך</h2>
+            <p class="section-desc">שחק עם הסימולטורים למטה כדי להרגיש איך CS Trim הופך חומרי גלם ארוכים לתוכן קצבי וממכר.</p>
+
+            <div class="sim-grid">
+                <!-- Sim 1: Silence Trimmer -->
+                <div class="sim-card">
+                    <div class="sim-card-header">
+                        <div class="sim-card-title">
+                            <span class="sim-pill">סימולטור 1</span>
+                            <h3>חיתוך שקט בטיימליין</h3>
+                        </div>
+                        <div class="sim-controls">
+                            <button class="sim-btn active" id="simModeBefore" onclick="setSimCutMode('before')">לפני חיתוך (גלם)</button>
+                            <button class="sim-btn" id="simModeAfter" onclick="setSimCutMode('after')">אחרי CS Trim (נקי)</button>
+                        </div>
+                    </div>
+
+                    <div class="sim-stage">
+                        <div class="sim-stage-info">
+                            <div>
+                                <span class="sim-label">אורך הסרטון:</span>
+                                <strong id="simDurationText" class="sim-val">03:45 דקות</strong>
+                            </div>
+                            <div>
+                                <span class="sim-label">שתיקות שהוסרו:</span>
+                                <strong id="simSavedText" class="sim-val text-accent">0 שניות (ממתין לחיתוך)</strong>
+                            </div>
+                        </div>
+
+                        <!-- Visual waveform & blocks -->
+                        <div class="sim-timeline-view" id="simTimelineTrack">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <div class="sim-legend">
+                            <span class="legend-item"><span class="legend-box speech"></span> קטעי דיבור (נשמרים)</span>
+                            <span class="legend-item"><span class="legend-box silence"></span> שקט מיותר (נחתך אוטומטית)</span>
+                        </div>
+
+                        <div class="sim-action-bar">
+                            <button class="btn btn-primary btn-sm" id="btnSimTrigger" onclick="toggleSimCut()">
+                                <span>הפעל חיתוך אוטומטי</span>
+                            </button>
+                            <span class="sim-hint">לחץ על הכפתור כדי לראות איך 40% מהזמן נחתך בשנייה!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sim 2: Caption Word Slider -->
+                <div class="sim-card">
+                    <div class="sim-card-header">
+                        <div class="sim-card-title">
+                            <span class="sim-pill">סימולטור 2</span>
+                            <h3>כתוביות AI לסרטוני טיקטוק ורילס</h3>
+                        </div>
+                        <div class="word-count-badge">
+                            <span id="simWordsLabel">3 מילים</span> במשפט
+                        </div>
+                    </div>
+
+                    <div class="sim-stage">
+                        <div class="slider-box">
+                            <label for="interactiveWordSlider" class="sim-label">הזז את הסליידר לשליטה בכמות המילים בכתובית:</label>
+                            <div class="slider-flex">
+                                <span>1 מילה</span>
+                                <input type="range" id="interactiveWordSlider" min="1" max="8" value="3" oninput="updateWordSim(this.value)">
+                                <span>8 מילים</span>
+                            </div>
+                        </div>
+
+                        <!-- Live Phone Video Mockup with Animated Captions -->
+                        <div class="phone-mockup">
+                            <div class="phone-speaker"></div>
+                            <div class="phone-screen">
+                                <div class="reel-creator-badge">
+                                    <div class="creator-avatar"></div>
+                                    <span>@video_creator</span>
+                                </div>
+
+                                <div class="reel-video-placeholder">
+                                    <div class="caption-display-box" id="simCaptionBox">
+                                        <!-- Subtitle words rendered here -->
+                                    </div>
+                                </div>
+
+                                <div class="reel-actions">
+                                    <span>❤️ 14.2K</span>
+                                    <span>💬 482</span>
+                                    <span>↗️ 2.1K</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="caption-presets">
+                            <button class="preset-pill" onclick="setWordSimPreset(1)">מילה אחת (MrBeast)</button>
+                            <button class="preset-pill active" onclick="setWordSimPreset(3)">3 מילים (Hormozi Style)</button>
+                            <button class="preset-pill" onclick="setWordSimPreset(6)">6 מילים (פודקאסט קלאסי)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-section" id="how-it-works">
+        <div class="container">
+            <div class="section-badge-wrap">
+                <span class="section-badge">פשטות מעל הכל</span>
+            </div>
+            <h2 class="section-title">איך זה עובד? ב-3 צעדים פשוטים</h2>
+            <p class="section-desc">אין צורך בהגדרות מסובכות או ידע טכני. בתוך דקה אחת מהרגע שאתה מוריד — הפלאגין כבר עובד בפרמייר.</p>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </div>
+                    <h4>מורידים ומתקינים</h4>
+                    <p>מורידים את קובץ ה-ZIP, לוחצים פעמיים על סקריפט ההתקנה האוטומטי (Mac או Windows), וזהו! התוסף מותקן בתיקיית ההרחבות של אדובי.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    </div>
+                    <h4>פותחים בפרמייר</h4>
+                    <p>פותחים את Premiere Pro, ניגשים לתפריט העליון: <strong>Window &gt; Extensions &gt; CS Trim</strong>. הפאנל נפתח מיד ומזהה את הסיקוונס הפעיל שלך.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <h4>לוחצים על חיתוך או כתוביות</h4>
+                    <p>בוחרים פרופיל לחיתוך שקט או מזינים מפתח Groq לכתוביות — לוחצים על הכפתור והטיימליין מתעדכן אוטומטית בתוך שניות ספורות!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation & Download Section -->
+    <section class="install-section" id="install">
+        <div class="container">
+            <div class="download-box-wrapper" id="download">
+                <div class="dl-content">
+                    <span class="dl-tag">הורדה חינם • גרסה 1.0.0</span>
+                    <h2 class="dl-title">מוכן לקצר 80% מזמן העריכה שלך?</h2>
+                    <p class="dl-subtitle">הורד את CS Trim עכשיו. החבילה כוללת קובץ התקנה אוטומטי בלחיצה אחת ל-Mac ול-Windows, לצד מדריך התקנה מלא בעברית.</p>
+
+                    <div class="dl-buttons-row">
+                        <a href="download/cs-trim-v1.0.0.zip" class="btn btn-primary btn-xl" download>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <div class="btn-text-col">
+                                <span class="btn-main-txt">הורד את התוסף עכשיו (ZIP)</span>
+                                <span class="btn-sec-txt">כולל מתקין אוטומטי למק ולווינדוס (32KB)</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="dl-meta-info">
+                        <span> תואם Premiere Pro CC 2020 ומעלה</span>
+                        <span>•</span>
+                        <span> תמיכה מלאה במעבדי Apple Silicon (M1/M2/M3/M4) ואינטל</span>
+                        <span>•</span>
+                        <span> Windows 10/11</span>
+                    </div>
+                </div>
+
+                <!-- Tabbed Installation Guides -->
+                <div class="install-guide-card">
+                    <div class="guide-tabs">
+                        <button class="guide-tab active" onclick="switchGuideTab('mac', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
+                            <span>התקנה ב-Mac</span>
+                        </button>
+                        <button class="guide-tab" onclick="switchGuideTab('win', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                            <span>התקנה ב-Windows</span>
+                        </button>
+                        <button class="guide-tab" onclick="switchGuideTab('api', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                            <span>קבלת מפתח Groq AI חינם</span>
+                        </button>
+                    </div>
+
+                    <!-- Mac Guide -->
+                    <div class="guide-pane active" id="paneMac">
+                        <ol class="guide-steps">
+                            <li>
+                                <strong>חלצו את קובץ ה-ZIP:</strong> לחצו לחיצה כפולה על הקובץ שהורדתם כדי לפתוח את התיקייה.
+                            </li>
+                            <li>
+                                <strong>הפעילו את הסקריפט:</strong> לחצו לחיצה כפולה על <code>Install_Mac.command</code>.
+                                <div class="tip-box">
+                                    <em>טיפ:</em> אם המק שואל לגבי הרשאה, לחצו קליק ימני על הקובץ ובחרו <strong>Open (פתח)</strong>.
+                                </div>
+                            </li>
+                            <li>
+                                <strong>פתחו את פרמייר:</strong> היכנסו ל-<strong>Window &gt; Extensions &gt; CS Trim</strong> — התוסף כבר שם וממתין לכם!
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- Windows Guide -->
+                    <div class="guide-pane" id="paneWin" style="display:none;">
+                        <ol class="guide-steps">
+                            <li>
+                                <strong>חלצו את קובץ ה-ZIP:</strong> לחצו קליק ימני על הקובץ ובחרו "חלץ הכל" (Extract All).
+                            </li>
+                            <li>
+                                <strong>הפעילו את הסקריפט:</strong> לחצו לחיצה כפולה על <code>Install_Windows.bat</code>. הסקריפט יעתיק את הקבצים ויגדיר את הרשאות הפיתוח הדרושות אוטומטית.
+                            </li>
+                            <li>
+                                <strong>פתחו את פרמייר:</strong> פתחו את Premiere Pro ובחרו בתפריט: <strong>Window &gt; Extensions &gt; CS Trim</strong>.
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- API Guide -->
+                    <div class="guide-pane" id="paneApi" style="display:none;">
+                        <ol class="guide-steps">
+                            <li>
+                                <strong>היכנסו ל-Groq Cloud:</strong> היכנסו אל <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="link-inline">console.groq.com/keys</a>.
+                            </li>
+                            <li>
+                                <strong>יצירת מפתח חינם:</strong> הירשמו בלחיצה עם חשבון Google או GitHub ולחצו על <strong>Create API Key</strong>.
+                            </li>
+                            <li>
+                                <strong>הדביקו בתוסף:</strong> העתיקו את המפתח שמתחיל ב-<code>gsk_...</code> והדביקו אותו בלשונית "כתוביות AI" בפלאגין. הוא נשמר במחשב שלכם לתמיד!
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-badge-wrap">
+                <span class="section-badge">תשובות לכל השאלות</span>
+            </div>
+            <h2 class="section-title">שאלות נפוצות</h2>
+            <p class="section-desc">כל מה שרצית לדעת על CS Trim, תאימות, חינמיות ואופן הפעולה.</p>
+
+            <div class="faq-accordion">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>האם התוסף באמת בחינם לחלוטין?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>כן! CS Trim פותח כדי לשרת את קהילת עורכי הוידאו ויוצרי התוכן בישראל. אין צורך בכרטיס אשראי, אין מנוי חודשי, ואין הגבלת כמות חיתוכים או סרטונים.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>האם התמלול בכתוביות תומך בעברית בצורה מדויקת?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>בהחלט! התוסף משתמש במודל המוביל <strong>Whisper Large v3</strong> המופעל על גבי מעבדי Groq המהירים. רמת הדיוק בעברית פנומנלית, כולל זיהוי סלנג ישראלי, מונחים מקצועיים ומבטאים, תוך שמירה על פיסוק תקני וחלוקה חכמה לפי מילים.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>באיזה גרסאות של Premiere Pro התוסף נתמך?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>התוסף תומך בכל גרסאות Adobe Premiere Pro החל מ-CC 2018/2020 ועד לגרסאות 2024, 2025 ו-2026. הוא נתמך גם במערכות macOS (כולל מעבדי M1/M2/M3/M4 של אפל) וגם ב-Windows 10/11.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>האם חיתוך השקט יכול למחוק לי בטעות מילים?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>לא. האלגוריתם של CS Trim שומר על מרווחי ביטחון (Padding) לפני ואחרי כל קטע דיבור, כך שאף פעם לא נחתכת תחילת או סוף מילה. בנוסף, יש לך אפשרות להפעיל את מצב <strong>סימון שקט בלבד (Markers)</strong> שמאפשר לך לראות בעיניים בטיימליין בדיוק היכן השתיקות לפני שמתבצע חיתוך בפועל.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>האם אני צריך לשלם על Groq API עבור הכתוביות?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>לא! Groq מעניקה מסלול חינמי נדיב ביותר המאפשר תמלול של שעות רבות של אודיו בכל יום בחינם לחלוטין וללא צורך בהזנת כרטיס אשראי. ההרשמה והפקת המפתח לוקחות 15 שניות בלבד.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>פתחתי את פרמייר והתוסף לא מופיע בתפריט Extensions, מה לעשות?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>ודאו שסגרתם ופתחתם מחדש את Premiere Pro לאחר הרצת סקריפט ההתקנה. בנוסף, ודאו שהרצתם את <code>Install_Mac.command</code> (במק) או <code>Install_Windows.bat</code> (בווינדוס) שהפעילו את מזהה הפיתוח (PlayerDebugMode).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <img src="assets/logo.png" alt="CS Trim" style="width: 36px; height: 36px; border-radius: 8px; object-fit: contain;">
+                    <span class="brand-name">CS Trim</span>
+                    <span class="footer-desc">תוסף החיתוך והכתוביות החכם ל-Adobe Premiere Pro</span>
+                </div>
+
+                <div class="footer-share">
+                    <span class="share-label">שתף עם עורכים נוספים:</span>
+                    <a href="https://api.whatsapp.com/send?text=היי! מצאתי תוסף מדהים לפרמייר פרו שחותך שקט ועושה כתוביות AI בעברית בחינם: https://cs-trim.com" target="_blank" rel="noopener" class="share-btn whatsapp" title="שתף בוואטסאפ">
+                        וואטסאפ
+                    </a>
+                    <a href="https://t.me/share/url?url=https://cs-trim.com&text=תוסף CS Trim לפרמייר פרו - חיתוך שקט וכתוביות AI חינם" target="_blank" rel="noopener" class="share-btn telegram" title="שתף בטלגרם">
+                        טלגרם
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 CS Trim. פותח באהבה עבור קהילת עורכי הוידאו ויוצרי התוכן בישראל.</p>
+                <div class="footer-disclaimer">
+                    Adobe, Premiere Pro ו-Creative Cloud הם סימנים מסחריים רשומים של Adobe Inc. תוסף זה פותח באופן עצמאי.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>

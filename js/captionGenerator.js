@@ -217,10 +217,36 @@ var CaptionGenerator = {
 
             onProgress(15, "מחלץ אודיו לתמלול...");
 
+            var ext = path.extname(mediaPath).toLowerCase();
+            var stats = null;
+            try { stats = fs.statSync(mediaPath); } catch (e) {}
+
+            // Direct upload check: If media is already an audio file or small video supported directly by Groq (< 24 MB)
+            var directAudioExts = [".mp3", ".m4a", ".wav", ".aac", ".ogg", ".flac"];
+            var isDirectAudio = directAudioExts.indexOf(ext) !== -1;
+            var isDirectVideo = (ext === ".mp4" || ext === ".webm") && stats && stats.size < 24 * 1024 * 1024;
+
+            if (stats && (isDirectAudio || isDirectVideo) && stats.size < 24 * 1024 * 1024) {
+                var mime = "audio/wav";
+                if (ext === ".mp3") mime = "audio/mp3";
+                else if (ext === ".m4a") mime = "audio/m4a";
+                else if (ext === ".mp4") mime = "audio/mp4";
+                else if (ext === ".webm") mime = "audio/webm";
+                else if (ext === ".ogg") mime = "audio/ogg";
+                else if (ext === ".flac") mime = "audio/flac";
+
+                return resolve({
+                    path: mediaPath,
+                    type: mime,
+                    filename: path.basename(mediaPath),
+                    isTemp: false
+                });
+            }
+
             var isWin = (os.platform() === "win32");
 
             if (isWin) {
-                // Windows extraction via ffmpeg
+                // Windows extraction via ffmpeg or PowerShell fallback
                 var tempWav = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".wav");
                 var extDir = "";
                 try {
@@ -230,17 +256,52 @@ var CaptionGenerator = {
                 } catch (e) {}
 
                 var ffmpegBin = "ffmpeg";
-                var bundledFfmpeg = path.join(extDir || "", "bin", "win", "ffmpeg.exe");
-                if (fs.existsSync(bundledFfmpeg)) {
-                    ffmpegBin = bundledFfmpeg;
+                var candidatePaths = [
+                    path.join(extDir || "", "bin", "win", "ffmpeg.exe"),
+                    path.join(extDir || "", "bin", "ffmpeg.exe"),
+                    path.join(process.cwd() || "", "bin", "win", "ffmpeg.exe")
+                ];
+                for (var i = 0; i < candidatePaths.length; i++) {
+                    if (candidatePaths[i] && fs.existsSync(candidatePaths[i])) {
+                        ffmpegBin = candidatePaths[i];
+                        break;
+                    }
                 }
 
                 var argsWin = ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWav, "-y"];
-                cp.execFile(ffmpegBin, argsWin, function (err, stdout, stderr) {
-                    if (err) {
-                        return reject(new Error("חילוץ אודיו נכשל ב-Windows. ודא ש-ffmpeg מותקן או נמצא בתיקיית הפלאגין. שגיאה: " + (stderr || err.message)));
+                cp.execFile(ffmpegBin, argsWin, { windowsHide: true }, function (err, stdout, stderr) {
+                    if (!err && fs.existsSync(tempWav)) {
+                        return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
                     }
-                    resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav" });
+
+                    // Fallback: PowerShell Windows Media Foundation (native to Windows 10/11)
+                    var tempM4a = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".m4a");
+                    var psScript = 
+                        '$ErrorActionPreference = "Stop"; ' +
+                        '$in = "' + mediaPath.replace(/"/g, '`"') + '"; ' +
+                        '$out = "' + tempM4a.replace(/"/g, '`"') + '"; ' +
+                        'Add-Type -AssemblyName System.Runtime.WindowsRuntime; ' +
+                        '[void][Windows.Media.Transcoding.MediaTranscoder, Windows.Media, ContentType = WindowsRuntime]; ' +
+                        '[void][Windows.Media.MediaProperties.MediaEncodingProfile, Windows.Media, ContentType = WindowsRuntime]; ' +
+                        '[void][Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime]; ' +
+                        '$t = New-Object Windows.Media.Transcoding.MediaTranscoder; ' +
+                        '$p = [Windows.Media.MediaProperties.MediaEncodingProfile]::CreateM4a([Windows.Media.MediaProperties.AudioEncodingQuality]::Medium); ' +
+                        '$sIn = [Windows.Storage.StorageFile]::GetFileFromPathAsync($in).AsTask().GetAwaiter().GetResult(); ' +
+                        '$fOut = [Windows.Storage.StorageFolder]::GetFolderFromPathAsync((Split-Path $out)).AsTask().GetAwaiter().GetResult(); ' +
+                        '$sOut = $fOut.CreateFileAsync((Split-Path $out -Leaf), [Windows.Storage.CreationCollisionOption]::ReplaceExisting).AsTask().GetAwaiter().GetResult(); ' +
+                        '$op = $t.PrepareFileTranscodeAsync($sIn, $sOut, $p).AsTask().GetAwaiter().GetResult(); ' +
+                        'if ($op.CanTranscode) { $op.TranscodeAsync().AsTask().GetAwaiter().GetResult(); exit 0 } else { exit 1 }';
+
+                    cp.execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", psScript], { windowsHide: true }, function (psErr) {
+                        if (!psErr && fs.existsSync(tempM4a)) {
+                            return resolve({ path: tempM4a, type: "audio/m4a", filename: "audio.m4a", isTemp: true });
+                        }
+                        var errMsg = "חילוץ אודיו נכשל ב-Windows. ודא ש-ffmpeg מותקן או נמצא בתיקיית התוסף.";
+                        if (stderr || (err && err.message)) {
+                            errMsg += " שגיאה: " + (stderr || err.message);
+                        }
+                        return reject(new Error(errMsg));
+                    });
                 });
             } else {
                 // macOS extraction via afconvert (built-in)
@@ -254,11 +315,11 @@ var CaptionGenerator = {
                         var argsWav = ["-f", "WAVE", "-d", "LEI16@16000", "-c", "1", mediaPath, tempWav];
                         cp.execFile("/usr/bin/afconvert", argsWav, function (err2, out2, errStr2) {
                             if (err2) return reject(new Error("חילוץ אודיו נכשל ב-macOS: " + (errStr2 || err2.message)));
-                            resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav" });
+                            resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
                         });
                         return;
                     }
-                    resolve({ path: tempAudio, type: "audio/m4a", filename: "audio.m4a" });
+                    resolve({ path: tempAudio, type: "audio/m4a", filename: "audio.m4a", isTemp: true });
                 });
             }
         });
@@ -322,11 +383,15 @@ var CaptionGenerator = {
                 return res.json();
             })
             .then(function (data) {
-                try { fs.unlinkSync(audioPath); } catch (e) {}
+                if (audioInfo && audioInfo.isTemp !== false) {
+                    try { fs.unlinkSync(audioPath); } catch (e) {}
+                }
                 resolve(data);
             })
             .catch(function (err) {
-                try { fs.unlinkSync(audioPath); } catch (e) {}
+                if (audioInfo && audioInfo.isTemp !== false) {
+                    try { fs.unlinkSync(audioPath); } catch (e) {}
+                }
                 reject(err);
             });
         });

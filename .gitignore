@@ -12,3 +12,5 @@ package_temp/
 .debug.bak
 
 makensis/
+bin/
+*.gz

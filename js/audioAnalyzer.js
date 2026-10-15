@@ -69,10 +69,19 @@ var AudioAnalyzer = {
                             }
                         } catch (e) {}
                         var ffmpegBin = "ffmpeg";
-                        var bundledFfmpeg = path.join(extDir || "", "bin", "win", "ffmpeg.exe");
-                        if (fs.existsSync(bundledFfmpeg)) ffmpegBin = bundledFfmpeg;
+                        var candidatePaths = [
+                            path.join(extDir || "", "bin", "win", "ffmpeg.exe"),
+                            path.join(extDir || "", "bin", "ffmpeg.exe"),
+                            path.join(process.cwd() || "", "bin", "win", "ffmpeg.exe")
+                        ];
+                        for (var i = 0; i < candidatePaths.length; i++) {
+                            if (candidatePaths[i] && fs.existsSync(candidatePaths[i])) {
+                                ffmpegBin = candidatePaths[i];
+                                break;
+                            }
+                        }
                         var argsWin = ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWav, "-y"];
-                        cp.execFile(ffmpegBin, argsWin, callback);
+                        cp.execFile(ffmpegBin, argsWin, { windowsHide: true }, callback);
                     } else {
                         // -c 1 = mono, so interleaved stereo never doubles the timestamps
                         var argsMac = ["-f", "WAVE", "-d", "LEI16@16000", "-c", "1", mediaPath, tempWav];

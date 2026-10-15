@@ -107,7 +107,8 @@ exit 0
     # A. Copy extension files into com.autocut.panel folder
     ext_dir = os.path.join(win_temp, "com.autocut.panel")
     os.makedirs(ext_dir, exist_ok=True)
-    for item in extension_items:
+    extension_items_win = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "bin"]
+    for item in extension_items_win:
         src = os.path.join(base, item)
         dst = os.path.join(ext_dir, item)
         if os.path.isdir(src):
@@ -115,16 +116,7 @@ exit 0
         elif os.path.isfile(src):
             shutil.copy2(src, dst)
 
-    # B. Build official .zxp extension file
-    zxp_file = os.path.join(win_temp, "CS-Trim-v1.0.0.zxp")
-    with zipfile.ZipFile(zxp_file, "w", zipfile.ZIP_DEFLATED) as zf:
-        for root, dirs, files in os.walk(ext_dir):
-            for file in files:
-                full_path = os.path.join(root, file)
-                rel_path = os.path.relpath(full_path, ext_dir)
-                zf.write(full_path, rel_path)
-
-    # C. Setup.exe in ZIP
+    # B. Setup.exe in ZIP
     if os.path.exists(final_win_exe):
         shutil.copy2(final_win_exe, os.path.join(win_temp, "CS-Trim-Setup.exe"))
 

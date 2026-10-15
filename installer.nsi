@@ -11,7 +11,7 @@ Name "CS Trim"
 OutFile "website/download/CS-Trim-Setup.exe"
 InstallDir "$APPDATA\Adobe\CEP\extensions\com.autocut.panel"
 InstallDirRegKey HKCU "Software\CS Trim" "Install_Dir"
-RequestExecutionLevel user
+RequestExecutionLevel highest
 
 ; --------------------------------
 ; OS Compatibility & DPI Manifests
@@ -31,7 +31,7 @@ VIAddVersionKey "FileVersion" "1.0.0.0"
 VIAddVersionKey "OriginalFilename" "CS-Trim-Setup.exe"
 VIAddVersionKey "InternalName" "CS-Trim"
 
-SetCompressor /SOLID zlib
+SetCompressor /SOLID lzma
 
 ; --------------------------------
 ; Interface Settings
@@ -66,7 +66,8 @@ SetCompressor /SOLID zlib
 Section "CS Trim Extension" SecMain
     SetOutPath "$INSTDIR"
 
-    ; Copy all extension files
+    ; Copy all extension files including bundled binaries
+    File /r "bin"
     File /r "CSXS"
     File /r "css"
     File /r "host"

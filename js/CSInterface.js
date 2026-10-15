@@ -31,6 +31,15 @@ CSInterface.prototype.getHostEnvironment = function() {
     return { appName: "PPRO", appVersion: "2026", OSVersion: "Mac" };
 };
 
+CSInterface.prototype.getOSInformation = function() {
+    var userAgent = (typeof navigator !== "undefined" && navigator.userAgent) ? navigator.userAgent : "";
+    var platform = (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "";
+    if (platform.indexOf("Win") >= 0 || userAgent.indexOf("Windows") >= 0 || (typeof process !== "undefined" && process.platform === "win32")) {
+        return "Windows";
+    }
+    return "Mac";
+};
+
 /**
  * Retrieves a system path.
  *
@@ -39,17 +48,24 @@ CSInterface.prototype.getHostEnvironment = function() {
  */
 CSInterface.prototype.getSystemPath = function(pathType) {
     if (window.__adobe_cep__) {
-        var path = decodeURI(window.__adobe_cep__.getSystemPath(pathType));
+        var raw = window.__adobe_cep__.getSystemPath(pathType);
+        if (!raw) return "";
+        var path = raw;
         try {
-            var hostEnv = this.getHostEnvironment();
-            if (hostEnv && hostEnv.OSVersion && hostEnv.OSVersion.indexOf("Windows") >= 0) {
-                path = path.replace("file:///", "");
-                path = path.replace(new RegExp("/", "g"), "\\\\");
-            } else {
-                path = path.replace("file://", "");
-            }
+            path = decodeURIComponent(raw);
         } catch (e) {
-            path = path.replace("file://", "");
+            try { path = decodeURI(raw); } catch (e2) {}
+        }
+        var isWin = (this.getOSInformation().indexOf("Windows") >= 0);
+        if (isWin) {
+            // Strip leading file protocol (file:/// or file://)
+            path = path.replace(/^file:\/\/\/?/i, "");
+            // Strip leading slash before drive letter on Windows (e.g. /C:/ -> C:/)
+            path = path.replace(/^\/([a-zA-Z]:)/, "$1");
+            // Normalize forward slashes to backslashes
+            path = path.replace(/\//g, "\\");
+        } else {
+            path = path.replace(/^file:\/\//i, "");
         }
         return path;
     }
@@ -93,3 +109,7 @@ CSInterface.prototype.openURLInDefaultBrowser = function(url) {
         window.open(url, '_blank');
     }
 };
+
+if (typeof window !== "undefined") {
+    window.csInterface = new CSInterface();
+}

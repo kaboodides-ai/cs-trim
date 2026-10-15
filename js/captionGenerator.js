@@ -177,6 +177,93 @@ var CaptionGenerator = {
         return null;
     },
 
+    getFfmpegPath: function () {
+        var self = this;
+        var nodeReq = self.getNodeRequire();
+        if (!nodeReq) return "ffmpeg";
+        var path = nodeReq("path");
+        var fs = nodeReq("fs");
+        var os = nodeReq("os");
+
+        if (os.platform() !== "win32") return "ffmpeg";
+
+        var normalizeWinDir = function (rawDir) {
+            if (!rawDir) return "";
+            var d = rawDir;
+            try { d = decodeURIComponent(d); } catch (e) {
+                try { d = decodeURI(d); } catch (e2) {}
+            }
+            return d.replace(/^file:\/\/\/?/i, "").replace(/^\/([a-zA-Z]:)/, "$1").replace(/\//g, "\\");
+        };
+
+        var dirs = [];
+
+        // 1. From window.location
+        try {
+            if (typeof window !== "undefined" && window.location && window.location.pathname) {
+                var locFile = normalizeWinDir(window.location.pathname);
+                if (locFile) dirs.push(path.dirname(locFile));
+            }
+        } catch (e) {}
+
+        // 2. From CSInterface.getSystemPath("extension")
+        try {
+            var extDir = "";
+            if (typeof csInterface !== "undefined" && csInterface && csInterface.getSystemPath) {
+                extDir = csInterface.getSystemPath("extension");
+            } else if (typeof window !== "undefined" && window.csInterface && window.csInterface.getSystemPath) {
+                extDir = window.csInterface.getSystemPath("extension");
+            } else if (typeof CSInterface !== "undefined") {
+                extDir = new CSInterface().getSystemPath("extension");
+            }
+            extDir = normalizeWinDir(extDir);
+            if (extDir) dirs.push(extDir);
+        } catch (e) {}
+
+        // 3. Standard Windows CEP extension directories
+        var homeDir = "";
+        try { homeDir = os.homedir(); } catch (e) {}
+        var appData = (typeof process !== "undefined" && process.env && process.env.APPDATA) || (homeDir ? path.join(homeDir, "AppData", "Roaming") : "");
+        var localAppData = (typeof process !== "undefined" && process.env && process.env.LOCALAPPDATA) || (homeDir ? path.join(homeDir, "AppData", "Local") : "");
+        var common64 = (typeof process !== "undefined" && process.env && (process.env.CommonProgramW6432 || process.env.CommonProgramFiles)) || "C:\\Program Files\\Common Files";
+        var common86 = (typeof process !== "undefined" && process.env && process.env["CommonProgramFiles(x86)"]) || "C:\\Program Files (x86)\\Common Files";
+
+        if (appData) dirs.push(path.join(appData, "Adobe", "CEP", "extensions", "com.autocut.panel"));
+        if (homeDir) dirs.push(path.join(homeDir, "AppData", "Roaming", "Adobe", "CEP", "extensions", "com.autocut.panel"));
+        if (localAppData) dirs.push(path.join(localAppData, "Adobe", "CEP", "extensions", "com.autocut.panel"));
+        if (common86) dirs.push(path.join(common86, "Adobe", "CEP", "extensions", "com.autocut.panel"));
+        if (common64) dirs.push(path.join(common64, "Adobe", "CEP", "extensions", "com.autocut.panel"));
+        dirs.push("C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\com.autocut.panel");
+        dirs.push("C:\\Program Files\\Common Files\\Adobe\\CEP\\extensions\\com.autocut.panel");
+
+        if (typeof __dirname !== "undefined") {
+            dirs.push(__dirname);
+            dirs.push(path.join(__dirname, ".."));
+        }
+        if (typeof process !== "undefined" && process.cwd) {
+            try { dirs.push(process.cwd()); } catch (e) {}
+        }
+
+        var candidates = [];
+        for (var dIdx = 0; dIdx < dirs.length; dIdx++) {
+            var base = dirs[dIdx];
+            if (!base) continue;
+            candidates.push(path.join(base, "bin", "win", "ffmpeg.exe"));
+            candidates.push(path.join(base, "bin", "ffmpeg.exe"));
+            candidates.push(path.join(base, "ffmpeg.exe"));
+        }
+
+        for (var i = 0; i < candidates.length; i++) {
+            try {
+                if (candidates[i] && fs.existsSync(candidates[i])) {
+                    return candidates[i];
+                }
+            } catch (err) {}
+        }
+
+        return "ffmpeg";
+    },
+
     /**
      * Format seconds to SRT timestamp: HH:MM:SS,mmm
      */
@@ -200,7 +287,7 @@ var CaptionGenerator = {
     /**
      * Extract audio from media file cross-platform:
      * - macOS: uses native /usr/bin/afconvert (AAC M4A or WAV)
-     * - Windows: uses ffmpeg (checks bundled bin or PATH)
+     * - Windows: uses bundled ffmpeg with native WinRT MediaTranscoder fallback
      */
     extractAudio: function (mediaPath, onProgress) {
         var self = this;
@@ -224,11 +311,11 @@ var CaptionGenerator = {
             // Direct upload check: If media is already an audio file or small video supported directly by Groq (< 24 MB)
             var directAudioExts = [".mp3", ".m4a", ".wav", ".aac", ".ogg", ".flac"];
             var isDirectAudio = directAudioExts.indexOf(ext) !== -1;
-            var isDirectVideo = (ext === ".mp4" || ext === ".webm") && stats && stats.size < 24 * 1024 * 1024;
+            var isDirectVideo = (ext === ".mp4" || ext === ".webm" || ext === ".mpeg" || ext === ".mpga") && stats && stats.size < 24 * 1024 * 1024;
 
             if (stats && (isDirectAudio || isDirectVideo) && stats.size < 24 * 1024 * 1024) {
                 var mime = "audio/wav";
-                if (ext === ".mp3") mime = "audio/mp3";
+                if (ext === ".mp3" || ext === ".mpga" || ext === ".mpeg") mime = "audio/mp3";
                 else if (ext === ".m4a") mime = "audio/m4a";
                 else if (ext === ".mp4") mime = "audio/mp4";
                 else if (ext === ".webm") mime = "audio/webm";
@@ -246,57 +333,58 @@ var CaptionGenerator = {
             var isWin = (os.platform() === "win32");
 
             if (isWin) {
-                // Windows extraction via ffmpeg or PowerShell fallback
+                // Windows extraction via bundled ffmpeg (compact 64kbps mono MP3/WAV so large files stay under Groq 25MB limit)
                 var tempWav = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".wav");
-                var extDir = "";
-                try {
-                    if (typeof window !== "undefined" && window.csInterface) {
-                        extDir = window.csInterface.getSystemPath("extension");
-                    }
-                } catch (e) {}
-
-                var ffmpegBin = "ffmpeg";
-                var candidatePaths = [
-                    path.join(extDir || "", "bin", "win", "ffmpeg.exe"),
-                    path.join(extDir || "", "bin", "ffmpeg.exe"),
-                    path.join(process.cwd() || "", "bin", "win", "ffmpeg.exe")
-                ];
-                for (var i = 0; i < candidatePaths.length; i++) {
-                    if (candidatePaths[i] && fs.existsSync(candidatePaths[i])) {
-                        ffmpegBin = candidatePaths[i];
-                        break;
-                    }
-                }
-
+                var ffmpegBin = self.getFfmpegPath();
                 var argsWin = ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWav, "-y"];
+
                 cp.execFile(ffmpegBin, argsWin, { windowsHide: true }, function (err, stdout, stderr) {
                     if (!err && fs.existsSync(tempWav)) {
                         return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
                     }
 
-                    // Fallback: PowerShell Windows Media Foundation (native to Windows 10/11)
+                    // Fallback 1: Native Windows 10/11 MediaTranscoder (CreateM4a) via PowerShell
                     var tempM4a = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".m4a");
-                    var psScript = 
-                        '$ErrorActionPreference = "Stop"; ' +
-                        '$in = "' + mediaPath.replace(/"/g, '`"') + '"; ' +
-                        '$out = "' + tempM4a.replace(/"/g, '`"') + '"; ' +
-                        'Add-Type -AssemblyName System.Runtime.WindowsRuntime; ' +
-                        '[void][Windows.Media.Transcoding.MediaTranscoder, Windows.Media, ContentType = WindowsRuntime]; ' +
-                        '[void][Windows.Media.MediaProperties.MediaEncodingProfile, Windows.Media, ContentType = WindowsRuntime]; ' +
-                        '[void][Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime]; ' +
-                        '$t = New-Object Windows.Media.Transcoding.MediaTranscoder; ' +
-                        '$p = [Windows.Media.MediaProperties.MediaEncodingProfile]::CreateM4a([Windows.Media.MediaProperties.AudioEncodingQuality]::Medium); ' +
-                        '$sIn = [Windows.Storage.StorageFile]::GetFileFromPathAsync($in).AsTask().GetAwaiter().GetResult(); ' +
-                        '$fOut = [Windows.Storage.StorageFolder]::GetFolderFromPathAsync((Split-Path $out)).AsTask().GetAwaiter().GetResult(); ' +
-                        '$sOut = $fOut.CreateFileAsync((Split-Path $out -Leaf), [Windows.Storage.CreationCollisionOption]::ReplaceExisting).AsTask().GetAwaiter().GetResult(); ' +
-                        '$op = $t.PrepareFileTranscodeAsync($sIn, $sOut, $p).AsTask().GetAwaiter().GetResult(); ' +
-                        'if ($op.CanTranscode) { $op.TranscodeAsync().AsTask().GetAwaiter().GetResult(); exit 0 } else { exit 1 }';
+                    var psIn = mediaPath.replace(/'/g, "''");
+                    var psOut = tempM4a.replace(/'/g, "''");
+                    var psScript = [
+                        "$ErrorActionPreference = 'Stop'",
+                        "Add-Type -AssemblyName System.Runtime.WindowsRuntime",
+                        "$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' })[0]",
+                        "$asTaskAction = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncAction' })[0]",
+                        "Function Await($WinRtTask, $ResultType) { $asTask = $asTaskGeneric.MakeGenericMethod($ResultType); $netTask = $asTask.Invoke($null, @($WinRtTask)); $netTask.Wait(-1) | Out-Null; $netTask.Result }",
+                        "Function AwaitAction($WinRtAction) { $netTask = $asTaskAction.Invoke($null, @($WinRtAction)); $netTask.Wait(-1) | Out-Null }",
+                        "[void][Windows.Media.Transcoding.MediaTranscoder, Windows.Media, ContentType = WindowsRuntime]",
+                        "[void][Windows.Media.MediaProperties.MediaEncodingProfile, Windows.Media, ContentType = WindowsRuntime]",
+                        "[void][Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime]",
+                        "[void][Windows.Storage.StorageFolder, Windows.Storage, ContentType = WindowsRuntime]",
+                        "$inPath = '" + psIn + "'",
+                        "$outPath = '" + psOut + "'",
+                        "$outDir = [System.IO.Path]::GetDirectoryName($outPath)",
+                        "$outName = [System.IO.Path]::GetFileName($outPath)",
+                        "$sIn = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($inPath)) ([Windows.Storage.StorageFile])",
+                        "$fOut = Await ([Windows.Storage.StorageFolder]::GetFolderFromPathAsync($outDir)) ([Windows.Storage.StorageFolder])",
+                        "$sOut = Await ($fOut.CreateFileAsync($outName, [Windows.Storage.CreationCollisionOption]::ReplaceExisting)) ([Windows.Storage.StorageFile])",
+                        "$profile = [Windows.Media.MediaProperties.MediaEncodingProfile]::CreateM4a([Windows.Media.MediaProperties.AudioEncodingQuality]::Medium)",
+                        "$transcoder = New-Object Windows.Media.Transcoding.MediaTranscoder",
+                        "$prep = Await ($transcoder.PrepareFileTranscodeAsync($sIn, $sOut, $profile)) ([Windows.Media.Transcoding.PrepareTranscodeResult])",
+                        "if ($prep.CanTranscode) { AwaitAction ($prep.TranscodeAsync()); exit 0 } else { exit 1 }"
+                    ].join("; ");
 
-                    cp.execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", psScript], { windowsHide: true }, function (psErr) {
+                    cp.execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", psScript], { windowsHide: true }, function (psErr) {
                         if (!psErr && fs.existsSync(tempM4a)) {
                             return resolve({ path: tempM4a, type: "audio/m4a", filename: "audio.m4a", isTemp: true });
                         }
-                        var errMsg = "חילוץ אודיו נכשל ב-Windows. ודא ש-ffmpeg מותקן או נמצא בתיקיית התוסף.";
+
+                        // Direct WAV fallback
+                        if (ext === ".wav") {
+                            try {
+                                fs.copyFileSync(mediaPath, tempWav);
+                                return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
+                            } catch (copyErr) {}
+                        }
+
+                        var errMsg = "חילוץ אודיו נכשל ב-Windows. ודא ש-ffmpeg זמין או נמצא בתיקיית התוסף.";
                         if (stderr || (err && err.message)) {
                             errMsg += " שגיאה: " + (stderr || err.message);
                         }

@@ -7,7 +7,8 @@ window.onerror = function (msg, url, line) {
     return false;
 };
 
-var csInterface = new CSInterface();
+var csInterface = (typeof window !== "undefined" && window.csInterface) ? window.csInterface : new CSInterface();
+if (typeof window !== "undefined") window.csInterface = csInterface;
 var selectedProfile = "normal";
 
 // Safe UTF-8 Bridge: seamlessly decode any percent-encoded data from ExtendScript
@@ -104,11 +105,21 @@ function escapeForEval(str) {
 
 function ensureHostScriptLoaded(callback) {
     try {
-        var extDir = csInterface.getSystemPath("extension");
-        if (!extDir) extDir = "/Users/liamkaboodi/plugin text";
-        var jsx = extDir.replace(/\\/g, "/") + "/host/index.jsx";
-        csInterface.evalScript('$.evalFile(new File("' + jsx + '"))', function () {
-            if (callback) callback();
+        csInterface.evalScript('typeof pingHost === "function"', function (isLoaded) {
+            if (isLoaded === "true" || isLoaded === true) {
+                if (callback) callback();
+                return;
+            }
+            var extDir = csInterface.getSystemPath("extension");
+            if (extDir) {
+                var cleanDir = extDir.replace(/^file:\/\/\/?/i, "").replace(/^\/([a-zA-Z]:)/, "$1").replace(/\\/g, "/");
+                var jsx = cleanDir + "/host/index.jsx";
+                csInterface.evalScript('$.evalFile(new File("' + jsx + '"))', function () {
+                    if (callback) callback();
+                });
+            } else {
+                if (callback) callback();
+            }
         });
         return;
     } catch (e) {

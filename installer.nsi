@@ -22,12 +22,12 @@ ManifestDPIAware true
 ; --------------------------------
 ; Version Metadata (Prevents Defender & Chrome Heuristic Flags)
 ; --------------------------------
-VIProductVersion "1.0.0.0"
+VIProductVersion "1.0.2.0"
 VIAddVersionKey "ProductName" "CS Trim"
 VIAddVersionKey "CompanyName" "CS Trim"
 VIAddVersionKey "LegalCopyright" "© 2026 CS Trim"
 VIAddVersionKey "FileDescription" "CS Trim Extension Installer for Adobe Premiere Pro"
-VIAddVersionKey "FileVersion" "1.0.0.0"
+VIAddVersionKey "FileVersion" "1.0.2.0"
 VIAddVersionKey "OriginalFilename" "CS-Trim-Setup.exe"
 VIAddVersionKey "InternalName" "CS-Trim"
 
@@ -64,9 +64,11 @@ SetCompressor /SOLID lzma
 ; Installer Section
 ; --------------------------------
 Section "CS Trim Extension" SecMain
+    SetShellVarContext current
+    RMDir /r "$INSTDIR"
     SetOutPath "$INSTDIR"
 
-    ; Copy all extension files including bundled binaries
+    ; Copy all extension files including bundled binaries to User AppData
     File /r "bin"
     File /r "CSXS"
     File /r "css"
@@ -76,11 +78,40 @@ Section "CS Trim Extension" SecMain
     File "index.html"
     File ".debug"
 
-    ; Also try to copy to Common Files if permissions allow
+    ; Also copy to 32-bit Common Files (standard Adobe CEP system extension folder on Windows)
+    ClearErrors
+    RMDir /r "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
     CreateDirectory "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
-    CopyFiles /SILENT "$INSTDIR\*" "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
+    IfErrors skip_common32
+    SetOutPath "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
+    File /r "bin"
+    File /r "CSXS"
+    File /r "css"
+    File /r "host"
+    File /r "img"
+    File /r "js"
+    File "index.html"
+    File ".debug"
+skip_common32:
 
-    ; Write registry keys for Adobe CEP PlayerDebugMode for CSXS 7 through 17
+    ; Also copy to 64-bit Common Files if permissions allow
+    ClearErrors
+    RMDir /r "$COMMONFILES64\Adobe\CEP\extensions\com.autocut.panel"
+    CreateDirectory "$COMMONFILES64\Adobe\CEP\extensions\com.autocut.panel"
+    IfErrors skip_common64
+    SetOutPath "$COMMONFILES64\Adobe\CEP\extensions\com.autocut.panel"
+    File /r "bin"
+    File /r "CSXS"
+    File /r "css"
+    File /r "host"
+    File /r "img"
+    File /r "js"
+    File "index.html"
+    File ".debug"
+skip_common64:
+    SetOutPath "$INSTDIR"
+
+    ; Write registry keys for Adobe CEP PlayerDebugMode for CSXS 7 through 20 (HKCU & HKLM)
     WriteRegStr HKCU "Software\Adobe\CSXS.7" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.8" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.9" "PlayerDebugMode" "1"
@@ -92,6 +123,39 @@ Section "CS Trim Extension" SecMain
     WriteRegStr HKCU "Software\Adobe\CSXS.15" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.16" "PlayerDebugMode" "1"
     WriteRegStr HKCU "Software\Adobe\CSXS.17" "PlayerDebugMode" "1"
+    WriteRegStr HKCU "Software\Adobe\CSXS.18" "PlayerDebugMode" "1"
+    WriteRegStr HKCU "Software\Adobe\CSXS.19" "PlayerDebugMode" "1"
+    WriteRegStr HKCU "Software\Adobe\CSXS.20" "PlayerDebugMode" "1"
+
+    WriteRegStr HKLM "Software\Adobe\CSXS.7" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.8" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.9" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.10" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.11" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.12" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.13" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.14" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.15" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.16" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.17" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.18" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.19" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\Adobe\CSXS.20" "PlayerDebugMode" "1"
+
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.7" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.8" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.9" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.10" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.11" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.12" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.13" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.14" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.15" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.16" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.17" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.18" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.19" "PlayerDebugMode" "1"
+    WriteRegStr HKLM "Software\WOW6432Node\Adobe\CSXS.20" "PlayerDebugMode" "1"
 
     ; Create Uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"

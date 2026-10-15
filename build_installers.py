@@ -120,7 +120,66 @@ exit 0
     if os.path.exists(final_win_exe):
         shutil.copy2(final_win_exe, os.path.join(win_temp, "CS-Trim-Setup.exe"))
 
-    # D. Clean Installation Guide TXT
+    # C. Graphical HTA Installer
+    hta_src = os.path.join(base, "Setup.hta")
+    if os.path.exists(hta_src):
+        shutil.copy2(hta_src, os.path.join(win_temp, "Install-CS-Trim.hta"))
+
+    # D. Quick-Install.bat
+    bat_content = """@echo off
+chcp 65001 >nul
+echo ========================================================
+echo       CS Trim - Adobe Premiere Pro Extension Installer
+echo ========================================================
+echo.
+
+set "TARGET=%APPDATA%\\Adobe\\CEP\\extensions\\com.autocut.panel"
+
+echo [1/2] Installing CS Trim to Adobe CEP extensions folder...
+if not exist "%APPDATA%\\Adobe\\CEP\\extensions" mkdir "%APPDATA%\\Adobe\\CEP\\extensions"
+if exist "%TARGET%" rmdir /s /q "%TARGET%"
+mkdir "%TARGET%"
+
+if exist "com.autocut.panel" (
+    xcopy /e /i /y /q "com.autocut.panel\\*" "%TARGET%\\" >nul
+) else (
+    xcopy /e /i /y /q "bin" "%TARGET%\\bin\\" >nul
+    xcopy /e /i /y /q "CSXS" "%TARGET%\\CSXS\\" >nul
+    xcopy /e /i /y /q "css" "%TARGET%\\css\\" >nul
+    xcopy /e /i /y /q "host" "%TARGET%\\host\\" >nul
+    xcopy /e /i /y /q "img" "%TARGET%\\img\\" >nul
+    xcopy /e /i /y /q "js" "%TARGET%\\js\\" >nul
+    copy /y "index.html" "%TARGET%\\" >nul
+    copy /y ".debug" "%TARGET%\\" >nul
+)
+
+echo [2/2] Configuring CSXS PlayerDebugMode in Windows Registry...
+for %%v in (7 8 9 10 11 12 13 14 15 16 17 18 19 20) do (
+    reg add "HKCU\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
+    reg add "HKLM\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
+)
+
+echo.
+echo ========================================================
+echo [V] Installation completed successfully!
+echo.
+echo Now open or restart Adobe Premiere Pro:
+echo Window ^> Extensions ^> CS Trim
+echo ========================================================
+echo.
+pause
+"""
+    with open(os.path.join(win_temp, "Quick-Install.bat"), "w", encoding="utf-8") as f:
+        f.write(bat_content)
+
+    # E. Registry Fix .reg
+    reg_lines = ["Windows Registry Editor Version 5.00\n"]
+    for v in range(7, 21):
+        reg_lines.append(f'[HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.{v}]\n"PlayerDebugMode"="1"\n')
+    with open(os.path.join(win_temp, "Enable-PlayerDebugMode.reg"), "w", encoding="utf-8") as f:
+        f.write("\n".join(reg_lines))
+
+    # F. Clean Installation Guide TXT
     guide_content = """מדריך התקנה של CS Trim ל-Windows
 ======================================
 
@@ -129,9 +188,15 @@ exit 0
 ייפתח אשף התקנה גרפי מעוצב (המשך > התקן).
 ההתקנה תעתיק אוטומטית את התוסף לתיקיות ההרחבה של אדובי ותגדיר את כל ההרשאות.
 
-אפשרות 2 (התקנה ידנית):
-העתיקו את התיקייה "com.autocut.panel" לתוך הנתיב הבא במחשב שלכם:
-%APPDATA%\\Adobe\\CEP\\extensions\\
+אפשרות 2 (אשף התקנה חלופי או קובץ Batch):
+- לחצו לחיצה כפולה על "Install-CS-Trim.hta" (אשף גרפי מובנה)
+או
+- לחצו לחיצה כפולה על "Quick-Install.bat" להתקנה אוטומטית תוך שנייה אחת בלבד.
+
+אפשרות 3 (התקנה ידנית):
+1. העתיקו את התיקייה "com.autocut.panel" לתוך הנתיב הבא במחשב:
+   %APPDATA%\\Adobe\\CEP\\extensions\\
+2. לחצו לחיצה כפולה על "Enable-PlayerDebugMode.reg" כדי לאשר את הרשאות הפיתוח של פרמייר.
 
 שלב סיום:
 סגרו ופתחו מחדש את Adobe Premiere Pro.
@@ -139,7 +204,7 @@ exit 0
 Window > Extensions > CS Trim
 (בעברית: חלון > הרחבות > CS Trim)
 
-זהו! הפלאגין מוכן לעבודה.
+זהו! הפלאגין מוכן לעבודה מלאה.
 """
     with open(os.path.join(win_temp, "Install_Instructions.txt"), "w", encoding="utf-8") as f:
         f.write(guide_content)

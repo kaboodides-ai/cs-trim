@@ -53,6 +53,14 @@ var TICKS_PER_SECOND = 254016000000;
 
 var AutoCutHost = {
     /**
+     * Normalize file paths for cross-platform comparison
+     */
+    normalizePath: function(p) {
+        if (!p || typeof p !== "string") return "";
+        return p.replace(/\\/g, "/").toLowerCase();
+    },
+
+    /**
      * Test connection between Panel (HTML/JS) and Premiere Pro
      */
     ping: function() {
@@ -274,12 +282,13 @@ var AutoCutHost = {
             var item = null;
             var used = [];
             var tracks = [srcSeq.videoTracks, srcSeq.audioTracks];
+            var normTargetMedia = AutoCutHost.normalizePath(mediaPath);
             for (var t = 0; t < tracks.length; t++) {
                 for (var i = 0; i < tracks[t].numTracks; i++) {
                     var clips = tracks[t][i].clips;
                     for (var c = 0; c < clips.numItems; c++) {
                         var pi = clips[c].projectItem;
-                        if (pi && pi.getMediaPath() === mediaPath) {
+                        if (pi && AutoCutHost.normalizePath(pi.getMediaPath()) === normTargetMedia) {
                             if (!item) item = pi;
                             used.push({ s: clips[c].inPoint.seconds, e: clips[c].outPoint.seconds });
                         }
@@ -319,7 +328,7 @@ var AutoCutHost = {
                     var sClips = tracks[st][si].clips;
                     for (var sc = 0; sc < sClips.numItems; sc++) {
                         var spi = sClips[sc].projectItem;
-                        if (spi && spi.getMediaPath() === mediaPath) {
+                        if (spi && AutoCutHost.normalizePath(spi.getMediaPath()) === normTargetMedia) {
                             startOffset = sClips[sc].start.seconds;
                             foundStart = true;
                             break;
@@ -373,7 +382,7 @@ var AutoCutHost = {
                     var tc = all[a][k].clips;
                     for (var r = tc.numItems - 1; r >= 0; r--) {
                         var pi = tc[r].projectItem;
-                        if (pi && pi.getMediaPath() === mediaPath) {
+                        if (pi && AutoCutHost.normalizePath(pi.getMediaPath()) === normTargetMedia) {
                             tc[r].remove(false, false);
                         }
                     }
@@ -449,7 +458,11 @@ var AutoCutHost = {
             if (!app.project) {
                 return JSON.stringify({ error: "No project open" });
             }
-            var srtFile = new File(srtPath);
+            var cleanSrt = (srtPath || "").replace(/\\/g, "/");
+            var srtFile = new File(cleanSrt);
+            if (!srtFile.exists) {
+                srtFile = new File(srtPath);
+            }
             if (!srtFile.exists) {
                 return JSON.stringify({ error: "SRT file not found: " + srtPath });
             }
@@ -460,7 +473,12 @@ var AutoCutHost = {
             }
 
             var targetBin = app.project.getInsertionBin ? app.project.getInsertionBin() : app.project.rootItem;
-            var success = app.project.importFiles([srtPath], true, targetBin, false);
+            var importTarget = (srtFile.fsName) ? srtFile.fsName : cleanSrt;
+            var success = app.project.importFiles([importTarget], true, targetBin, false);
+            if (!success) {
+                // Retry with raw path if needed
+                success = app.project.importFiles([srtPath], true, targetBin, false);
+            }
             if (!success) {
                 return JSON.stringify({ error: "Failed to import SRT into project" });
             }

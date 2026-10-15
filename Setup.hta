@@ -323,7 +323,7 @@
 
         function copyFilesClean(fso, srcDir, dstDir) {
             createFolderRecursive(fso, dstDir);
-            var items = ["CSXS", "css", "host", "img", "js", "index.html", ".debug"];
+            var items = ["CSXS", "css", "host", "img", "js", "index.html", ".debug", "bin"];
             for (var i = 0; i < items.length; i++) {
                 var item = items[i];
                 var s = srcDir + "\\" + item;
@@ -397,8 +397,8 @@
                     statusMsg.innerText = "מגדיר הרשאות מערכת ו-Registry...";
                     pFill.style.width = "85%";
 
-                    // Write PlayerDebugMode for CSXS versions 7 through 17
-                    for (var v = 7; v <= 17; v++) {
+                    // Write PlayerDebugMode for CSXS versions 7 through 20
+                    for (var v = 7; v <= 20; v++) {
                         try {
                             shell.RegWrite("HKCU\\Software\\Adobe\\CSXS." + v + "\\PlayerDebugMode", "1", "REG_SZ");
                         } catch(e) {}

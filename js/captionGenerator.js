@@ -22,6 +22,54 @@ var CaptionGenerator = {
         } catch (e) {}
     },
 
+    // Built-in dictionary of Hebrew spelling and terminology corrections for Whisper
+    HEBREW_CORRECTIONS: {
+        "טיק טוק": "טיקטוק",
+        "יו טיוב": "יוטיוב",
+        "פייס בוק": "פייסבוק",
+        "וואטס אפ": "וואטסאפ",
+        "ווטסאפ": "וואטסאפ",
+        "פריימיר": "פרמייר",
+        "פרימייר": "פרמייר",
+        "אינסטה": "אינסטגרם",
+        "אינסטה גרם": "אינסטגרם"
+    },
+
+    getCustomCorrections: function () {
+        try {
+            var raw = localStorage.getItem("autocut_caption_corrections");
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    },
+
+    saveCustomCorrections: function (map) {
+        try {
+            localStorage.setItem("autocut_caption_corrections", JSON.stringify(map || {}));
+        } catch (e) {}
+    },
+
+    correctHebrewSpelling: function (text) {
+        if (!text) return "";
+        var result = text;
+        var custom = this.getCustomCorrections();
+
+        var allMaps = [this.HEBREW_CORRECTIONS, custom];
+        for (var m = 0; m < allMaps.length; m++) {
+            var map = allMaps[m];
+            for (var wrong in map) {
+                if (map.hasOwnProperty(wrong) && wrong) {
+                    var correct = map[wrong];
+                    var escaped = wrong.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+                    var regex = new RegExp("(^|\\s|[.,!?;:״׳\"'\\(])" + escaped + "($|\\s|[.,!?;:״׳\"'\\)])", "gi");
+                    result = result.replace(regex, "$1" + correct + "$2");
+                }
+            }
+        }
+        return result;
+    },
+
     getNodeRequire: function () {
         if (typeof window !== "undefined" && window.cep_node && window.cep_node.require) return window.cep_node.require;
         if (typeof require !== "undefined") return require;
@@ -148,6 +196,10 @@ var CaptionGenerator = {
                 formData.append("language", language);
             }
 
+            // Guiding prompt in Hebrew for Whisper to maintain correct spelling, ktiv male and technical terminology
+            var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
+            formData.append("prompt", hebrewPrompt);
+
             fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
                 method: "POST",
                 headers: {
@@ -199,6 +251,7 @@ var CaptionGenerator = {
             if (!includePunctuation) {
                 s = s.replace(/[,.!?;:"'״׳—…\-]/g, "").replace(/\s+/g, " ").trim();
             }
+            s = self.correctHebrewSpelling(s);
             return s;
         };
 
@@ -289,6 +342,7 @@ var CaptionGenerator = {
             prevEnd = endTime;
 
             var text = chunk.map(function (w) { return w.word; }).join(" ");
+            text = self.correctHebrewSpelling(text);
             if (text) {
                 cues.push({
                     start: startTime,

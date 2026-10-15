@@ -85,16 +85,19 @@ exit 0
     nsis_bin = os.path.join(base, "makensis", "3.13", "bin", "makensis")
     nsis_share = os.path.join(base, "makensis", "3.13", "share", "nsis")
     nsi_script = os.path.join(base, "installer.nsi")
-    final_win_exe = os.path.join(dl_dir, "CS-Trim-v1.0.0-Windows-Setup.exe")
+    final_win_exe = os.path.join(dl_dir, "CS-Trim-Setup.exe")
+    legacy_win_exe = os.path.join(dl_dir, "CS-Trim-v1.0.0-Windows-Setup.exe")
 
     if os.path.exists(nsis_bin) and os.path.exists(nsi_script):
         env = os.environ.copy()
         env["NSISDIR"] = nsis_share
         subprocess.run([nsis_bin, "-INPUTCHARSET", "UTF8", nsi_script], env=env, check=True, stdout=subprocess.DEVNULL)
+        if os.path.exists(final_win_exe):
+            shutil.copy2(final_win_exe, legacy_win_exe)
         print(f"Created Windows Setup EXE: {final_win_exe} ({os.path.getsize(final_win_exe)} bytes)")
 
     # -------------------------------------------------------------
-    # 3. Build Windows Distribution ZIP (Antivirus-Safe, GUI Installer)
+    # 3. Build Windows Distribution ZIP (Antivirus-Safe, Clean Archive)
     # -------------------------------------------------------------
     win_temp = os.path.join(base, "win_dist_temp")
     if os.path.exists(win_temp):
@@ -121,72 +124,24 @@ exit 0
                 rel_path = os.path.relpath(full_path, ext_dir)
                 zf.write(full_path, rel_path)
 
-    # C. Graphical HTA Installer
-    hta_dest = os.path.join(win_temp, "Install-CS-Trim.hta")
-    shutil.copy2(os.path.join(base, "Setup.hta"), hta_dest)
-
-    # D. Setup.exe if generated
+    # C. Setup.exe in ZIP
     if os.path.exists(final_win_exe):
         shutil.copy2(final_win_exe, os.path.join(win_temp, "CS-Trim-Setup.exe"))
 
-    # E. Quick BAT installer fallback
-    bat_content = """@echo off
-chcp 65001 >nul
-echo ========================================================
-echo       CS Trim - Adobe Premiere Pro Extension Installer
-echo ========================================================
-echo.
-
-set "TARGET=%APPDATA%\\Adobe\\CEP\\extensions\\com.autocut.panel"
-
-echo Installing CS Trim to Adobe CEP extensions folder...
-if not exist "%APPDATA%\\Adobe\\CEP\\extensions" mkdir "%APPDATA%\\Adobe\\CEP\\extensions"
-if exist "%TARGET%" rmdir /s /q "%TARGET%"
-mkdir "%TARGET%"
-
-if exist "com.autocut.panel" (
-    xcopy /e /i /y "com.autocut.panel\\*" "%TARGET%\\" >nul
-) else (
-    xcopy /e /i /y "CSXS" "%TARGET%\\CSXS\\" >nul
-    xcopy /e /i /y "css" "%TARGET%\\css\\" >nul
-    xcopy /e /i /y "host" "%TARGET%\\host\\" >nul
-    xcopy /e /i /y "img" "%TARGET%\\img\\" >nul
-    xcopy /e /i /y "js" "%TARGET%\\js\\" >nul
-    copy /y "index.html" "%TARGET%\\" >nul
-    copy /y ".debug" "%TARGET%\\" >nul
-)
-
-echo Configuring CSXS PlayerDebugMode in Windows Registry...
-for %%v in (7 8 9 10 11 12 13 14 15 16 17) do (
-    reg add "HKCU\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-)
-
-echo.
-echo ========================================================
-echo [V] Installation completed successfully!
-echo.
-echo Now open or restart Adobe Premiere Pro:
-echo Window ^> Extensions ^> CS Trim
-echo ========================================================
-echo.
-pause
-"""
-    with open(os.path.join(win_temp, "Quick-Install.bat"), "w", encoding="utf-8") as f:
-        f.write(bat_content)
-
-    # F. Installation Guide TXT
+    # D. Clean Installation Guide TXT
     guide_content = """מדריך התקנה של CS Trim ל-Windows
 ======================================
 
-שלב 1:
-לחצו לחיצה כפולה על "Install-CS-Trim.hta" (או על CS-Trim-Setup.exe).
-ייפתח אשף התקנה גרפי מעוצב.
+אפשרות 1 (מומלצת ומהירה ביותר):
+לחצו לחיצה כפולה על "CS-Trim-Setup.exe".
+ייפתח אשף התקנה גרפי מעוצב (המשך > התקן).
+ההתקנה תעתיק אוטומטית את התוסף לתיקיות ההרחבה של אדובי ותגדיר את כל ההרשאות.
 
-שלב 2:
-בחלון שנפתח לחצו על "התקן עכשיו".
-ההתקנה תיקח כ-2 שניות ותעתיק אוטומטית את התוסף לתיקיות ההרחבה של אדובי ותגדיר את כל ההרשאות.
+אפשרות 2 (התקנה ידנית):
+העתיקו את התיקייה "com.autocut.panel" לתוך הנתיב הבא במחשב שלכם:
+%APPDATA%\\Adobe\\CEP\\extensions\\
 
-שלב 3:
+שלב סיום:
 סגרו ופתחו מחדש את Adobe Premiere Pro.
 היכנסו לתפריט העליון:
 Window > Extensions > CS Trim

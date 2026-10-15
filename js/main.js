@@ -174,6 +174,7 @@ window.addEventListener("DOMContentLoaded", function () {
             apiKeyInput.addEventListener("input", function () {
                 CaptionGenerator.saveApiKey(this.value);
             });
+            CaptionGenerator.fetchRemoteCorrections();
         }
 
         // Toggle Key Visibility (Show/Hide Button)

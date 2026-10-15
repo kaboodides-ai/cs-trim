@@ -8,13 +8,19 @@ Unicode True
 !include "MUI2.nsh"
 
 Name "CS Trim"
-OutFile "website/download/CS-Trim-v1.0.0-Windows-Setup.exe"
+OutFile "website/download/CS-Trim-Setup.exe"
 InstallDir "$APPDATA\Adobe\CEP\extensions\com.autocut.panel"
 InstallDirRegKey HKCU "Software\CS Trim" "Install_Dir"
 RequestExecutionLevel user
 
 ; --------------------------------
-; Version Metadata (Prevents Defender Heuristic Flags)
+; OS Compatibility & DPI Manifests
+; --------------------------------
+ManifestSupportedOS all
+ManifestDPIAware true
+
+; --------------------------------
+; Version Metadata (Prevents Defender & Chrome Heuristic Flags)
 ; --------------------------------
 VIProductVersion "1.0.0.0"
 VIAddVersionKey "ProductName" "CS Trim"
@@ -22,6 +28,8 @@ VIAddVersionKey "CompanyName" "CS Trim"
 VIAddVersionKey "LegalCopyright" "© 2026 CS Trim"
 VIAddVersionKey "FileDescription" "CS Trim Extension Installer for Adobe Premiere Pro"
 VIAddVersionKey "FileVersion" "1.0.0.0"
+VIAddVersionKey "OriginalFilename" "CS-Trim-Setup.exe"
+VIAddVersionKey "InternalName" "CS-Trim"
 
 SetCompressor /SOLID zlib
 

@@ -27,6 +27,9 @@ var CaptionGenerator = {
         "מקאבי": "מכבי",
         "מקבי": "מכבי",
         "מכאבי": "מכבי",
+        "קריש דם": "קריש דם",
+        "קרישים": "כרישים",
+        "קריש": "כריש",
         "טיק טוק": "טיקטוק",
         "יו טיוב": "יוטיוב",
         "פייס בוק": "פייסבוק",
@@ -36,6 +39,35 @@ var CaptionGenerator = {
         "פרימייר": "פרמייר",
         "אינסטה": "אינסטגרם",
         "אינסטה גרם": "אינסטגרם"
+    },
+
+    REMOTE_CORRECTIONS_URL: "https://cs-trim.com/corrections.json",
+
+    fetchRemoteCorrections: function () {
+        try {
+            if (typeof fetch === "undefined") return;
+            fetch(this.REMOTE_CORRECTIONS_URL, { cache: "no-cache" })
+                .then(function (res) {
+                    if (res.ok) return res.json();
+                })
+                .then(function (data) {
+                    if (data && data.corrections) {
+                        try {
+                            localStorage.setItem("autocut_remote_corrections", JSON.stringify(data.corrections));
+                        } catch (e) {}
+                    }
+                })
+                .catch(function () {});
+        } catch (e) {}
+    },
+
+    getRemoteCorrections: function () {
+        try {
+            var raw = localStorage.getItem("autocut_remote_corrections");
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
     },
 
     getCustomCorrections: function () {
@@ -57,8 +89,9 @@ var CaptionGenerator = {
         if (!text) return "";
         var result = text;
         var custom = this.getCustomCorrections();
+        var remote = this.getRemoteCorrections();
 
-        var allMaps = [this.HEBREW_CORRECTIONS, custom];
+        var allMaps = [this.HEBREW_CORRECTIONS, remote, custom];
         for (var m = 0; m < allMaps.length; m++) {
             var map = allMaps[m];
             for (var wrong in map) {
@@ -207,7 +240,7 @@ var CaptionGenerator = {
             }
 
             // Guiding prompt in Hebrew for Whisper to maintain correct spelling, ktiv male and technical terminology
-            var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, מכבי, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
+            var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, מכבי, כריש, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
             formData.append("prompt", hebrewPrompt);
 
             fetch("https://api.groq.com/openai/v1/audio/transcriptions", {

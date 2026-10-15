@@ -19,8 +19,10 @@ export default async function handler(req, res) {
         }
 
         const tokenCandidates = [
+            process.env.github_token,
             process.env.GITHUB_TOKEN,
             process.env.GH_TOKEN,
+            process.env.gh_token,
             process.env.GIT_TOKEN,
             process.env.GITHUB_PAT,
             process.env.GITHUB_ACCESS_TOKEN,
@@ -28,8 +30,11 @@ export default async function handler(req, res) {
             process.env.PAT,
             process.env.TOKEN
         ];
-        const token = (tokenCandidates.find(t => typeof t === "string" && t.trim().length > 0) || "").trim();
-        const repo = (process.env.GITHUB_REPO || "kaboodides-ai/cs-trim").trim();
+        const caseInsensitiveKey = Object.keys(process.env).find(k => 
+            ["github_token", "gh_token", "git_token", "github_pat", "token"].includes(k.toLowerCase())
+        );
+        const token = (tokenCandidates.find(t => typeof t === "string" && t.trim().length > 0) || (caseInsensitiveKey ? process.env[caseInsensitiveKey] : "") || "").trim();
+        const repo = (process.env.GITHUB_REPO || process.env.github_repo || "kaboodides-ai/cs-trim").trim();
         const filePath = "website/corrections.json";
 
         const matchingKeys = Object.keys(process.env).filter(k => /token|git|github|key|pat/i.test(k));

@@ -38,27 +38,84 @@ var CaptionGenerator = {
         "פריימיר": "פרמייר",
         "פרימייר": "פרמייר",
         "אינסטה": "אינסטגרם",
-        "אינסטה גרם": "אינסטגרם"
+        "אינסטה גרם": "אינסטגרם",
+        "וואצאפ": "וואטסאפ",
+        "מערכת": "מארחת",
+        "ספוטיפי": "ספוטיפיי"
     },
 
-    REMOTE_CORRECTIONS_URL: "https://cs-trim.com/corrections.json",
+    REMOTE_URLS: [
+        "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/corrections.json",
+        "https://cstrim.vercel.app/corrections.json"
+    ],
 
     fetchRemoteCorrections: function () {
-        try {
-            if (typeof fetch === "undefined") return;
-            fetch(this.REMOTE_CORRECTIONS_URL, { cache: "no-cache" })
-                .then(function (res) {
-                    if (res.ok) return res.json();
-                })
-                .then(function (data) {
-                    if (data && data.corrections) {
-                        try {
-                            localStorage.setItem("autocut_remote_corrections", JSON.stringify(data.corrections));
-                        } catch (e) {}
-                    }
-                })
-                .catch(function () {});
-        } catch (e) {}
+        var self = this;
+        return new Promise(function (resolve) {
+            var urls = self.REMOTE_URLS;
+            var nodeReq = self.getNodeRequire();
+
+            var tryUrl = function (index) {
+                if (index >= urls.length) {
+                    resolve(self.getRemoteCorrections());
+                    return;
+                }
+                var url = urls[index];
+
+                // Method A: Node.js https (works reliably inside Adobe CEP without CORS)
+                if (nodeReq) {
+                    try {
+                        var https = nodeReq("https");
+                        https.get(url, { headers: { "User-Agent": "cs-trim-cep" } }, function (res) {
+                            if (res.statusCode >= 200 && res.statusCode < 300) {
+                                var body = "";
+                                res.on("data", function (chunk) { body += chunk; });
+                                res.on("end", function () {
+                                    try {
+                                        var json = JSON.parse(body);
+                                        if (json && json.corrections) {
+                                            localStorage.setItem("autocut_remote_corrections", JSON.stringify(json.corrections));
+                                            console.log("[CS Trim] Loaded " + Object.keys(json.corrections).length + " remote corrections from cloud (" + url + ")");
+                                            resolve(json.corrections);
+                                            return;
+                                        }
+                                    } catch (e) {}
+                                    tryUrl(index + 1);
+                                });
+                            } else {
+                                tryUrl(index + 1);
+                            }
+                        }).on("error", function () {
+                            tryUrl(index + 1);
+                        });
+                        return;
+                    } catch (e) {}
+                }
+
+                // Method B: Browser fetch
+                if (typeof fetch !== "undefined") {
+                    fetch(url, { cache: "no-cache" })
+                        .then(function (res) { return res.ok ? res.json() : null; })
+                        .then(function (json) {
+                            if (json && json.corrections) {
+                                localStorage.setItem("autocut_remote_corrections", JSON.stringify(json.corrections));
+                                console.log("[CS Trim] Loaded " + Object.keys(json.corrections).length + " remote corrections from cloud (" + url + ")");
+                                resolve(json.corrections);
+                            } else {
+                                tryUrl(index + 1);
+                            }
+                        })
+                        .catch(function () {
+                            tryUrl(index + 1);
+                        });
+                    return;
+                }
+
+                tryUrl(index + 1);
+            };
+
+            tryUrl(0);
+        });
     },
 
     getRemoteCorrections: function () {
@@ -495,7 +552,10 @@ var CaptionGenerator = {
                 }).catch(reject);
             };
 
-            processNextPath();
+            // Ensure fresh remote corrections are loaded from cloud before transcription starts
+            self.fetchRemoteCorrections().catch(function () {}).then(function () {
+                processNextPath();
+            });
         });
     },
 

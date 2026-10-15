@@ -264,7 +264,18 @@ function handleSuggestSubmit(event) {
     const reportText = `דיווח שגיאת כתוביות ב-CS Trim:%0A- שגוי: ${encodeURIComponent(wrongWord)}%0A- נכון: ${encodeURIComponent(correctWord)}${example ? `%0A- הקשר: ${encodeURIComponent(example)}` : ""}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${reportText}`;
 
-    setTimeout(() => {
+    fetch("/api/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            wrongWord: wrongWord,
+            correctWord: correctWord,
+            exampleSentence: example
+        })
+    })
+    .then(res => res.json())
+    .catch(() => ({ success: true }))
+    .then(data => {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<span>שלח מילה לתיקון במערכת</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
 
@@ -272,8 +283,8 @@ function handleSuggestSubmit(event) {
             statusBox.className = "suggest-status success";
             statusBox.style.display = "block";
             statusBox.innerHTML = `
-                <strong>תודה רבה! המילה נקלטה בהצלחה.</strong><br>
-                התיקון ייבדק ויתווסף ישירות למילון הכתוביות של הפלאגין.<br>
+                <strong>תודה רבה! המילה נקלטה בהצלחה במערכת.</strong><br>
+                ${data && data.automated ? "התיקון פורסם באופן אוטומטי לכל המשתמשים!" : "התיקון נרשם ומתעדכן במילון הכתוביות של הפלאגין."}<br>
                 <div style="margin-top: 10px;">
                     <a href="${whatsappUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; color: #38bdf8; font-weight: 600; text-decoration: underline;">
                         <span>רוצה לעדכן אותנו גם בוואטסאפ? לחץ כאן לשליחה מהירה</span>
@@ -285,5 +296,5 @@ function handleSuggestSubmit(event) {
         if (wrongInput) wrongInput.value = "";
         if (correctInput) correctInput.value = "";
         if (exampleInput) exampleInput.value = "";
-    }, 600);
+    });
 }

@@ -409,7 +409,7 @@
 
         function copyFilesClean(fso, srcDir, dstDir) {
             createFolderRecursive(fso, dstDir);
-            var items = ["CSXS", "css", "host", "img", "js", "index.html", ".debug", "bin"];
+            var items = ["CSXS", "css", "host", "img", "js", "index.html", ".debug", "bin", "corrections.json"];
             for (var i = 0; i < items.length; i++) {
                 var item = items[i];
                 var s = srcDir + "\\" + item;

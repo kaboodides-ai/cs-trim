@@ -250,7 +250,7 @@ body {
 /* ---------- Top Navigation Tabs (Segmented Control) ---------- */
 .tabs-nav {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 3px;
     padding: 3px;
     background: #141414;
@@ -263,19 +263,22 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 34px;
-    padding: 0 12px;
+    height: 32px;
+    padding: 0 4px;
     background: transparent;
     color: #9A9A9A;
     border: 1px solid transparent;
     border-radius: 5px;
     font-family: var(--font);
-    font-size: 13px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s ease;
     user-select: none;
     -webkit-user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tab-btn:hover {
@@ -1591,3 +1594,391 @@ input[type="range"]#captionWordCount:focus-visible::-webkit-slider-thumb {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* ---------- View: Text Animations (Live Preview Cards & Responsive Controls) ---------- */
+.anim-preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.anim-preview-card {
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    text-align: center;
+}
+
+.anim-preview-card:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+}
+
+.anim-preview-card:active {
+    transform: translateY(0);
+}
+
+.anim-preview-card.active {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 3px 10px rgba(37, 99, 235, 0.2);
+}
+
+/* Card Viewport */
+.anim-card-viewport {
+    height: 54px;
+    background: #0D0D0D;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.anim-preview-card.active .anim-card-viewport {
+    background: #090E17;
+    border-color: rgba(37, 99, 235, 0.25);
+}
+
+/* Sample Text Element */
+.anim-sample-element {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+    background: #202020;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transform-origin: center center;
+    will-change: transform, opacity;
+}
+
+.anim-preview-card.active .anim-sample-element {
+    background: rgba(37, 99, 235, 0.25);
+    border-color: rgba(37, 99, 235, 0.6);
+    color: #FFFFFF;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.35);
+}
+
+/* Card Footer */
+.anim-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 2px 1px;
+    width: 100%;
+}
+
+.anim-card-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: var(--t);
+}
+
+.anim-preview-card.active .anim-card-name {
+    color: #93C5FD;
+    font-weight: 700;
+}
+
+/* --- Live Keyframe Animations for Each Card --- */
+
+/* 1. Pop (Bounce) */
+@keyframes tileAnimPop {
+    0% { transform: scale(0); opacity: 0; }
+    18% { transform: scale(1.22); opacity: 1; }
+    28% { transform: scale(0.94); }
+    36% { transform: scale(1); opacity: 1; }
+    72% { transform: scale(1); opacity: 1; }
+    85% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(0); opacity: 0; }
+}
+.anim-sample-pop {
+    animation: tileAnimPop 2.4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+/* 2. Slide Up */
+@keyframes tileAnimSlide {
+    0% { transform: translateY(22px); opacity: 0; }
+    22% { transform: translateY(0); opacity: 1; }
+    72% { transform: translateY(0); opacity: 1; }
+    86% { transform: translateY(-16px); opacity: 0; }
+    100% { transform: translateY(22px); opacity: 0; }
+}
+.anim-sample-slide {
+    animation: tileAnimSlide 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* 3. Zoom In */
+@keyframes tileAnimZoom {
+    0% { transform: scale(0.2); opacity: 0; }
+    22% { transform: scale(1); opacity: 1; }
+    72% { transform: scale(1); opacity: 1; }
+    86% { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(0.2); opacity: 0; }
+}
+.anim-sample-zoom {
+    animation: tileAnimZoom 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* 4. Smooth Fade */
+@keyframes tileAnimFade {
+    0% { opacity: 0; }
+    22% { opacity: 1; }
+    72% { opacity: 1; }
+    88% { opacity: 0; }
+    100% { opacity: 0; }
+}
+.anim-sample-fade {
+    animation: tileAnimFade 2.4s ease-in-out infinite;
+}
+
+/* --- Responsive Controls: Scope & Speed (100% width, never overflows) --- */
+.anim-control-block {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.anim-control-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-2);
+    margin-bottom: 5px;
+    text-align: right;
+    letter-spacing: 0.02em;
+}
+
+.anim-segmented-ctrl {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 2px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    height: 32px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.anim-track-selector {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.anim-track-btn {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+}
+
+.anim-track-btn.active {
+    color: #93C5FD;
+    border-color: rgba(37, 99, 235, 0.6);
+    background: rgba(37, 99, 235, 0.18);
+}
+
+.anim-segment-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+    padding: 0 4px;
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--t);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+    -webkit-user-select: none;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.anim-segment-btn:hover {
+    color: var(--text);
+    background: var(--surface-2);
+}
+
+.anim-segment-btn.active {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+    color: #FFFFFF;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.anim-segment-btn:active {
+    transform: scale(0.97);
+}
+
+/* Success Banner Pill */
+.anim-success-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(63, 185, 80, 0.15);
+    border: 1px solid var(--ok);
+    border-radius: var(--radius);
+    color: var(--ok);
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.anim-success-pill.fade-in {
+    animation: fadeIn 0.25s ease-out;
+}
+
+.anim-success-pill.fade-out {
+    animation: fadeOut 0.35s ease-in forwards;
+}
+
+/* Motion Blur Toggle Row */
+.row.anim-toggle-row {
+    margin-top: 4px;
+    margin-bottom: 12px;
+    padding: 7px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: var(--t);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.row.anim-toggle-row:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+}
+
+.anim-toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.anim-blur-badge {
+    display: inline-block;
+    padding: 1px 5px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(147, 51, 234, 0.25));
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    border-radius: 4px;
+    color: #93C5FD;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+}
+
+/* Simulated Motion Blur inside preview cards when Motion Blur is active */
+.with-motion-blur .anim-sample-slide {
+    animation-name: tileAnimSlideBlur;
+}
+.with-motion-blur .anim-sample-pop {
+    animation-name: tileAnimPopBlur;
+}
+.with-motion-blur .anim-sample-zoom {
+    animation-name: tileAnimZoomBlur;
+}
+
+@keyframes tileAnimSlideBlur {
+    0% { transform: translateY(22px); opacity: 0; filter: blur(2.5px); }
+    12% { filter: blur(1.8px); }
+    22% { transform: translateY(0); opacity: 1; filter: blur(0); }
+    72% { transform: translateY(0); opacity: 1; filter: blur(0); }
+    80% { filter: blur(1.2px); }
+    86% { transform: translateY(-16px); opacity: 0; filter: blur(2.5px); }
+    100% { transform: translateY(22px); opacity: 0; filter: blur(0); }
+}
+
+@keyframes tileAnimPopBlur {
+    0% { transform: scale(0); opacity: 0; filter: blur(2.5px); }
+    18% { transform: scale(1.22); opacity: 1; filter: blur(1px); }
+    28% { transform: scale(0.94); filter: blur(0); }
+    36% { transform: scale(1); opacity: 1; filter: blur(0); }
+    72% { transform: scale(1); opacity: 1; filter: blur(0); }
+    85% { transform: scale(0); opacity: 0; filter: blur(2.5px); }
+    100% { transform: scale(0); opacity: 0; filter: blur(0); }
+}
+
+@keyframes tileAnimZoomBlur {
+    0% { transform: scale(0.2); opacity: 0; filter: blur(3px); }
+    16% { filter: blur(1.5px); }
+    22% { transform: scale(1); opacity: 1; filter: blur(0); }
+    72% { transform: scale(1); opacity: 1; filter: blur(0); }
+    80% { filter: blur(1.2px); }
+    86% { transform: scale(1.35); opacity: 0; filter: blur(3px); }
+    100% { transform: scale(0.2); opacity: 0; filter: blur(0); }
+}
+
+/* Action Buttons */
+.btn-apply-anim {
+    height: 38px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+}
+
+.btn-reset-anim {
+    height: 32px;
+    font-size: 11.5px;
+    color: var(--text-2);
+}
+
+
+

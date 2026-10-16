@@ -40,7 +40,10 @@ var CaptionGenerator = {
         "אינסטה": "אינסטגרם",
         "אינסטה גרם": "אינסטגרם",
         "וואצאפ": "וואטסאפ",
-        "ספוטיפי": "ספוטיפיי"
+        "ספוטיפי": "ספוטיפיי",
+        "הצירה": "עצירה",
+        "מצחונות": "נצחונות",
+        "דגדק": "דגדג"
     },
 
     REMOTE_URLS: [
@@ -48,82 +51,194 @@ var CaptionGenerator = {
         "https://cstrim.vercel.app/corrections.json"
     ],
 
+    getExtensionDir: function () {
+        var normalize = function (raw) {
+            if (!raw) return "";
+            var d = raw;
+            try { d = decodeURIComponent(d); } catch (e) {
+                try { d = decodeURI(d); } catch (e2) {}
+            }
+            return d.replace(/^file:\/\/\/?/i, "").replace(/^\/([a-zA-Z]:)/, "$1").replace(/\//g, "\\");
+        };
+
+        try {
+            if (typeof csInterface !== "undefined" && csInterface && csInterface.getSystemPath) {
+                var p = csInterface.getSystemPath("extension");
+                if (p) return normalize(p);
+            } else if (typeof window !== "undefined" && window.csInterface && window.csInterface.getSystemPath) {
+                var wp = window.csInterface.getSystemPath("extension");
+                if (wp) return normalize(wp);
+            } else if (typeof CSInterface !== "undefined") {
+                var cp = new CSInterface().getSystemPath("extension");
+                if (cp) return normalize(cp);
+            }
+        } catch (e) {}
+
+        if (typeof __dirname !== "undefined") {
+            return normalize(__dirname);
+        }
+
+        try {
+            if (typeof window !== "undefined" && window.location && window.location.pathname) {
+                var loc = normalize(window.location.pathname);
+                var nodeReq = this.getNodeRequire();
+                if (nodeReq) {
+                    var path = nodeReq("path");
+                    return path.dirname(loc);
+                }
+            }
+        } catch (e) {}
+
+        return "";
+    },
+
     fetchRemoteCorrections: function () {
         var self = this;
         return new Promise(function (resolve) {
-            var urls = self.REMOTE_URLS;
-            var nodeReq = self.getNodeRequire();
+            var urls = [
+                self.REMOTE_URLS[0] + "?t=" + Date.now(),
+                self.REMOTE_URLS[1] + "?t=" + Date.now()
+            ];
 
-            var tryUrl = function (index) {
+            var saveLoadedCorrections = function (corrections, sourceUrl) {
+                if (!corrections || typeof corrections !== "object") return;
+                try {
+                    localStorage.setItem("autocut_remote_corrections", JSON.stringify(corrections));
+                } catch (e) {}
+
+                // Also persist to disk on Windows and macOS so it survives CEP cache resets
+                try {
+                    var nodeReq = self.getNodeRequire();
+                    if (nodeReq) {
+                        var fs = nodeReq("fs");
+                        var path = nodeReq("path");
+                        var extDir = self.getExtensionDir();
+                        if (extDir && fs.existsSync(extDir)) {
+                            var diskPath = path.join(extDir, "corrections.json");
+                            fs.writeFileSync(diskPath, JSON.stringify({ version: 1, corrections: corrections }, null, 2), "utf8");
+                        }
+                    }
+                } catch (fsErr) {}
+
+                console.log("[CS Trim] Loaded " + Object.keys(corrections).length + " remote corrections from cloud (" + sourceUrl + ")");
+            };
+
+            var tryNode = function (index, url) {
+                var nodeReq = self.getNodeRequire();
+                if (!nodeReq) {
+                    tryFetch(index + 1);
+                    return;
+                }
+                try {
+                    var https = nodeReq("https");
+                    var req = https.get(url, { headers: { "User-Agent": "cs-trim-cep", "Cache-Control": "no-cache" } }, function (res) {
+                        // Handle 301/302/307 redirects
+                        if ((res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) && res.headers.location) {
+                            var redirectUrl = res.headers.location;
+                            if (redirectUrl.indexOf("?") === -1) redirectUrl += "?t=" + Date.now();
+                            tryNode(index, redirectUrl);
+                            return;
+                        }
+                        if (res.statusCode >= 200 && res.statusCode < 300) {
+                            res.setEncoding("utf8");
+                            var body = "";
+                            res.on("data", function (chunk) { body += chunk; });
+                            res.on("end", function () {
+                                try {
+                                    var json = JSON.parse(body);
+                                    if (json && json.corrections) {
+                                        saveLoadedCorrections(json.corrections, url);
+                                        resolve(json.corrections);
+                                        return;
+                                    }
+                                } catch (e) {}
+                                tryFetch(index + 1);
+                            });
+                        } else {
+                            tryFetch(index + 1);
+                        }
+                    });
+                    req.on("error", function () {
+                        tryFetch(index + 1);
+                    });
+                    req.setTimeout(7000, function () {
+                        req.abort();
+                        tryFetch(index + 1);
+                    });
+                } catch (e) {
+                    tryFetch(index + 1);
+                }
+            };
+
+            var tryFetch = function (index) {
                 if (index >= urls.length) {
                     resolve(self.getRemoteCorrections());
                     return;
                 }
                 var url = urls[index];
 
-                // Method A: Node.js https (works reliably inside Adobe CEP without CORS)
-                if (nodeReq) {
-                    try {
-                        var https = nodeReq("https");
-                        https.get(url, { headers: { "User-Agent": "cs-trim-cep" } }, function (res) {
-                            if (res.statusCode >= 200 && res.statusCode < 300) {
-                                var body = "";
-                                res.on("data", function (chunk) { body += chunk; });
-                                res.on("end", function () {
-                                    try {
-                                        var json = JSON.parse(body);
-                                        if (json && json.corrections) {
-                                            localStorage.setItem("autocut_remote_corrections", JSON.stringify(json.corrections));
-                                            console.log("[CS Trim] Loaded " + Object.keys(json.corrections).length + " remote corrections from cloud (" + url + ")");
-                                            resolve(json.corrections);
-                                            return;
-                                        }
-                                    } catch (e) {}
-                                    tryUrl(index + 1);
-                                });
-                            } else {
-                                tryUrl(index + 1);
-                            }
-                        }).on("error", function () {
-                            tryUrl(index + 1);
-                        });
-                        return;
-                    } catch (e) {}
-                }
-
-                // Method B: Browser fetch
+                // Method A: Browser fetch (Uses Chromium's native network stack on Windows: system proxy, Windows cert store, UTF-8)
                 if (typeof fetch !== "undefined") {
-                    fetch(url, { cache: "no-cache" })
-                        .then(function (res) { return res.ok ? res.json() : null; })
+                    fetch(url, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
+                        .then(function (res) {
+                            if (!res.ok) throw new Error("HTTP " + res.status);
+                            return res.json();
+                        })
                         .then(function (json) {
                             if (json && json.corrections) {
-                                localStorage.setItem("autocut_remote_corrections", JSON.stringify(json.corrections));
-                                console.log("[CS Trim] Loaded " + Object.keys(json.corrections).length + " remote corrections from cloud (" + url + ")");
+                                saveLoadedCorrections(json.corrections, url);
                                 resolve(json.corrections);
                             } else {
-                                tryUrl(index + 1);
+                                tryNode(index, url);
                             }
                         })
                         .catch(function () {
-                            tryUrl(index + 1);
+                            tryNode(index, url);
                         });
-                    return;
+                } else {
+                    tryNode(index, url);
                 }
-
-                tryUrl(index + 1);
             };
 
-            tryUrl(0);
+            tryFetch(0);
         });
     },
 
     getRemoteCorrections: function () {
+        var corrections = {};
+
+        // 1. Try local disk file in extension folder first
+        try {
+            var nodeReq = this.getNodeRequire();
+            if (nodeReq) {
+                var fs = nodeReq("fs");
+                var path = nodeReq("path");
+                var extDir = this.getExtensionDir();
+                if (extDir) {
+                    var diskPath = path.join(extDir, "corrections.json");
+                    if (fs.existsSync(diskPath)) {
+                        var rawDisk = fs.readFileSync(diskPath, "utf8");
+                        var parsedDisk = JSON.parse(rawDisk);
+                        if (parsedDisk && parsedDisk.corrections && typeof parsedDisk.corrections === "object") {
+                            corrections = Object.assign({}, parsedDisk.corrections);
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+
+        // 2. Merge with localStorage
         try {
             var raw = localStorage.getItem("autocut_remote_corrections");
-            return raw ? JSON.parse(raw) : {};
-        } catch (e) {
-            return {};
-        }
+            if (raw) {
+                var localObj = JSON.parse(raw);
+                if (localObj && typeof localObj === "object") {
+                    corrections = Object.assign(corrections, localObj);
+                }
+            }
+        } catch (e) {}
+
+        return corrections;
     },
 
     getCustomCorrections: function () {

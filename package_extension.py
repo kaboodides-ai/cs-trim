@@ -22,7 +22,8 @@ def package():
         "index.html",
         "js",
         ".debug",
-        "bin"
+        "bin",
+        "corrections.json"
     ]
 
     for item in items:

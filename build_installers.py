@@ -13,7 +13,7 @@ def build():
     # Ensure all installer icons & branding bitmaps are fresh
     generate_installer_assets.generate_assets()
 
-    extension_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug"]
+    extension_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "corrections.json"]
 
     # -------------------------------------------------------------
     # 1. Build Mac PKG Installer (native Apple Installer wizard)
@@ -111,7 +111,7 @@ exit 0
     # A. Copy extension files into com.autocut.panel folder
     ext_dir = os.path.join(win_temp, "com.autocut.panel")
     os.makedirs(ext_dir, exist_ok=True)
-    extension_items_win = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "bin"]
+    extension_items_win = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "bin", "corrections.json"]
     for item in extension_items_win:
         src = os.path.join(base, item)
         dst = os.path.join(ext_dir, item)
@@ -243,7 +243,7 @@ pause >nul
     # 4. Build In-App Auto-Update ZIP Bundle (Lightweight, ~300KB)
     # -------------------------------------------------------------
     update_zip = os.path.join(dl_dir, "cs-trim-update.zip")
-    update_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug"]
+    update_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "corrections.json"]
     with zipfile.ZipFile(update_zip, "w", zipfile.ZIP_DEFLATED) as uzf:
         for item in update_items:
             src = os.path.join(base, item)

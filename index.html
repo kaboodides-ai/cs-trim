@@ -39,7 +39,7 @@
             <div class="update-banner-info">
                 <div class="update-title-line">
                     <span class="update-main-title">גרסה חדשה זמינה!</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.4</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.5</span>
                 </div>
                 <div id="updateNotesPreview" class="update-notes-preview">לחץ לעדכון מהיר בלחיצה אחת</div>
             </div>
@@ -63,6 +63,7 @@
     <div class="tabs-nav" id="tabsNav">
         <button type="button" class="tab-btn active" data-tab="view-trim">חיתוך שקט</button>
         <button type="button" class="tab-btn" data-tab="view-captions">כתוביות AI</button>
+        <button type="button" class="tab-btn" data-tab="view-animations">אנימציות טקסט</button>
     </div>
 
     <!-- View: Silence Trim -->
@@ -175,6 +176,113 @@
         </button>
     </div>
 
+    <!-- View: Text Animations -->
+    <div id="view-animations" class="tab-view" style="display:none;">
+        <!-- Animation Presets Grid with Live Previews -->
+        <div class="anim-preview-grid" id="animPresetsGrid">
+            <!-- Preset: Pop / Bounce -->
+            <button type="button" class="anim-preview-card active" data-preset="pop" title="פופ וקפיצה">
+                <div class="anim-card-viewport">
+                    <div class="anim-sample-element anim-sample-pop">
+                        <span>טקסט</span>
+                    </div>
+                </div>
+                <div class="anim-card-footer">
+                    <span class="anim-card-name">פופ (Bounce)</span>
+                </div>
+            </button>
+
+            <!-- Preset: Slide Up -->
+            <button type="button" class="anim-preview-card" data-preset="slide_up" title="החלקה למעלה">
+                <div class="anim-card-viewport">
+                    <div class="anim-sample-element anim-sample-slide">
+                        <span>טקסט</span>
+                    </div>
+                </div>
+                <div class="anim-card-footer">
+                    <span class="anim-card-name">החלקה למעלה</span>
+                </div>
+            </button>
+
+            <!-- Preset: Zoom In -->
+            <button type="button" class="anim-preview-card" data-preset="zoom_in" title="זום פנימה">
+                <div class="anim-card-viewport">
+                    <div class="anim-sample-element anim-sample-zoom">
+                        <span>טקסט</span>
+                    </div>
+                </div>
+                <div class="anim-card-footer">
+                    <span class="anim-card-name">זום פנימה</span>
+                </div>
+            </button>
+
+            <!-- Preset: Smooth Fade -->
+            <button type="button" class="anim-preview-card" data-preset="fade" title="עמעום חלק">
+                <div class="anim-card-viewport">
+                    <div class="anim-sample-element anim-sample-fade">
+                        <span>טקסט</span>
+                    </div>
+                </div>
+                <div class="anim-card-footer">
+                    <span class="anim-card-name">עמעום חלק</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- Track Selection (V1, V2, V3, V4) -->
+        <div class="anim-control-block">
+            <div class="anim-control-title">שכבת וידאו (Track)</div>
+            <div class="anim-segmented-ctrl anim-track-selector" role="group" aria-label="שכבת וידאו">
+                <button type="button" class="anim-segment-btn anim-track-btn" data-track="V1">V1</button>
+                <button type="button" class="anim-segment-btn anim-track-btn active" data-track="V2">V2</button>
+                <button type="button" class="anim-segment-btn anim-track-btn" data-track="V3">V3</button>
+                <button type="button" class="anim-segment-btn anim-track-btn" data-track="V4">V4</button>
+            </div>
+        </div>
+
+        <!-- Scope Selection (Full Width Block - Never Overflows) -->
+        <div class="anim-control-block">
+            <div class="anim-control-title">סוג מעבר</div>
+            <div class="anim-segmented-ctrl anim-scope-selector" role="group" aria-label="סוג מעבר">
+                <button type="button" class="anim-segment-btn anim-scope-btn active" data-scope="in_out">כניסה ויציאה</button>
+                <button type="button" class="anim-segment-btn anim-scope-btn" data-scope="in">כניסה בלבד</button>
+                <button type="button" class="anim-segment-btn anim-scope-btn" data-scope="out">יציאה בלבד</button>
+            </div>
+        </div>
+
+        <!-- Speed Selection (Full Width Block - Never Overflows) -->
+        <div class="anim-control-block">
+            <div class="anim-control-title">מהירות</div>
+            <div class="anim-segmented-ctrl anim-speed-selector" role="group" aria-label="מהירות">
+                <button type="button" class="anim-segment-btn anim-speed-btn" data-dur="0.20">מהיר (0.2s)</button>
+                <button type="button" class="anim-segment-btn anim-speed-btn active" data-dur="0.35">רגיל (0.35s)</button>
+                <button type="button" class="anim-segment-btn anim-speed-btn" data-dur="0.55">חלק (0.55s)</button>
+            </div>
+        </div>
+
+        <!-- Motion Blur Toggle -->
+        <label class="row row-toggle anim-toggle-row" for="animMotionBlur" id="rowAnimMotionBlur" title="טשטוש תנועה קולנועי (Motion Blur) בזמן המעברים">
+            <span class="toggle-label anim-toggle-label">
+                <span>טשטוש תנועה (Motion Blur)</span>
+                <span class="anim-blur-badge">PRO</span>
+            </span>
+            <span class="custom-checkbox-wrap">
+                <input type="checkbox" id="animMotionBlur">
+                <span class="custom-checkbox" aria-hidden="true">
+                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
+                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </span>
+        </label>
+
+        <div id="animSuccessPill" class="anim-success-pill" style="display:none;"></div>
+
+        <!-- Action Buttons -->
+        <button type="button" id="btnApplyAnimation" class="btn btn-primary btn-apply-anim">החל אנימציה</button>
+        <button type="button" id="btnResetAnimation" class="btn btn-secondary btn-reset-anim">איפוס אנימציות</button>
+    </div>
+
     <!-- View: Caption Text Editor (Fix typos & re-render markers instantly) -->
     <div id="view-caption-editor" class="tab-view" style="display:none;">
         <div class="log-view-header">
@@ -257,7 +365,7 @@
         <span class="footer-credit">Created by Kaboodi</span>
         <span class="footer-dot">•</span>
         <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="checkUpdateManual(event)" title="לחץ לבדיקת עדכונים">
-            <span id="footerVersionText">v1.0.4</span>
+            <span id="footerVersionText">v1.0.5</span>
             <span id="footerCheckSpin" class="spin-icon">🔄</span>
         </button>
     </div>
@@ -271,6 +379,7 @@
     <script src="js/updater.js?v=5"></script>
     <script src="js/audioAnalyzer.js?v=5"></script>
     <script src="js/captionGenerator.js?v=5"></script>
+    <script src="js/textAnimator.js?v=5"></script>
     <script src="js/main.js?v=5"></script>
 </body>
 </html>

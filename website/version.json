@@ -1,12 +1,12 @@
 {
-  "version": "1.0.4",
-  "versionCode": 104,
-  "releaseDate": "2026-10-16",
-  "title": "עדכון חכם: מרקר מילים, עורך כתוביות ועדכון אוטומטי",
+  "version": "1.0.5",
+  "versionCode": 105,
+  "releaseDate": "2026-10-17",
+  "title": "עדכון חכם: סנכרון תיקוני ענן בזמן אמת ואנימציות טקסט",
   "changelog": [
-    "מרקר מילים אוטומטי בזמן הדיבור עם בחירת צבעי הדגשה",
-    "עורך טקסט כתוביות מובנה לתיקון שגיאות והחלפת שכבות בטיים-ליין",
-    "מנגנון עדכון אוטומטי מובנה בלחיצת כפתור אחת מתוך פרמייר"
+    "סנכרון שגיאות כתיב קהילתיות מהענן בזמן אמת ל-Windows ו-Mac",
+    "לשונית אנימציות טקסט מקצועיות עם תנועות פופ, החלקה, זום וטשטוש תנועה",
+    "שיפור יציבות מנגנון העדכון האוטומטי המובנה ב-Windows"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",

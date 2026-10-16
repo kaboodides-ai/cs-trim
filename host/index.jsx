@@ -922,6 +922,827 @@ var AutoCutHost = {
         } catch (e) {
             return JSON.stringify({ error: "undoLastCut error: " + e.toString() });
         }
+    },
+
+    /**
+     * Helper to search for animatable transform properties on a clip (checking both standard Motion and Vector Motion)
+     */
+    findClipTransform: function(clip) {
+        if (!clip || !clip.components) return { scale: null, position: null, opacity: null };
+
+        var canKeyframe = function(prop) {
+            if (!prop) return false;
+            try {
+                if (typeof prop.areKeyframesSupported === "function") {
+                    return prop.areKeyframesSupported();
+                }
+                return true;
+            } catch (e) {
+                return true;
+            }
+        };
+
+        var scaleProp = null;
+        var posProp = null;
+        var opacityProp = null;
+
+        // PASS 1: Prioritize standard "ADBE Motion" (solid, reliable native motion in Premiere Pro)
+        for (var i = 0; i < clip.components.numItems; i++) {
+            var comp = clip.components[i];
+            if (!comp || !comp.properties) continue;
+            var mn = (comp.matchName || "").toLowerCase();
+            var dn = (comp.displayName || "").toLowerCase();
+
+            // Opacity component
+            if (!opacityProp && (mn === "adbe opacity" || mn.indexOf("opacity") !== -1 || dn.indexOf("opacity") !== -1 || dn.indexOf("\u05d0\u05d8\u05d9\u05de\u05d5\u05ea") !== -1)) {
+                for (var opIdx = 0; opIdx < comp.properties.numItems; opIdx++) {
+                    var pOp = comp.properties[opIdx];
+                    if (!pOp) continue;
+                    var pOpName = (pOp.displayName || pOp.name || "").toLowerCase();
+                    var pOpMatch = (pOp.matchName || "").toLowerCase();
+                    if ((pOpMatch.indexOf("opacity") !== -1 || pOpName.indexOf("opacity") !== -1 || pOpName.indexOf("\u05d0\u05d8\u05d9\u05de\u05d5\u05ea") !== -1) && canKeyframe(pOp)) {
+                        opacityProp = pOp;
+                        break;
+                    }
+                }
+            }
+
+            // Standard Motion component (strictly avoid "vector motion" in pass 1)
+            var isStandardMotion = (mn === "adbe motion" || (dn === "motion" && mn.indexOf("vector") === -1));
+            if (isStandardMotion) {
+                for (var pIdx = 0; pIdx < comp.properties.numItems; pIdx++) {
+                    var prop = comp.properties[pIdx];
+                    if (!prop) continue;
+                    var pName = (prop.displayName || prop.name || "").toLowerCase();
+                    var pMatch = (prop.matchName || "").toLowerCase();
+
+                    // Match "Scale", avoiding "Scale Width" or "Scale Height"
+                    if (!scaleProp && (pMatch === "adbe scale" || pName === "scale" || pName.indexOf("\u05e7\u05e0\u05d4 \u05de\u05d9\u05d3\u05d4") !== -1 || (pName.indexOf("scale") !== -1 && pName.indexOf("width") === -1 && pName.indexOf("height") === -1))) {
+                        if (canKeyframe(prop)) {
+                            scaleProp = prop;
+                        }
+                    }
+
+                    // Match "Position"
+                    if (!posProp && (pMatch === "adbe position" || pName === "position" || pName.indexOf("position") !== -1 || pName.indexOf("\u05de\u05d9\u05e7\u05d5\u05dd") !== -1)) {
+                        if (canKeyframe(prop)) {
+                            posProp = prop;
+                        }
+                    }
+                }
+            }
+        }
+
+        // PASS 2: Fallback to Vector Motion only if standard Motion was not found
+        if (!scaleProp || !posProp) {
+            for (var j = 0; j < clip.components.numItems; j++) {
+                var c = clip.components[j];
+                if (!c || !c.properties) continue;
+                var cmn = (c.matchName || "").toLowerCase();
+                var cdn = (c.displayName || "").toLowerCase();
+                if (cmn.indexOf("motion") !== -1 || cdn.indexOf("motion") !== -1 || cdn.indexOf("\u05ea\u05e0\u05d5\u05e2\u05d4") !== -1) {
+                    for (var k = 0; k < c.properties.numItems; k++) {
+                        var pr = c.properties[k];
+                        if (!pr) continue;
+                        var prName = (pr.displayName || pr.name || "").toLowerCase();
+                        var prMatch = (pr.matchName || "").toLowerCase();
+
+                        if (!scaleProp && (prMatch === "adbe scale" || prName === "scale" || prName.indexOf("\u05e7\u05e0\u05d4 \u05de\u05d9\u05d3\u05d4") !== -1 || (prName.indexOf("scale") !== -1 && prName.indexOf("width") === -1 && prName.indexOf("height") === -1))) {
+                            if (canKeyframe(pr)) scaleProp = pr;
+                        }
+                        if (!posProp && (prMatch === "adbe position" || prName === "position" || prName.indexOf("position") !== -1 || prName.indexOf("\u05de\u05d9\u05e7\u05d5\u05dd") !== -1)) {
+                            if (canKeyframe(pr)) posProp = pr;
+                        }
+                    }
+                }
+            }
+        }
+
+        return {
+            scale: scaleProp,
+            position: posProp,
+            opacity: opacityProp
+        };
+    },
+
+    /**
+     * Find Directional Blur or Gaussian Blur component on a clip
+     */
+    findBlurComponent: function(clip) {
+        if (!clip || !clip.components) return null;
+        for (var i = 0; i < clip.components.numItems; i++) {
+            var comp = clip.components[i];
+            if (!comp || !comp.properties) continue;
+            var mn = (comp.matchName || "").toLowerCase();
+            var dn = (comp.displayName || "").toLowerCase();
+            if (mn.indexOf("directional blur") !== -1 || mn.indexOf("adbe directional blur") !== -1 ||
+                dn.indexOf("directional blur") !== -1 || dn.indexOf("כיווני") !== -1 ||
+                mn.indexOf("gaussian blur") !== -1 || dn.indexOf("gaussian blur") !== -1) {
+                return comp;
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Extract amount and direction properties from a blur component
+     */
+    getBlurProperties: function(comp) {
+        if (!comp || !comp.properties) return { amount: null, direction: null };
+        var amountProp = null;
+        var dirProp = null;
+        for (var p = 0; p < comp.properties.numItems; p++) {
+            var prop = comp.properties[p];
+            if (!prop) continue;
+            var pName = (prop.displayName || prop.name || "").toLowerCase();
+            var pMatch = (prop.matchName || "").toLowerCase();
+
+            if (!dirProp && (pMatch.indexOf("direction") !== -1 || pName.indexOf("direction") !== -1 || pName.indexOf("כיוון") !== -1)) {
+                dirProp = prop;
+            }
+            if (!amountProp && (pMatch.indexOf("length") !== -1 || pMatch.indexOf("blur") !== -1 || pName.indexOf("length") !== -1 || pName.indexOf("אורך") !== -1 || pName.indexOf("blur") !== -1 || pName.indexOf("טשטוש") !== -1)) {
+                amountProp = prop;
+            }
+        }
+        if (!amountProp && comp.properties.numItems > 1) {
+            amountProp = comp.properties[1];
+        } else if (!amountProp && comp.properties.numItems > 0) {
+            amountProp = comp.properties[0];
+        }
+        if (!dirProp && comp.properties.numItems > 1 && amountProp !== comp.properties[0]) {
+            dirProp = comp.properties[0];
+        }
+        return { amount: amountProp, direction: dirProp };
+    },
+
+    /**
+     * Find and cache QE video effect object for Directional or Gaussian Blur
+     */
+    getQeBlurEffect: function() {
+        if (typeof qe === "undefined" || !qe.project) return null;
+        var candidateNames = [
+            "AE.ADBE Directional Blur",
+            "Directional Blur",
+            "AE.ADBE Gaussian Blur 2",
+            "Gaussian Blur"
+        ];
+        for (var n = 0; n < candidateNames.length; n++) {
+            try {
+                var eff = qe.project.getVideoEffectByName(candidateNames[n], true);
+                if (eff) return eff;
+            } catch (eEff) {}
+        }
+        try {
+            var allEffects = qe.project.getVideoEffectList();
+            if (allEffects && allEffects.length) {
+                for (var e = 0; e < allEffects.length; e++) {
+                    if (/directional.*blur/i.test(allEffects[e])) {
+                        var eff2 = qe.project.getVideoEffectByName(allEffects[e], true);
+                        if (eff2) return eff2;
+                    }
+                }
+                for (var g = 0; g < allEffects.length; g++) {
+                    if (/gaussian.*blur/i.test(allEffects[g])) {
+                        var eff3 = qe.project.getVideoEffectByName(allEffects[g], true);
+                        if (eff3) return eff3;
+                    }
+                }
+            }
+        } catch (eList) {}
+        return null;
+    },
+
+    /**
+     * Match a TrackItem to its corresponding QE clip item
+     */
+    findQEClip: function(qeSeq, clip, preferredTrackIdx) {
+        if (!qeSeq) return null;
+        try {
+            var cs = (clip.start && typeof clip.start.seconds === "number") ? clip.start.seconds : (Number(clip.start) / TICKS_PER_SECOND);
+            var numTracks = (typeof qeSeq.numVideoTracks === "number") ? qeSeq.numVideoTracks : (qeSeq.videoTracks ? qeSeq.videoTracks.length : 0);
+            
+            if (preferredTrackIdx >= 0 && preferredTrackIdx < numTracks) {
+                var trk = qeSeq.getVideoTrackAt(preferredTrackIdx);
+                if (trk) {
+                    var nItems = (typeof trk.numItems === "number") ? trk.numItems : 0;
+                    for (var q = 0; q < nItems; q++) {
+                        var item = trk.getItemAt(q);
+                        if (item && item.start && Math.abs(item.start.seconds - cs) < 0.05) {
+                            return item;
+                        }
+                    }
+                }
+            }
+            for (var v = 0; v < numTracks; v++) {
+                var trk2 = qeSeq.getVideoTrackAt(v);
+                if (!trk2) continue;
+                var nItems2 = (typeof trk2.numItems === "number") ? trk2.numItems : 0;
+                for (var q2 = 0; q2 < nItems2; q2++) {
+                    var it = trk2.getItemAt(q2);
+                    if (it && it.start && Math.abs(it.start.seconds - cs) < 0.05) {
+                        return it;
+                    }
+                }
+            }
+        } catch (eFindQe) {}
+        return null;
+    },
+
+    /**
+     * Retrieve array of currently selected clips in the active sequence (with CTI playhead fallback)
+     */
+    getSelectedClipsList: function(seq) {
+        if (!seq) return [];
+        var selected = [];
+
+        // 1. Try sequence.getSelection()
+        if (typeof seq.getSelection === "function") {
+            try {
+                var sel = seq.getSelection();
+                if (sel && sel.length > 0) {
+                    for (var s = 0; s < sel.length; s++) {
+                        if (sel[s]) selected.push(sel[s]);
+                    }
+                    if (selected.length > 0) return selected;
+                }
+            } catch (e1) {}
+        }
+
+        // 2. Iterate video tracks and check isSelected()
+        if (seq.videoTracks) {
+            for (var t = 0; t < seq.videoTracks.numTracks; t++) {
+                var vt = seq.videoTracks[t];
+                if (!vt || !vt.clips) continue;
+                for (var c = 0; c < vt.clips.numItems; c++) {
+                    var clp = vt.clips[c];
+                    if (!clp) continue;
+                    var isSel = false;
+                    try {
+                        if (typeof clp.isSelected === "function") isSel = clp.isSelected();
+                        else if (typeof clp.isSelected === "boolean") isSel = clp.isSelected;
+                    } catch (eSel) {}
+                    if (isSel) selected.push(clp);
+                }
+            }
+        }
+
+        if (selected.length > 0) return selected;
+
+        // 3. Fallback: Find clip directly under the playhead (CTI) on topmost video track
+        try {
+            var ctiSec = 0;
+            var cti = seq.getPlayerPosition();
+            if (cti && typeof cti.seconds === "number") ctiSec = cti.seconds;
+            else if (cti) ctiSec = Number(cti) / TICKS_PER_SECOND;
+
+            for (var vtIdx = seq.videoTracks.numTracks - 1; vtIdx >= 0; vtIdx--) {
+                var trk = seq.videoTracks[vtIdx];
+                if (!trk || !trk.clips) continue;
+                for (var ci = 0; ci < trk.clips.numItems; ci++) {
+                    var candidate = trk.clips[ci];
+                    if (!candidate) continue;
+                    var cStart = (candidate.start && typeof candidate.start.seconds === "number") ? candidate.start.seconds : (Number(candidate.start) / TICKS_PER_SECOND);
+                    var cEnd = (candidate.end && typeof candidate.end.seconds === "number") ? candidate.end.seconds : (Number(candidate.end) / TICKS_PER_SECOND);
+                    if (ctiSec >= (cStart - 0.05) && ctiSec <= (cEnd + 0.05)) {
+                        selected.push(candidate);
+                        return selected;
+                    }
+                }
+            }
+        } catch (eCti) {}
+
+        return selected;
+    },
+
+    /**
+     * Get count and summary of currently selected clips
+     */
+    getSelectedClipsInfo: function() {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ count: 0, hasActiveSeq: false });
+            }
+            var seq = app.project.activeSequence;
+            var selected = this.getSelectedClipsList(seq);
+            return JSON.stringify({
+                count: selected ? selected.length : 0,
+                hasActiveSeq: true,
+                seqName: seq.name || ""
+            });
+        } catch (e) {
+            return JSON.stringify({ count: 0, error: e.toString() });
+        }
+    },
+
+    /**
+     * Automatically select all clips on the topmost video track containing clips
+     */
+    selectAllTopTrackClips: function() {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence" });
+            }
+            var seq = app.project.activeSequence;
+            if (!seq.videoTracks || seq.videoTracks.numTracks === 0) {
+                return JSON.stringify({ error: "No video tracks found" });
+            }
+            var targetTrack = null;
+            for (var t = seq.videoTracks.numTracks - 1; t >= 0; t--) {
+                var vt = seq.videoTracks[t];
+                if (vt && vt.clips && vt.clips.numItems > 0) {
+                    targetTrack = vt;
+                    break;
+                }
+            }
+            if (!targetTrack) {
+                return JSON.stringify({ error: "No clips found on any video track" });
+            }
+            var count = 0;
+            for (var c = 0; c < targetTrack.clips.numItems; c++) {
+                var clip = targetTrack.clips[c];
+                if (clip && typeof clip.setSelected === "function") {
+                    clip.setSelected(1, 1);
+                    count++;
+                }
+            }
+            return JSON.stringify({
+                success: true,
+                count: count,
+                trackName: targetTrack.name || ""
+            });
+        } catch (e) {
+            return JSON.stringify({ error: "selectAllTopTrackClips error: " + e.toString() });
+        }
+    },
+
+    /**
+     * Apply native Keyframe Animations (Pop, Slide, Zoom, Fade) to clips on targeted track (V1-V4)
+     */
+    applyTextAnimation: function(paramsJson) {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence" });
+            }
+            var seq = app.project.activeSequence;
+            var params = (typeof paramsJson === "string") ? JSON.parse(paramsJson) : (paramsJson || {});
+
+            var preset = params.preset || "pop";
+            var scope = params.scope || "in_out";
+            var durationParam = Number(params.duration) || 0.35;
+            var intensity = params.intensity || "standard";
+            var targetTrack = params.targetTrack || "V2";
+            var motionBlur = !!params.motionBlur;
+
+            var clips = [];
+
+            // 1. Target specific video track (V1, V2, V3, V4)
+            var trackIdx = -1;
+            if (typeof targetTrack === "string") {
+                var m = targetTrack.match(/(\d+)/);
+                if (m) trackIdx = parseInt(m[1], 10) - 1;
+            }
+
+            if (trackIdx >= 0 && trackIdx < seq.videoTracks.numTracks) {
+                var vt = seq.videoTracks[trackIdx];
+                if (vt && vt.clips && vt.clips.numItems > 0) {
+                    var selectedOnTrack = [];
+                    for (var c = 0; c < vt.clips.numItems; c++) {
+                        var clp = vt.clips[c];
+                        if (!clp) continue;
+                        var isSel = false;
+                        try {
+                            if (typeof clp.isSelected === "function") isSel = clp.isSelected();
+                            else if (typeof clp.isSelected === "boolean") isSel = clp.isSelected;
+                        } catch (eSel) {}
+                        if (isSel) selectedOnTrack.push(clp);
+                    }
+                    if (selectedOnTrack.length > 0) {
+                        clips = selectedOnTrack;
+                    } else {
+                        for (var a = 0; a < vt.clips.numItems; a++) {
+                            if (vt.clips[a]) clips.push(vt.clips[a]);
+                        }
+                    }
+                }
+            }
+
+            // 2. Fallback: If no clips on target track, check if user explicitly selected clips elsewhere
+            if (clips.length === 0) {
+                clips = this.getSelectedClipsList(seq);
+            }
+
+            if (!clips || clips.length === 0) {
+                return JSON.stringify({
+                    error: "no_clips_found",
+                    message: "\u05dc\u05d0 \u05e0\u05de\u05e6\u05d0\u05d5 \u05e9\u05db\u05d1\u05d5\u05ea \u05d0\u05d5 \u05e7\u05dc\u05d9\u05e4\u05d9\u05dd \u05d1\u05e8\u05e6\u05d5\u05e2\u05d4 " + targetTrack + ". \u05d1\u05d7\u05e8 \u05e9\u05db\u05d1\u05d4 \u05d0\u05d7\u05e8\u05ea (V1-V4) \u05d0\u05d5 \u05e1\u05de\u05df \u05e9\u05db\u05d1\u05d4 \u05d1\u05d8\u05d9\u05d9\u05dd-\u05dc\u05d9\u05d9\u05df."
+                });
+            }
+
+            var isScopeIn = (scope === "in" || scope === "in_out");
+            var isScopeOut = (scope === "out" || scope === "in_out");
+
+            // Initialize QE DOM if Motion Blur requested
+            var qeSeq = null;
+            if (motionBlur) {
+                try {
+                    if (typeof app.enableQE === "function") {
+                        app.enableQE();
+                    }
+                    if (typeof qe !== "undefined" && qe.project) {
+                        qeSeq = qe.project.getActiveSequence();
+                    }
+                } catch (eQeInit) {}
+            }
+
+            // Safe Keyframe placement helper
+            var addAndSetKey = function(prop, sec, val) {
+                var safeSec = Math.max(0, Number(sec) || 0);
+                var t = new Time();
+                t.seconds = safeSec;
+                try {
+                    t.ticks = Math.round(safeSec * TICKS_PER_SECOND).toString();
+                } catch (eTk) {}
+
+                // Ensure stopwatch / timeVarying is active
+                try {
+                    if (typeof prop.isTimeVarying === "function" && !prop.isTimeVarying()) {
+                        prop.setTimeVarying(true);
+                    }
+                } catch (eTv) {}
+
+                try {
+                    prop.addKey(t);
+                } catch (e1) {
+                    try { prop.addKey(safeSec); } catch (e1b) {}
+                }
+
+                try {
+                    prop.setValueAtKey(t, val, true);
+                } catch (e2) {
+                    try {
+                        prop.setValueAtKey(t, val, 1);
+                    } catch (e2b) {
+                        try {
+                            if (typeof val === "number") {
+                                prop.setValueAtKey(t, [val, val], 1);
+                            } else if (val instanceof Array && val.length > 0) {
+                                prop.setValueAtKey(t, val[0], 1);
+                            }
+                        } catch (e2c) {
+                            try {
+                                prop.setValueAtKey(safeSec, val, 1);
+                            } catch (e2d) {}
+                        }
+                    }
+                }
+                return t;
+            };
+
+            var tryInterpolation = function(prop, timeObj, type) {
+                try {
+                    if (prop && typeof prop.setInterpolationTypeAtKey === "function") {
+                        prop.setInterpolationTypeAtKey(timeObj, (typeof type === "number" ? type : 5), 1);
+                    }
+                } catch (e) {}
+            };
+
+            var animatedCount = 0;
+
+            for (var i = 0; i < clips.length; i++) {
+                var clip = clips[i];
+                if (!clip) continue;
+
+                var tf = this.findClipTransform(clip);
+                var scaleProp = tf.scale;
+                var posProp = tf.position;
+                var opacityProp = tf.opacity;
+
+                if (!scaleProp && !posProp && !opacityProp) {
+                    continue;
+                }
+
+                // Calculate LOCAL clip time boundaries (where Effect Controls keyframes live)
+                var inSec = 0.0;
+                if (clip.inPoint && typeof clip.inPoint.seconds === "number") {
+                    inSec = clip.inPoint.seconds;
+                }
+
+                var clipDur = 3.0;
+                if (clip.duration && typeof clip.duration.seconds === "number" && clip.duration.seconds > 0.05) {
+                    clipDur = clip.duration.seconds;
+                } else if (clip.outPoint && typeof clip.outPoint.seconds === "number") {
+                    clipDur = Math.max(0.1, clip.outPoint.seconds - inSec);
+                } else if (clip.end && clip.start) {
+                    var cs = (typeof clip.start.seconds === "number") ? clip.start.seconds : (Number(clip.start) / TICKS_PER_SECOND);
+                    var ce = (typeof clip.end.seconds === "number") ? clip.end.seconds : (Number(clip.end) / TICKS_PER_SECOND);
+                    clipDur = Math.max(0.1, ce - cs);
+                }
+
+                var outSec = inSec + clipDur;
+                var maxDurForClip = (isScopeIn && isScopeOut) ? (clipDur * 0.40) : (clipDur * 0.80);
+                var safeDur = Math.min(durationParam, maxDurForClip);
+                if (safeDur < 0.05) safeDur = 0.05;
+
+                var didAnimate = false;
+
+                // 1. POP / BOUNCE ANIMATION
+                if (preset === "pop" && scaleProp) {
+                    var overshoot = (intensity === "soft" ? 1.09 : (intensity === "punchy" ? 1.26 : 1.18));
+                    var settle = (intensity === "soft" ? 0.98 : (intensity === "punchy" ? 0.94 : 0.96));
+
+                    try {
+                        scaleProp.setTimeVarying(false);
+                        scaleProp.setValue(100, 1);
+                        scaleProp.setTimeVarying(true);
+                    } catch (ePopScale) {}
+
+                    if (isScopeIn) {
+                        addAndSetKey(scaleProp, inSec, 0);
+                        var tPop = addAndSetKey(scaleProp, inSec + safeDur * 0.55, 100 * overshoot);
+                        tryInterpolation(scaleProp, tPop, 5);
+                        addAndSetKey(scaleProp, inSec + safeDur * 0.80, 100 * settle);
+                        var tInEnd = addAndSetKey(scaleProp, inSec + safeDur, 100);
+                        tryInterpolation(scaleProp, tInEnd, 5);
+                    }
+
+                    if (isScopeOut) {
+                        var tOutStart = addAndSetKey(scaleProp, outSec - safeDur, 100);
+                        tryInterpolation(scaleProp, tOutStart, 5);
+                        var tAntic = addAndSetKey(scaleProp, outSec - safeDur * 0.25, 100 * 1.06);
+                        tryInterpolation(scaleProp, tAntic, 5);
+                        addAndSetKey(scaleProp, outSec, 0);
+                    }
+
+                    didAnimate = true;
+                }
+
+                // 2. SLIDE ANIMATIONS (Up, Down, Side)
+                else if ((preset === "slide_up" || preset === "slide_down" || preset === "slide_side") && posProp) {
+                    var curPos = posProp.getValue();
+                    var baseX = 0.5;
+                    var baseY = 0.5;
+                    if (curPos) {
+                        if (typeof curPos === "string") {
+                            try { curPos = JSON.parse(curPos); } catch (e) {
+                                var parts = curPos.split(",");
+                                if (parts.length >= 2) {
+                                    baseX = parseFloat(parts[0]);
+                                    baseY = parseFloat(parts[1]);
+                                }
+                            }
+                        }
+                        if (typeof curPos === "object") {
+                            if (typeof curPos.length === "number" && curPos.length >= 2) {
+                                baseX = Number(curPos[0]);
+                                baseY = Number(curPos[1]);
+                            } else if (typeof curPos.x !== "undefined") {
+                                baseX = Number(curPos.x);
+                                baseY = Number(curPos.y);
+                            }
+                        }
+                    }
+
+                    var isPixel = (baseY > 10);
+                    var offY = isPixel ? 140 : 0.12;
+                    var startPos = [baseX, baseY + offY];
+                    var endPos = [baseX, baseY - offY * 0.6];
+
+                    if (preset === "slide_down") {
+                        startPos = [baseX, baseY - offY];
+                        endPos = [baseX, baseY + offY * 0.6];
+                    }
+
+                    try {
+                        posProp.setTimeVarying(false);
+                        posProp.setValue([baseX, baseY], 1);
+                        posProp.setTimeVarying(true);
+                    } catch (eSlidePos) {}
+
+                    if (isScopeIn) {
+                        addAndSetKey(posProp, inSec, startPos);
+                        var tInPos = addAndSetKey(posProp, inSec + safeDur, [baseX, baseY]);
+                        tryInterpolation(posProp, tInPos, 5);
+                    }
+                    if (isScopeOut) {
+                        var tOutPosStart = addAndSetKey(posProp, outSec - safeDur, [baseX, baseY]);
+                        tryInterpolation(posProp, tOutPosStart, 5);
+                        addAndSetKey(posProp, outSec, endPos);
+                    }
+
+                    didAnimate = true;
+                }
+
+                // 3. ZOOM IN / ZOOM OUT ANIMATION
+                else if ((preset === "zoom_in" || preset === "zoom_out") && scaleProp) {
+                    var isZoomIn = (preset === "zoom_in");
+                    var startScale = isZoomIn ? 35 : 175;
+                    var outScale = isZoomIn ? 145 : 35;
+
+                    try {
+                        scaleProp.setTimeVarying(false);
+                        scaleProp.setValue(100, 1);
+                        scaleProp.setTimeVarying(true);
+                    } catch (eZoomScale) {}
+
+                    if (isScopeIn) {
+                        addAndSetKey(scaleProp, inSec, startScale);
+                        var tInZoom = addAndSetKey(scaleProp, inSec + safeDur, 100);
+                        tryInterpolation(scaleProp, tInZoom, 5);
+                    }
+                    if (isScopeOut) {
+                        var tOutZoom = addAndSetKey(scaleProp, outSec - safeDur, 100);
+                        tryInterpolation(scaleProp, tOutZoom, 5);
+                        addAndSetKey(scaleProp, outSec, outScale);
+                    }
+
+                    didAnimate = true;
+                }
+
+                // 4. SMOOTH FADE ANIMATION
+                else if (preset === "fade" && opacityProp) {
+                    try {
+                        opacityProp.setTimeVarying(false);
+                        opacityProp.setValue(100, 1);
+                        opacityProp.setTimeVarying(true);
+                    } catch (eFadeOp) {}
+
+                    if (isScopeIn) {
+                        addAndSetKey(opacityProp, inSec, 0);
+                        var tInFade = addAndSetKey(opacityProp, inSec + safeDur, 100);
+                        tryInterpolation(opacityProp, tInFade, 5);
+                    }
+                    if (isScopeOut) {
+                        var tOutFade = addAndSetKey(opacityProp, outSec - safeDur, 100);
+                        tryInterpolation(opacityProp, tOutFade, 5);
+                        addAndSetKey(opacityProp, outSec, 0);
+                    }
+                    didAnimate = true;
+                }
+
+                // 5. DYNAMIC MOTION BLUR KEYFRAMING
+                var blurComp = this.findBlurComponent(clip);
+                if (!blurComp && motionBlur && qeSeq) {
+                    var qeClip = this.findQEClip(qeSeq, clip, trackIdx);
+                    if (qeClip) {
+                        var eff = this.getQeBlurEffect();
+                        if (eff) {
+                            try {
+                                qeClip.addVideoEffect(eff);
+                            } catch (eAddFx) {}
+                            blurComp = this.findBlurComponent(clip);
+                        }
+                    }
+                }
+
+                if (blurComp) {
+                    var bp = this.getBlurProperties(blurComp);
+                    if (bp.amount) {
+                        if (motionBlur) {
+                            if (bp.direction) {
+                                var blurAngle = 0.0;
+                                if (preset === "slide_side") {
+                                    blurAngle = 90.0;
+                                }
+                                try {
+                                    bp.direction.setTimeVarying(false);
+                                    bp.direction.setValue(blurAngle, 1);
+                                } catch (eBDir) {}
+                            }
+
+                            try {
+                                bp.amount.setTimeVarying(false);
+                                bp.amount.setValue(0, 1);
+                                bp.amount.setTimeVarying(true);
+                            } catch (eBAmtTv) {}
+
+                            var peakBlur = (intensity === "punchy" ? 30 : (intensity === "soft" ? 16 : 24));
+
+                            if (isScopeIn) {
+                                addAndSetKey(bp.amount, inSec, peakBlur);
+                                var tMidBlur = addAndSetKey(bp.amount, inSec + safeDur * 0.50, peakBlur * 0.35);
+                                tryInterpolation(bp.amount, tMidBlur, 5);
+                                var tEndBlur = addAndSetKey(bp.amount, inSec + safeDur, 0);
+                                tryInterpolation(bp.amount, tEndBlur, 5);
+                            }
+
+                            if (isScopeOut) {
+                                var tOutBlurStart = addAndSetKey(bp.amount, outSec - safeDur, 0);
+                                tryInterpolation(bp.amount, tOutBlurStart, 5);
+                                var tOutBlurMid = addAndSetKey(bp.amount, outSec - safeDur * 0.40, peakBlur * 0.45);
+                                tryInterpolation(bp.amount, tOutBlurMid, 5);
+                                addAndSetKey(bp.amount, outSec, peakBlur);
+                            }
+                        } else {
+                            try {
+                                bp.amount.setTimeVarying(false);
+                                bp.amount.setValue(0, 1);
+                            } catch (eBOff) {}
+                        }
+                    }
+                }
+
+                if (didAnimate) animatedCount++;
+            }
+
+            return JSON.stringify({
+                success: true,
+                count: animatedCount,
+                track: targetTrack,
+                preset: preset,
+                message: "\u05d4\u05d0\u05e0\u05d9\u05de\u05e6\u05d9\u05d4 \u05d4\u05d5\u05d7\u05dc\u05d4 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4 \u05e2\u05dc " + animatedCount + " \u05e9\u05db\u05d1\u05d5\u05ea \u05d1\u05e8\u05e6\u05d5\u05e2\u05d4 " + targetTrack + "!"
+            });
+        } catch (e) {
+            return JSON.stringify({ error: "applyTextAnimation error: " + e.toString() });
+        }
+    },
+
+    /**
+     * Clear and reset all keyframe animations from targeted track (V1-V4)
+     */
+    resetTextAnimation: function(paramsJson) {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence" });
+            }
+            var seq = app.project.activeSequence;
+            var params = (typeof paramsJson === "string") ? JSON.parse(paramsJson) : (paramsJson || {});
+            var targetTrack = params.targetTrack || "V2";
+
+            var clips = [];
+            var trackIdx = -1;
+            if (typeof targetTrack === "string") {
+                var m = targetTrack.match(/(\d+)/);
+                if (m) trackIdx = parseInt(m[1], 10) - 1;
+            }
+
+            if (trackIdx >= 0 && trackIdx < seq.videoTracks.numTracks) {
+                var vt = seq.videoTracks[trackIdx];
+                if (vt && vt.clips) {
+                    for (var a = 0; a < vt.clips.numItems; a++) {
+                        if (vt.clips[a]) clips.push(vt.clips[a]);
+                    }
+                }
+            }
+
+            if (clips.length === 0) {
+                clips = this.getSelectedClipsList(seq);
+            }
+
+            if (!clips || clips.length === 0) {
+                return JSON.stringify({
+                    error: "no_clips_found",
+                    message: "לא נמצאו שכבות לאיפוס ברצועה " + targetTrack
+                });
+            }
+
+            var resetCount = 0;
+            for (var i = 0; i < clips.length; i++) {
+                var clip = clips[i];
+                if (!clip) continue;
+
+                var tf = this.findClipTransform(clip);
+                if (tf.scale) {
+                    try {
+                        tf.scale.setTimeVarying(false);
+                        tf.scale.setValue(100, 1);
+                    } catch (e1) {}
+                }
+                if (tf.position) {
+                    try {
+                        var cp = tf.position.getValue();
+                        tf.position.setTimeVarying(false);
+                        if (cp) tf.position.setValue(cp, 1);
+                    } catch (e2) {}
+                }
+                if (tf.opacity) {
+                    try {
+                        tf.opacity.setTimeVarying(false);
+                        tf.opacity.setValue(100, 1);
+                    } catch (e3) {}
+                }
+
+                var blurComp = this.findBlurComponent(clip);
+                if (blurComp) {
+                    var bp = this.getBlurProperties(blurComp);
+                    if (bp.amount) {
+                        try {
+                            bp.amount.setTimeVarying(false);
+                            bp.amount.setValue(0, 1);
+                        } catch (eBReset) {}
+                    }
+                }
+
+                resetCount++;
+            }
+
+            return JSON.stringify({
+                success: true,
+                count: resetCount,
+                message: "האנימציות אופסו בהצלחה מ-" + resetCount + " שכבות ברצועה " + targetTrack + "!"
+            });
+        } catch (e) {
+            return JSON.stringify({ error: "resetTextAnimation error: " + e.toString() });
+        }
     }
 };
 
@@ -988,5 +1809,22 @@ function getSequenceInOut() {
 function setPlayheadPosition(seconds) {
     return safeBridgeEncode(AutoCutHost.setPlayheadPosition(seconds));
 }
+
+function getSelectedClipsInfo() {
+    return safeBridgeEncode(AutoCutHost.getSelectedClipsInfo());
+}
+
+function selectAllTopTrackClips() {
+    return safeBridgeEncode(AutoCutHost.selectAllTopTrackClips());
+}
+
+function applyTextAnimation(paramsJson) {
+    return safeBridgeEncode(AutoCutHost.applyTextAnimation(paramsJson));
+}
+
+function resetTextAnimation(paramsJson) {
+    return safeBridgeEncode(AutoCutHost.resetTextAnimation(paramsJson));
+}
+
 
 

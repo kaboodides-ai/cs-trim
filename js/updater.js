@@ -3,9 +3,9 @@
  * Cross-platform (macOS & Windows)
  */
 var AutoUpdater = {
-    CURRENT_VERSION: "1.0.4",
+    CURRENT_VERSION: "1.0.5",
     PRIMARY_URL: "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/version.json",
-    FALLBACK_URL: "https://cs-trim.vercel.app/version.json",
+    FALLBACK_URL: "https://cstrim.vercel.app/version.json",
 
     getNodeRequire: function () {
         if (typeof window !== "undefined" && window.cep_node && window.cep_node.require) {
@@ -164,38 +164,17 @@ var AutoUpdater = {
                         if (onProgress) onProgress(70, "מחלץ ומעדכן את קבצי התוסף...");
 
                         var isWin = (os.platform() === "win32");
-                        var extractCmd = "";
 
-                        if (isWin) {
-                            // On Windows 10/11 tar.exe is standard; otherwise fallback to PowerShell Expand-Archive
-                            var winTar = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe");
-                            if (fs.existsSync(winTar)) {
-                                extractCmd = '"' + winTar + '" -xf "' + tmpZipPath + '" -C "' + extDir + '"';
-                            } else {
-                                extractCmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -LiteralPath \'' + tmpZipPath + '\' -DestinationPath \'' + extDir + '\' -Force"';
-                            }
-                        } else {
-                            // macOS
-                            extractCmd = '/usr/bin/unzip -o "' + tmpZipPath + '" -d "' + extDir + '"';
-                        }
-
-                        cp.exec(extractCmd, function (execErr, stdout, stderr) {
-                            // Clean up temporary zip archive
+                        var onExtractFinished = function (err) {
                             try { fs.unlinkSync(tmpZipPath); } catch (delErr) {}
-
-                            if (execErr) {
-                                return reject(new Error("שגיאה בחילוץ העדכון: " + (execErr.message || stderr)));
+                            if (err) {
+                                return reject(new Error("שגיאה בחילוץ העדכון: " + (err.message || err)));
                             }
+                            proceedWithReload();
+                        };
 
+                        var proceedWithReload = function () {
                             if (onProgress) onProgress(90, "מרענן הגדרות ומנקה מטמון...");
-
-                            // Clear CEP browser cache on Windows/Mac if possible
-                            try {
-                                var cepCache = path.join(os.tmpdir(), "cep_cache");
-                                if (fs.existsSync(cepCache)) {
-                                    // Non-blocking
-                                }
-                            } catch (cErr) {}
 
                             // Re-evaluate host index.jsx in Premiere Pro ExtendScript engine
                             try {
@@ -219,7 +198,43 @@ var AutoUpdater = {
                                     }
                                 } catch (relErr) {}
                             }, 600);
-                        });
+                        };
+
+                        if (isWin) {
+                            var winTar = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe");
+                            var psZip = tmpZipPath.replace(/'/g, "''");
+                            var psDest = extDir.replace(/'/g, "''");
+
+                            var runPowerShellFallback = function () {
+                                var psCmd = 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "' +
+                                    '$s = Join-Path $env:TEMP (\'cstrim_u_\' + [Environment]::TickCount); ' +
+                                    'Expand-Archive -LiteralPath \'' + psZip + '\' -DestinationPath $s -Force; ' +
+                                    'Copy-Item -Path ($s + \'\\*\') -Destination \'' + psDest + '\' -Recurse -Force; ' +
+                                    'Remove-Item -Path $s -Recurse -Force -ErrorAction SilentlyContinue' +
+                                    '"';
+                                cp.exec(psCmd, function (psErr, stdout, stderr) {
+                                    onExtractFinished(psErr ? (psErr.message || stderr) : null);
+                                });
+                            };
+
+                            if (fs.existsSync(winTar)) {
+                                cp.execFile(winTar, ["-xf", tmpZipPath, "-C", extDir], function (tarErr) {
+                                    if (!tarErr) {
+                                        onExtractFinished(null);
+                                    } else {
+                                        runPowerShellFallback();
+                                    }
+                                });
+                            } else {
+                                runPowerShellFallback();
+                            }
+                        } else {
+                            // macOS
+                            var extractCmd = '/usr/bin/unzip -o "' + tmpZipPath + '" -d "' + extDir + '"';
+                            cp.exec(extractCmd, function (execErr, stdout, stderr) {
+                                onExtractFinished(execErr ? (execErr.message || stderr) : null);
+                            });
+                        }
                     })
                     .catch(reject);
             } catch (err) {

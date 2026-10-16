@@ -182,6 +182,9 @@ function closeLogView(e) {
             view.classList.add("active");
             if (targetId === "view-captions" && typeof updateInOutHint === "function") {
                 updateInOutHint();
+            } else if (targetId === "view-animations" && typeof TextAnimator !== "undefined" && TextAnimator.refreshSelectionCount) {
+                TextAnimator.refreshSelectionCount(true);
+                TextAnimator.triggerPreviewAnimation();
             }
         } else {
             view.style.display = "none";
@@ -307,12 +310,13 @@ function setBusy(busy) {
 }
 
 function escapeForEval(str) {
-    return (str || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return (str || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
+window.escapeForEval = escapeForEval;
 
 function ensureHostScriptLoaded(callback) {
     try {
-        csInterface.evalScript('typeof pingHost === "function"', function (isLoaded) {
+        csInterface.evalScript('typeof applyTextAnimation === "function"', function (isLoaded) {
             if (isLoaded === "true" || isLoaded === true) {
                 if (callback) callback();
                 return;
@@ -362,8 +366,14 @@ function initTabs() {
                         view.classList.remove("active");
                         void view.offsetWidth;
                         view.classList.add("active");
-                        if (targetId === "view-captions" && typeof updateInOutHint === "function") {
-                            updateInOutHint();
+                        if (targetId === "view-captions") {
+                            if (typeof updateInOutHint === "function") updateInOutHint();
+                            if (typeof CaptionGenerator !== "undefined" && CaptionGenerator.fetchRemoteCorrections) {
+                                CaptionGenerator.fetchRemoteCorrections();
+                            }
+                        } else if (targetId === "view-animations" && typeof TextAnimator !== "undefined" && TextAnimator.refreshSelectionCount) {
+                            TextAnimator.refreshSelectionCount(true);
+                            TextAnimator.triggerPreviewAnimation();
                         }
                     } else {
                         view.style.display = "none";
@@ -497,6 +507,10 @@ function initApp() {
         }
 
         log("בודק חיבור ל-Premiere Pro...", "info");
+
+        if (typeof CaptionGenerator !== "undefined" && CaptionGenerator.fetchRemoteCorrections) {
+            CaptionGenerator.fetchRemoteCorrections();
+        }
 
         ensureHostScriptLoaded(function () {
             csInterface.evalScript("pingHost()", function (result) {

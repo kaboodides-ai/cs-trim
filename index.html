@@ -6,8 +6,8 @@
     <title>CS Trim</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=5">
 </head>
 <body>
     <!-- Top Status Bar (Integrated Sequence & Connection, no redundant double title) -->
@@ -16,9 +16,19 @@
             <span class="seq-label">סיקוונס</span>
             <span id="seqName">טוען...</span>
         </div>
-        <div id="connectionStatus" class="status-badge" title="מצב חיבור לפרמייר">
-            <span class="status-dot"></span>
-            <span id="statusText">בודק חיבור...</span>
+        <div class="top-actions">
+            <button type="button" id="btnOpenLog" class="btn-top-log" onclick="openLogView(event)" title="מעבר ליומן פעילות (לוג)">
+                <svg class="icon-terminal" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 17 10 11 4 5"></polyline>
+                    <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+                <span>לוג</span>
+                <span id="logBadge" class="log-badge" style="display:none;"></span>
+            </button>
+            <div id="connectionStatus" class="status-badge" onclick="openLogView(event)" title="מצב חיבור לפרמייר (לחץ לפתיחת יומן)">
+                <span class="status-dot"></span>
+                <span id="statusText">בודק חיבור...</span>
+            </div>
         </div>
     </div>
 
@@ -57,6 +67,15 @@
             </div>
         </div>
 
+        <div class="row row-scope">
+            <label id="lblCaptionScope">טווח כתוביות</label>
+            <div class="scope-selector" id="captionScopeSelector" role="group" aria-labelledby="lblCaptionScope">
+                <button type="button" class="scope-btn active" data-scope="entire" title="יצירת כתוביות לכל הסיקוונס">כל הסיקוונס</button>
+                <button type="button" class="scope-btn" data-scope="inout" title="יצירת כתוביות רק בין נקודות In ל-Out">In / Out</button>
+            </div>
+        </div>
+        <div id="inOutHint" class="scope-hint" style="display:none;"></div>
+
         <div class="row row-slider">
             <label for="captionWordCount">מילים במשפט</label>
             <div class="slider-control-wrap" id="sliderWrap" title="גרור או גלול עם העכבר לשינוי מספר המילים (1-8)">
@@ -91,7 +110,110 @@
             </span>
         </label>
 
-        <button type="button" id="btnCaptions" class="btn btn-primary btn-captions-primary">יצירת כתוביות AI</button>
+        <label class="row row-toggle" for="captionWordHighlight" id="rowWordHighlight" title="הייליט מילים (מרקר): הדגשת כל מילה בזמן הדיבור">
+            <span class="toggle-label highlight-toggle-label">
+                <span>הייליט מילים</span>
+                <span class="highlight-preview-pill" id="highlightPreviewPill">מרקר</span>
+            </span>
+            <span class="custom-checkbox-wrap">
+                <input type="checkbox" id="captionWordHighlight">
+                <span class="custom-checkbox" aria-hidden="true">
+                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
+                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </span>
+        </label>
+
+        <div class="row row-highlight-color" id="rowHighlightColor">
+            <label for="captionHighlightColor">צבע ההייליט</label>
+            <div class="highlight-color-controls" id="highlightSwatches">
+                <button type="button" class="color-swatch active" data-color="#FACC15" style="--swatch-color: #FACC15;" title="צהוב מרקר" aria-label="צהוב מרקר"></button>
+                <button type="button" class="color-swatch" data-color="#22C55E" style="--swatch-color: #22C55E;" title="ירוק זוהר" aria-label="ירוק זוהר"></button>
+                <button type="button" class="color-swatch" data-color="#2563EB" style="--swatch-color: #2563EB;" title="כחול" aria-label="כחול"></button>
+                <button type="button" class="color-swatch" data-color="#EC4899" style="--swatch-color: #EC4899;" title="ורוד מרקר" aria-label="ורוד מרקר"></button>
+                <button type="button" class="color-swatch" data-color="#F97316" style="--swatch-color: #F97316;" title="כתום" aria-label="כתום"></button>
+                <button type="button" class="color-swatch" data-color="#A855F7" style="--swatch-color: #A855F7;" title="סגול" aria-label="סגול"></button>
+                <label class="custom-color-picker-wrap" title="בחירת צבע מותאם אישית">
+                    <input type="color" id="captionHighlightColor" value="#FACC15" aria-label="בחירת צבע ההייליט">
+                    <span class="custom-color-picker-btn" id="customColorBtn">+</span>
+                </label>
+            </div>
+        </div>
+
+
+        <button type="button" id="btnCaptions" class="btn btn-primary btn-captions-primary">יצירת כתוביות לכל הסיקוונס</button>
+        <button type="button" id="btnEditCaptions" class="btn btn-secondary btn-edit-captions" style="display:none;">
+            <span>✏️ עריכת טקסט הכתוביות (תיקון שגיאות)</span>
+        </button>
+    </div>
+
+    <!-- View: Caption Text Editor (Fix typos & re-render markers instantly) -->
+    <div id="view-caption-editor" class="tab-view" style="display:none;">
+        <div class="log-view-header">
+            <div class="log-view-title-wrap">
+                <button type="button" id="btnBackFromEditor" class="btn-log-back" title="חזרה להגדרות כתוביות">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                    <span>חזרה</span>
+                </button>
+                <span class="log-view-title">עריכת טקסט הכתוביות</span>
+            </div>
+            <span id="editorLinesCount" class="log-counter">0 שורות</span>
+        </div>
+
+        <div class="caption-editor-hint">
+            לחץ על כל משפט כדי לתקן שגיאות כתיב. לחיצה על הזמן תקפיץ את הסמן בפרמייר.
+        </div>
+
+        <div class="caption-editor-list" id="captionEditorList"></div>
+
+        <button type="button" id="btnApplyCaptionEdits" class="btn btn-primary btn-apply-edits">
+            עדכן כתוביות ומרקר בטיים-ליין
+        </button>
+    </div>
+
+    <!-- View: Activity Log -->
+    <div id="view-log" class="tab-view" style="display:none;">
+        <div class="log-view-header">
+            <div class="log-view-title-wrap">
+                <button type="button" id="btnBackFromLog" class="btn-log-back" onclick="closeLogView(event)" title="חזרה למסך הראשי">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                    <span>חזרה</span>
+                </button>
+                <svg class="icon-terminal" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 17 10 11 4 5"></polyline>
+                    <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+                <span class="log-view-title">יומן פעילות (לוג)</span>
+            </div>
+            <div class="log-view-actions">
+                <button type="button" id="btnCopyLog" class="btn-log-action" onclick="copyLogsToClipboard(event)" title="העתק תוכן היומן">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span>העתק</span>
+                </button>
+                <button type="button" id="btnClearLog" class="btn-log-action" onclick="clearLogs(event)" title="נקה יומן">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>נקה</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="console-box" id="consoleBox"></div>
+
+        <div class="log-view-footer">
+            <span id="logCounter" class="log-counter">0 הודעות</span>
+            <span class="log-status-live">מתעדכן בזמן אמת</span>
+        </div>
     </div>
 
     <!-- Shared Progress Area -->
@@ -103,9 +225,6 @@
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
     </div>
 
-    <!-- Console Log Box -->
-    <div class="console-box" id="consoleBox"></div>
-
     <!-- Footer Credit -->
     <div class="footer-credit">Created by Kaboodi</div>
 
@@ -114,9 +233,9 @@
         <img src="img/logo.png" alt="CS Trim - Auto Cut & Captions" class="plugin-logo">
     </div>
 
-    <script src="js/CSInterface.js"></script>
-    <script src="js/audioAnalyzer.js"></script>
-    <script src="js/captionGenerator.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/CSInterface.js?v=5"></script>
+    <script src="js/audioAnalyzer.js?v=5"></script>
+    <script src="js/captionGenerator.js?v=5"></script>
+    <script src="js/main.js?v=5"></script>
 </body>
 </html>

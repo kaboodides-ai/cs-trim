@@ -159,6 +159,15 @@ if exist "com.autocut.panel" (
     copy /y ".debug" "%TARGET%\\" >nul
 )
 
+if exist "%COMMONPROGRAMFILES(x86)%\\Adobe\\CEP\\extensions\\com.autocut.panel" (
+    rmdir /s /q "%COMMONPROGRAMFILES(x86)%\\Adobe\\CEP\\extensions\\com.autocut.panel" >nul 2>&1
+)
+if exist "%COMMONPROGRAMFILES%\\Adobe\\CEP\\extensions\\com.autocut.panel" (
+    rmdir /s /q "%COMMONPROGRAMFILES%\\Adobe\\CEP\\extensions\\com.autocut.panel" >nul 2>&1
+)
+if exist "%LOCALAPPDATA%\\Temp\\cep_cache" rmdir /s /q "%LOCALAPPDATA%\\Temp\\cep_cache" >nul 2>&1
+if exist "%APPDATA%\\Adobe\\CEP\\cache" rmdir /s /q "%APPDATA%\\Adobe\\CEP\\cache" >nul 2>&1
+
 echo [2/2] מפעיל תאימות תוספים ב-Premiere Pro...
 for %%v in (7 8 9 10 11 12 13 14 15 16 17 18 19 20) do (
     reg add "HKCU\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1

@@ -21,7 +21,8 @@ def package():
         "img",
         "index.html",
         "js",
-        ".debug"
+        ".debug",
+        "bin"
     ]
 
     for item in items:
@@ -91,14 +92,10 @@ if exist "%TARGET_DIR%" rmdir /s /q "%TARGET_DIR%"
 xcopy /E /I /Y "%PLUGIN_SRC%" "%TARGET_DIR%" >nul
 
 echo מגדיר הרשאות PlayerDebugMode ב-Registry...
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.9" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.10" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.11" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.12" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.13" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.14" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.15" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.16" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
+for %%v in (7 8 9 10 11 12 13 14 15 16 17 18 19 20) do (
+    reg add "HKEY_CURRENT_USER\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
+    reg add "HKEY_LOCAL_MACHINE\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
+)
 
 echo.
 echo =================================================

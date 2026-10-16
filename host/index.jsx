@@ -68,6 +68,97 @@ var AutoCutHost = {
     },
 
     /**
+     * Internal helper to extract In/Out points and duration of a sequence
+     */
+    extractSequenceBounds: function(seq) {
+        var seqDuration = 0;
+        if (seq && seq.end) {
+            seqDuration = (typeof seq.end.seconds !== "undefined") ? seq.end.seconds : (Number(seq.end) / TICKS_PER_SECOND);
+        }
+
+        var inPointSec = 0;
+        var outPointSec = seqDuration;
+        var hasCustomInOut = false;
+
+        if (seq) {
+            try {
+                if (typeof seq.getInPointAsTime === "function") {
+                    var tIn = seq.getInPointAsTime();
+                    if (tIn && typeof tIn.seconds === "number") inPointSec = tIn.seconds;
+                }
+            } catch (e1) {}
+
+            if (inPointSec === 0) {
+                try {
+                    if (typeof seq.getInPoint === "function") {
+                        var rawIn = seq.getInPoint();
+                        if (rawIn !== null && rawIn !== undefined && rawIn !== "") {
+                            var pIn = parseFloat(rawIn);
+                            if (!isNaN(pIn)) inPointSec = pIn;
+                        }
+                    }
+                } catch (e2) {}
+            }
+
+            try {
+                if (typeof seq.getOutPointAsTime === "function") {
+                    var tOut = seq.getOutPointAsTime();
+                    if (tOut && typeof tOut.seconds === "number") outPointSec = tOut.seconds;
+                }
+            } catch (e3) {}
+
+            if (outPointSec === seqDuration || outPointSec === 0) {
+                try {
+                    if (typeof seq.getOutPoint === "function") {
+                        var rawOut = seq.getOutPoint();
+                        if (rawOut !== null && rawOut !== undefined && rawOut !== "") {
+                            var pOut = parseFloat(rawOut);
+                            if (!isNaN(pOut) && pOut > 0) outPointSec = pOut;
+                        }
+                    }
+                } catch (e4) {}
+            }
+
+            if (outPointSec <= 0 || isNaN(outPointSec)) {
+                outPointSec = seqDuration;
+            }
+
+            if (inPointSec > 0.05 || (outPointSec > 0 && Math.abs(outPointSec - seqDuration) > 0.1)) {
+                hasCustomInOut = true;
+            }
+        }
+
+        return {
+            duration: seqDuration,
+            inPoint: inPointSec,
+            outPoint: outPointSec,
+            hasCustomInOut: hasCustomInOut
+        };
+    },
+
+    /**
+     * Get In/Out points and duration of active sequence
+     */
+    getSequenceInOut: function() {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence found" });
+            }
+            var seq = app.project.activeSequence;
+            var bounds = AutoCutHost.extractSequenceBounds(seq);
+            return JSON.stringify({
+                name: seq.name,
+                duration: bounds.duration,
+                inPoint: bounds.inPoint,
+                outPoint: bounds.outPoint,
+                hasCustomInOut: bounds.hasCustomInOut
+            });
+        } catch (e) {
+            return JSON.stringify({ error: "getSequenceInOut error: " + e.toString() });
+        }
+    },
+
+    /**
      * Check if a project and active sequence exist
      */
     getActiveSequenceInfo: function() {
@@ -80,16 +171,16 @@ var AutoCutHost = {
                 return JSON.stringify({ error: "No active sequence found. Please open a sequence." });
             }
 
-            var durationSec = 0;
-            if (seq.end) {
-                durationSec = (typeof seq.end.seconds !== "undefined") ? seq.end.seconds : (Number(seq.end) / TICKS_PER_SECOND);
-            }
+            var bounds = AutoCutHost.extractSequenceBounds(seq);
 
             return JSON.stringify({
                 name: seq.name,
                 id: seq.sequenceID,
                 timebase: seq.timebase,
-                duration: durationSec,
+                duration: bounds.duration,
+                inPoint: bounds.inPoint,
+                outPoint: bounds.outPoint,
+                hasCustomInOut: bounds.hasCustomInOut,
                 zeroPoint: seq.zeroPoint
             });
         } catch (e) {
@@ -193,14 +284,31 @@ var AutoCutHost = {
                 }
             }
 
-            var seqDuration = 0;
-            if (seq.end) {
-                seqDuration = (typeof seq.end.seconds !== "undefined") ? seq.end.seconds : (Number(seq.end) / TICKS_PER_SECOND);
-            }
+            var bounds = AutoCutHost.extractSequenceBounds(seq);
+
+            var frameW = 1080;
+            var frameH = 1920;
+            try {
+                if (seq.frameSizeHorizontal && seq.frameSizeVertical) {
+                    frameW = Number(seq.frameSizeHorizontal) || 1080;
+                    frameH = Number(seq.frameSizeVertical) || 1920;
+                } else if (typeof seq.getSettings === "function") {
+                    var s = seq.getSettings();
+                    if (s && s.videoFrameWidth && s.videoFrameHeight) {
+                        frameW = Number(s.videoFrameWidth) || 1080;
+                        frameH = Number(s.videoFrameHeight) || 1920;
+                    }
+                }
+            } catch (dimErr) {}
 
             return JSON.stringify({
                 sequenceName: seq.name,
-                duration: seqDuration,
+                duration: bounds.duration,
+                inPoint: bounds.inPoint,
+                outPoint: bounds.outPoint,
+                hasCustomInOut: bounds.hasCustomInOut,
+                frameWidth: frameW,
+                frameHeight: frameH,
                 timebase: seq.timebase,
                 mediaFiles: mediaFiles,
                 allClips: allClips
@@ -570,6 +678,187 @@ var AutoCutHost = {
     },
 
     /**
+     * Import rendered word-highlight marker PNG clips and place them on a dedicated top Video Track
+     */
+    importHighlightedSubtitles: function(manifestPath) {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence open" });
+            }
+            var seq = app.project.activeSequence;
+            var cleanManifest = (manifestPath || "").replace(/\\/g, "/");
+            var mFile = new File(cleanManifest);
+            if (!mFile.exists) {
+                mFile = new File(manifestPath);
+            }
+            if (!mFile.exists) {
+                return JSON.stringify({ error: "Manifest file not found: " + manifestPath });
+            }
+
+            mFile.encoding = "UTF-8";
+            mFile.open("r");
+            var rawJson = mFile.read();
+            mFile.close();
+
+            var manifest = JSON.parse(rawJson);
+            var items = (manifest && manifest.items) ? manifest.items : [];
+            if (!items || items.length === 0) {
+                return JSON.stringify({ error: "No highlight items found in manifest" });
+            }
+
+            // Create a dedicated bin in the project root to keep the user's project tidy
+            var rootBin = app.project.rootItem;
+            var hlBin = null;
+            try {
+                hlBin = rootBin.createBin("CS Trim - \u05de\u05e8\u05e7\u05e8 \u05de\u05d9\u05dc\u05d9\u05dd");
+            } catch (binErr) {
+                hlBin = app.project.getInsertionBin ? app.project.getInsertionBin() : rootBin;
+            }
+            if (!hlBin) hlBin = rootBin;
+
+            // Collect all PNG file paths for a single fast batch import
+            var importPaths = [];
+            for (var i = 0; i < items.length; i++) {
+                var f = new File(items[i].pngPath);
+                importPaths.push(f.fsName ? f.fsName : items[i].pngPath);
+            }
+
+            var importedOk = app.project.importFiles(importPaths, true, hlBin, false);
+            if (!importedOk) {
+                return JSON.stringify({ error: "Failed to import highlight PNG files into Premiere Pro" });
+            }
+
+            // Map imported ProjectItems by name for instant lookup
+            var itemMap = {};
+            var mapBinChildren = function(bin) {
+                if (!bin || !bin.children) return;
+                for (var c = 0; c < bin.children.numItems; c++) {
+                    var child = bin.children[c];
+                    if (!child) continue;
+                    try {
+                        var nm = child.name;
+                        if (nm) {
+                            itemMap[nm] = child;
+                            itemMap[nm.replace(/\.png$/i, "")] = child;
+                        }
+                    } catch (e1) {}
+                }
+            };
+            mapBinChildren(hlBin);
+            if (hlBin !== rootBin) {
+                mapBinChildren(rootBin);
+            }
+
+            // Check if a Video Track already has previous CS Trim highlight clips (hl_*) and clean them up for seamless re-apply
+            var targetTrack = null;
+            if (seq.videoTracks && seq.videoTracks.numTracks > 1) {
+                for (var checkVt = seq.videoTracks.numTracks - 1; checkVt >= 1; checkVt--) {
+                    var trk = seq.videoTracks[checkVt];
+                    if (!trk || !trk.clips || trk.clips.numItems === 0) continue;
+                    var hasHlClips = false;
+                    for (var hc = trk.clips.numItems - 1; hc >= 0; hc--) {
+                        var clipName = trk.clips[hc].name || "";
+                        if (clipName.indexOf("hl_") === 0) {
+                            hasHlClips = true;
+                            try { trk.clips[hc].remove(false, false); } catch (remErr) {}
+                        }
+                    }
+                    if (hasHlClips && !targetTrack) {
+                        targetTrack = trk;
+                    }
+                }
+            }
+
+            // Otherwise find an empty top Video Track (above V1), or add a new Video Track via QE if all tracks have clips
+            if (!targetTrack && seq.videoTracks && seq.videoTracks.numTracks > 1) {
+                for (var vt = seq.videoTracks.numTracks - 1; vt >= 1; vt--) {
+                    var candidate = seq.videoTracks[vt];
+                    if (candidate && candidate.clips && candidate.clips.numItems === 0) {
+                        targetTrack = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (!targetTrack) {
+                try {
+                    app.enableQE();
+                    var qeSeq = qe.project.getActiveSequence();
+                    if (qeSeq && typeof qeSeq.addTracks === "function") {
+                        qeSeq.addTracks(1, seq.videoTracks.numTracks, 0, 0);
+                    }
+                } catch (qeErr) {}
+
+                if (seq.videoTracks && seq.videoTracks.numTracks > 0) {
+                    targetTrack = seq.videoTracks[seq.videoTracks.numTracks - 1];
+                }
+            }
+
+            if (!targetTrack) {
+                return JSON.stringify({ error: "No video track available for highlight overlays" });
+            }
+
+            var placedCount = 0;
+            for (var k = 0; k < items.length; k++) {
+                var entry = items[k];
+                var baseNoExt = (entry.pngName || "").replace(/\.png$/i, "");
+                var projItem = itemMap[entry.pngName] || itemMap[baseNoExt];
+                if (!projItem) continue;
+
+                var startSec = Math.max(0, Number(entry.start) || 0);
+                var endSec = Math.max(startSec + 0.05, Number(entry.end) || (startSec + 0.25));
+
+                var startTime = new Time();
+                startTime.seconds = startSec;
+
+                var endTime = new Time();
+                endTime.seconds = endSec;
+
+                try {
+                    targetTrack.overwriteClip(projItem, startTime);
+                    placedCount++;
+
+                    // Trim the newly placed clip on the timeline to match endSec
+                    var clipsCol = targetTrack.clips;
+                    for (var tc = clipsCol.numItems - 1; tc >= 0; tc--) {
+                        var trkClip = clipsCol[tc];
+                        if (trkClip && trkClip.start && Math.abs(trkClip.start.seconds - startSec) < 0.15) {
+                            trkClip.end = endTime;
+                            break;
+                        }
+                    }
+                } catch (placeErr) {}
+            }
+
+            return JSON.stringify({
+                success: true,
+                inTimeline: placedCount > 0,
+                placedCount: placedCount
+            });
+        } catch (e) {
+            return JSON.stringify({ error: "importHighlightedSubtitles error: " + e.toString() });
+        }
+    },
+
+    /**
+     * Move the active sequence playhead to a specific timestamp (in seconds)
+     */
+    setPlayheadPosition: function(seconds) {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence" });
+            }
+            var seq = app.project.activeSequence;
+            var sec = Math.max(0, Number(seconds) || 0);
+            var ticksStr = String(Math.round(sec * TICKS_PER_SECOND));
+            seq.setPlayerPosition(ticksStr);
+            return JSON.stringify({ success: true, seconds: sec });
+        } catch (e) {
+            return JSON.stringify({ error: e.toString() });
+        }
+    },
+
+    /**
      * Undo the last AutoCut and restore the original sequence from its backup
      */
     undoLastCut: function() {
@@ -684,8 +973,20 @@ function importSubtitles(srtPath, startOffset) {
     return safeBridgeEncode(AutoCutHost.importSubtitles(srtPath, startOffset));
 }
 
+function importHighlightedSubtitles(manifestPath) {
+    return safeBridgeEncode(AutoCutHost.importHighlightedSubtitles(manifestPath));
+}
+
 function undoLastCut() {
     return safeBridgeEncode(AutoCutHost.undoLastCut());
+}
+
+function getSequenceInOut() {
+    return safeBridgeEncode(AutoCutHost.getSequenceInOut());
+}
+
+function setPlayheadPosition(seconds) {
+    return safeBridgeEncode(AutoCutHost.setPlayheadPosition(seconds));
 }
 
 

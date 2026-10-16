@@ -58,9 +58,208 @@ function cleanUtf8(str) {
     return res;
 }
 
+var unreadLogs = 0;
+var hasLogError = false;
+
+function updateLogBadge() {
+    var badge = document.getElementById("logBadge");
+    var counter = document.getElementById("logCounter");
+    var box = document.getElementById("consoleBox");
+
+    if (counter && box) {
+        var count = box.querySelectorAll(".log-entry").length;
+        counter.textContent = count === 1 ? "הודעה 1" : count + " הודעות";
+    }
+
+    if (!badge) return;
+    var logView = document.getElementById("view-log");
+    var isOpen = logView && logView.style.display !== "none" && logView.classList.contains("active");
+
+    if (isOpen) {
+        unreadLogs = 0;
+        hasLogError = false;
+        badge.style.display = "none";
+        badge.classList.remove("has-error");
+        return;
+    }
+
+    if (unreadLogs > 0) {
+        badge.style.display = "inline-flex";
+        badge.textContent = unreadLogs > 99 ? "99+" : unreadLogs;
+        if (hasLogError) {
+            badge.classList.add("has-error");
+        } else {
+            badge.classList.remove("has-error");
+        }
+    } else {
+        badge.style.display = "none";
+        badge.classList.remove("has-error");
+    }
+}
+
+var lastActiveTabId = "view-trim";
+
+function openLogView(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    var logView = document.getElementById("view-log");
+    var isAlreadyOpen = logView && logView.style.display !== "none" && logView.classList.contains("active");
+
+    // If already in log view, toggle back to the previous tab
+    if (isAlreadyOpen) {
+        closeLogView(e);
+        return;
+    }
+
+    // Remember currently active tab
+    var activeBtn = document.querySelector(".tab-btn.active");
+    if (activeBtn && activeBtn.getAttribute("data-tab")) {
+        lastActiveTabId = activeBtn.getAttribute("data-tab");
+    }
+
+    var tabButtons = document.querySelectorAll(".tab-btn");
+    for (var i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove("active");
+    }
+
+    var topLogBtn = document.getElementById("btnOpenLog");
+    if (topLogBtn) {
+        topLogBtn.classList.add("active");
+    }
+
+    var tabViews = document.querySelectorAll(".tab-view");
+    for (var k = 0; k < tabViews.length; k++) {
+        if (tabViews[k].id === "view-log") {
+            tabViews[k].style.display = "block";
+            tabViews[k].classList.remove("active");
+            void tabViews[k].offsetWidth;
+            tabViews[k].classList.add("active");
+        } else {
+            tabViews[k].style.display = "none";
+            tabViews[k].classList.remove("active");
+        }
+    }
+
+    unreadLogs = 0;
+    hasLogError = false;
+    updateLogBadge();
+    var box = document.getElementById("consoleBox");
+    if (box) {
+        box.scrollTop = box.scrollHeight;
+    }
+}
+window.openLogView = openLogView;
+window.openLogModal = openLogView; // alias for compatibility
+
+function closeLogView(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    var targetId = lastActiveTabId || "view-trim";
+
+    var topLogBtn = document.getElementById("btnOpenLog");
+    if (topLogBtn) {
+        topLogBtn.classList.remove("active");
+    }
+
+    var tabButtons = document.querySelectorAll(".tab-btn");
+    for (var i = 0; i < tabButtons.length; i++) {
+        if (tabButtons[i].getAttribute("data-tab") === targetId) {
+            tabButtons[i].classList.add("active");
+        } else {
+            tabButtons[i].classList.remove("active");
+        }
+    }
+
+    var tabViews = document.querySelectorAll(".tab-view");
+    for (var k = 0; k < tabViews.length; k++) {
+        var view = tabViews[k];
+        if (view.id === targetId) {
+            view.style.display = "block";
+            view.classList.remove("active");
+            void view.offsetWidth;
+            view.classList.add("active");
+            if (targetId === "view-captions" && typeof updateInOutHint === "function") {
+                updateInOutHint();
+            }
+        } else {
+            view.style.display = "none";
+            view.classList.remove("active");
+        }
+    }
+
+    updateLogBadge();
+}
+window.closeLogView = closeLogView;
+
+function clearLogs(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var box = document.getElementById("consoleBox");
+    if (box) {
+        box.innerHTML = '<div class="log-empty-state">היומן נוקה (אין הודעות)</div>';
+    }
+    unreadLogs = 0;
+    hasLogError = false;
+    updateLogBadge();
+}
+window.clearLogs = clearLogs;
+
+function copyLogsToClipboard(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var box = document.getElementById("consoleBox");
+    if (!box) return;
+    var entries = box.querySelectorAll(".log-entry");
+    var lines = [];
+    for (var i = 0; i < entries.length; i++) {
+        lines.push(entries[i].textContent.trim());
+    }
+    var text = lines.join("\n");
+    if (!text.trim()) return;
+
+    var btn = document.getElementById("btnCopyLog");
+    var markCopied = function () {
+        if (btn) {
+            var oldHtml = btn.innerHTML;
+            btn.innerHTML = '<span>הועתק! ✓</span>';
+            setTimeout(function () { btn.innerHTML = oldHtml; }, 1500);
+        }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(markCopied).catch(function () {
+            fallbackCopy(text, markCopied);
+        });
+    } else {
+        fallbackCopy(text, markCopied);
+    }
+}
+window.copyLogsToClipboard = copyLogsToClipboard;
+
+function fallbackCopy(text, onSuccess) {
+    try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (onSuccess) onSuccess();
+    } catch (e) {
+        console.error("Failed to copy log:", e);
+    }
+}
+
 function log(message, type) {
     var box = document.getElementById("consoleBox");
     if (!box) return;
+
+    var empty = box.querySelector(".log-empty-state");
+    if (empty && empty.parentNode) empty.parentNode.removeChild(empty);
+
     var entry = document.createElement("div");
     entry.className = "log-entry" + (type ? " log-" + type : "");
     entry.dir = "rtl";
@@ -79,6 +278,14 @@ function log(message, type) {
     entry.appendChild(msgSpan);
     box.appendChild(entry);
     box.scrollTop = box.scrollHeight;
+
+    var logView = document.getElementById("view-log");
+    var isLogOpen = logView && logView.style.display !== "none" && logView.classList.contains("active");
+    if (!isLogOpen) {
+        unreadLogs++;
+        if (type === "error") hasLogError = true;
+    }
+    updateLogBadge();
 }
 
 function updateProgress(percent, text) {
@@ -132,33 +339,163 @@ function initTabs() {
     var tabButtons = document.querySelectorAll(".tab-btn");
     var tabViews = document.querySelectorAll(".tab-view");
 
-    tabButtons.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            var targetId = this.getAttribute("data-tab");
+    for (var i = 0; i < tabButtons.length; i++) {
+        (function (btn) {
+            btn.addEventListener("click", function () {
+                var targetId = this.getAttribute("data-tab");
+                lastActiveTabId = targetId;
 
-            tabButtons.forEach(function (b) {
-                b.classList.remove("active");
-            });
-            this.classList.add("active");
+                var topLogBtn = document.getElementById("btnOpenLog");
+                if (topLogBtn) {
+                    topLogBtn.classList.remove("active");
+                }
 
-            tabViews.forEach(function (view) {
-                if (view.id === targetId) {
-                    view.style.display = "block";
-                    view.classList.remove("active");
-                    void view.offsetWidth; // re-trigger 0.15s fade-in animation
-                    view.classList.add("active");
-                } else {
-                    view.style.display = "none";
-                    view.classList.remove("active");
+                for (var j = 0; j < tabButtons.length; j++) {
+                    tabButtons[j].classList.remove("active");
+                }
+                this.classList.add("active");
+
+                for (var k = 0; k < tabViews.length; k++) {
+                    var view = tabViews[k];
+                    if (view.id === targetId) {
+                        view.style.display = "block";
+                        view.classList.remove("active");
+                        void view.offsetWidth;
+                        view.classList.add("active");
+                        if (targetId === "view-captions" && typeof updateInOutHint === "function") {
+                            updateInOutHint();
+                        }
+                    } else {
+                        view.style.display = "none";
+                        view.classList.remove("active");
+                    }
                 }
             });
+        })(tabButtons[i]);
+    }
+}
+
+var selectedCaptionScope = "entire";
+try {
+    selectedCaptionScope = localStorage.getItem("autocut_caption_scope") || "entire";
+} catch (e) {}
+
+function formatTimeSec(seconds) {
+    var s = Math.max(0, Number(seconds) || 0);
+    var mins = Math.floor(s / 60);
+    var secs = (s % 60).toFixed(1);
+    if (secs < 10) secs = "0" + secs;
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    return pad(mins) + ":" + secs;
+}
+
+function updateInOutHint() {
+    var inOutHint = document.getElementById("inOutHint");
+    if (!inOutHint || selectedCaptionScope !== "inout") {
+        if (inOutHint) inOutHint.style.display = "none";
+        return;
+    }
+    ensureHostScriptLoaded(function () {
+        csInterface.evalScript("getSequenceInOut()", function (res) {
+            try {
+                if (!res || res === "EvalScript error.") {
+                    inOutHint.textContent = "אין סיקוונס פתוח";
+                    inOutHint.className = "scope-hint warning";
+                    inOutHint.style.display = "block";
+                    return;
+                }
+                var data = JSON.parse(res);
+                if (data.error) {
+                    inOutHint.textContent = "אין סיקוונס פתוח";
+                    inOutHint.className = "scope-hint warning";
+                    inOutHint.style.display = "block";
+                    return;
+                }
+                if (data.hasCustomInOut) {
+                    var dur = Math.max(0, data.outPoint - data.inPoint).toFixed(1);
+                    inOutHint.textContent = "טווח In/Out בטיים-ליין: " + formatTimeSec(data.inPoint) + " עד " + formatTimeSec(data.outPoint) + " (" + dur + " שניות)";
+                    inOutHint.className = "scope-hint";
+                    inOutHint.style.display = "block";
+                } else {
+                    inOutHint.textContent = "שים לב: לא סומנו נקודות In/Out ספציפיות בטיים-ליין (מקשים I ו-O). יופק לכל הסיקוונס.";
+                    inOutHint.className = "scope-hint warning";
+                    inOutHint.style.display = "block";
+                }
+            } catch (e) {
+                inOutHint.style.display = "none";
+            }
         });
     });
 }
 
-window.addEventListener("DOMContentLoaded", function () {
+function updateCaptionsButtonLabel() {
+    var btnCaptions = document.getElementById("btnCaptions");
+    if (!btnCaptions) return;
+    var hlEl = document.getElementById("captionWordHighlight");
+    var isHl = hlEl && hlEl.checked;
+    if (selectedCaptionScope === "inout") {
+        btnCaptions.textContent = isHl ? "יצירת כתוביות ל-In / Out + מרקר" : "יצירת כתוביות ל-In / Out";
+    } else {
+        btnCaptions.textContent = isHl ? "יצירת כתוביות לכל הסיקוונס + מרקר" : "יצירת כתוביות לכל הסיקוונס";
+    }
+}
+
+function updateCaptionScopeUI(scope) {
+    selectedCaptionScope = scope || "entire";
+    try {
+        localStorage.setItem("autocut_caption_scope", selectedCaptionScope);
+    } catch (e) {}
+
+    var scopeButtons = document.querySelectorAll(".scope-btn");
+    for (var i = 0; i < scopeButtons.length; i++) {
+        var b = scopeButtons[i];
+        if (b.getAttribute("data-scope") === selectedCaptionScope) {
+            b.classList.add("active");
+        } else {
+            b.classList.remove("active");
+        }
+    }
+
+    updateCaptionsButtonLabel();
+
+    if (selectedCaptionScope === "inout") {
+        updateInOutHint();
+    } else {
+        var inOutHint = document.getElementById("inOutHint");
+        if (inOutHint) inOutHint.style.display = "none";
+    }
+}
+
+function initApp() {
     try {
         initTabs();
+
+        // Log View Triggers
+        var btnOpenLog = document.getElementById("btnOpenLog");
+        if (btnOpenLog) {
+            btnOpenLog.onclick = openLogView;
+        }
+
+        var btnBackFromLog = document.getElementById("btnBackFromLog");
+        if (btnBackFromLog) {
+            btnBackFromLog.onclick = closeLogView;
+        }
+
+        var connStatus = document.getElementById("connectionStatus");
+        if (connStatus) {
+            connStatus.onclick = openLogView;
+        }
+
+        var btnClearLog = document.getElementById("btnClearLog");
+        if (btnClearLog) {
+            btnClearLog.onclick = clearLogs;
+        }
+
+        var btnCopyLog = document.getElementById("btnCopyLog");
+        if (btnCopyLog) {
+            btnCopyLog.onclick = copyLogsToClipboard;
+        }
+
         log("בודק חיבור ל-Premiere Pro...", "info");
 
         ensureHostScriptLoaded(function () {
@@ -202,6 +539,16 @@ window.addEventListener("DOMContentLoaded", function () {
             });
         }
 
+        // Caption Scope Selector (Entire Sequence vs In/Out)
+        var scopeButtons = document.querySelectorAll(".scope-btn");
+        for (var sb = 0; sb < scopeButtons.length; sb++) {
+            scopeButtons[sb].addEventListener("click", function () {
+                var scope = this.getAttribute("data-scope");
+                updateCaptionScopeUI(scope);
+            });
+        }
+        updateCaptionScopeUI(selectedCaptionScope);
+
         // Toggle Punctuation Checkbox (Tooltip / State)
         var punctInput = document.getElementById("captionPunctuation");
         var rowPunct = document.getElementById("rowPunctuation");
@@ -231,6 +578,105 @@ window.addEventListener("DOMContentLoaded", function () {
             stretchInput.addEventListener("change", updateStretchTitle);
             updateStretchTitle();
         }
+
+        // Word Highlight (Marker) Toggle & Color Picker
+        var highlightInput = document.getElementById("captionWordHighlight");
+        var rowHighlight = document.getElementById("rowWordHighlight");
+        var rowHighlightColor = document.getElementById("rowHighlightColor");
+        var highlightPreviewPill = document.getElementById("highlightPreviewPill");
+        var colorPickerInput = document.getElementById("captionHighlightColor");
+        var colorSwatches = document.querySelectorAll(".color-swatch");
+        var customColorWrap = document.querySelector(".custom-color-picker-wrap");
+        var btnCaptionsEl = document.getElementById("btnCaptions");
+
+        var selectedHighlightColor = "#FACC15";
+        try {
+            var savedColor = localStorage.getItem("autocut_highlight_color");
+            if (savedColor && /^#[0-9A-Fa-f]{6}$/.test(savedColor)) {
+                selectedHighlightColor = savedColor;
+            }
+            var savedHlEnabled = localStorage.getItem("autocut_highlight_enabled");
+            if (highlightInput && savedHlEnabled !== null) {
+                highlightInput.checked = (savedHlEnabled === "true");
+            }
+        } catch (e) {}
+
+        function applyHighlightColor(colorHex, autoEnable) {
+            if (!colorHex) return;
+            selectedHighlightColor = colorHex;
+            try { localStorage.setItem("autocut_highlight_color", colorHex); } catch (e) {}
+
+            if (colorPickerInput && colorPickerInput.value.toLowerCase() !== colorHex.toLowerCase()) {
+                colorPickerInput.value = colorHex;
+            }
+            if (highlightPreviewPill) {
+                highlightPreviewPill.style.setProperty("--hl-color", colorHex);
+                highlightPreviewPill.style.background = colorHex;
+            }
+
+            var matchedPreset = false;
+            for (var sIdx = 0; sIdx < colorSwatches.length; sIdx++) {
+                var sw = colorSwatches[sIdx];
+                var swColor = (sw.getAttribute("data-color") || "").toLowerCase();
+                if (swColor === colorHex.toLowerCase()) {
+                    sw.classList.add("active");
+                    matchedPreset = true;
+                } else {
+                    sw.classList.remove("active");
+                }
+            }
+            if (customColorWrap) {
+                if (!matchedPreset) {
+                    customColorWrap.classList.add("active");
+                } else {
+                    customColorWrap.classList.remove("active");
+                }
+            }
+
+            if (autoEnable && highlightInput && !highlightInput.checked) {
+                highlightInput.checked = true;
+                updateHighlightToggleState();
+            }
+        }
+
+        function updateHighlightToggleState() {
+            var isOn = highlightInput ? highlightInput.checked : false;
+            try { localStorage.setItem("autocut_highlight_enabled", isOn ? "true" : "false"); } catch (e) {}
+
+            if (rowHighlight) {
+                rowHighlight.classList.toggle("highlight-enabled", isOn);
+                rowHighlight.title = isOn
+                    ? "הייליט מילים (מרקר): מופעל (מדגיש כל מילה בזמן הדיבור)"
+                    : "הייליט מילים (מרקר): כבוי";
+            }
+            if (rowHighlightColor) {
+                rowHighlightColor.classList.toggle("is-disabled", !isOn);
+            }
+            updateCaptionsButtonLabel();
+        }
+
+        if (highlightInput) {
+            highlightInput.addEventListener("change", updateHighlightToggleState);
+        }
+
+        for (var cs = 0; cs < colorSwatches.length; cs++) {
+            colorSwatches[cs].addEventListener("click", function () {
+                var c = this.getAttribute("data-color");
+                if (c) applyHighlightColor(c, true);
+            });
+        }
+
+        if (colorPickerInput) {
+            colorPickerInput.addEventListener("input", function () {
+                applyHighlightColor(this.value, true);
+            });
+            colorPickerInput.addEventListener("change", function () {
+                applyHighlightColor(this.value, true);
+            });
+        }
+
+        applyHighlightColor(selectedHighlightColor, false);
+        updateHighlightToggleState();
 
         // Word Count Slider (1-8 words, live badge, mousewheel support)
         var wordSlider = document.getElementById("captionWordCount");
@@ -411,11 +857,13 @@ window.addEventListener("DOMContentLoaded", function () {
             var includePunctuation = punctEl ? punctEl.checked : true;
             var stretchEl = document.getElementById("captionStretchGaps");
             var stretchGaps = stretchEl ? stretchEl.checked : false;
+            var highlightEl = document.getElementById("captionWordHighlight");
+            var highlightWords = highlightEl ? highlightEl.checked : false;
             var syncEl = document.getElementById("captionSync");
             var syncDelay = syncEl ? parseFloat(syncEl.value) : 0.12;
 
             setBusy(true);
-            log("מתחיל ביצירת כתוביות AI מסונכרנות...", "info");
+            log(highlightWords ? "מתחיל ביצירת כתוביות AI עם מרקר מילים מסונכרן..." : "מתחיל ביצירת כתוביות AI מסונכרנות...", "info");
             updateProgress(5, "סורק קליפים בסיקוונס...");
 
             ensureHostScriptLoaded(function () {
@@ -442,19 +890,80 @@ window.addEventListener("DOMContentLoaded", function () {
                             return;
                         }
 
-                        log("מתמלל כתוביות לכל הסיקוונס (" + clips.length + " קטעים)...", "info");
+                        var scope = selectedCaptionScope || "entire";
+                        var rangeStart = 0;
+                        var rangeEnd = Number(data.duration) || 0;
+
+                        if (scope === "inout") {
+                            var inPt = (typeof data.inPoint === "number") ? data.inPoint : 0;
+                            var outPt = (typeof data.outPoint === "number" && data.outPoint > 0) ? data.outPoint : rangeEnd;
+
+                            if (outPt <= inPt) {
+                                log("נקודת ה-In גדולה או שווה לנקודת ה-Out בסיקוונס. אנא סמן טווח In/Out תקין בפרמייר.", "error");
+                                updateProgress(0, "");
+                                setBusy(false);
+                                return;
+                            }
+
+                            rangeStart = inPt;
+                            rangeEnd = outPt;
+
+                            if (data.hasCustomInOut) {
+                                var rangeDur = (rangeEnd - rangeStart).toFixed(1);
+                                log("מייצר כתוביות עבור טווח In/Out (" + formatTimeSec(rangeStart) + " - " + formatTimeSec(rangeEnd) + ", " + rangeDur + " שניות)...", "info");
+                            } else {
+                                log("לא זוהו נקודות In/Out ספציפיות בסיקוונס (מוגדר כל הסיקוונס). מייצר כתוביות לכל הטווח...", "info");
+                            }
+                        } else {
+                            log("מתמלל כתוביות לכל הסיקוונס (" + clips.length + " קטעים)...", "info");
+                        }
 
                         var options = {
                             syncDelay: syncDelay,
                             wordCount: wordCount,
                             includePunctuation: includePunctuation,
-                            stretchGaps: stretchGaps
+                            stretchGaps: stretchGaps,
+                            highlightWords: highlightWords,
+                            highlightColor: selectedHighlightColor || "#FACC15",
+                            seqWidth: Number(data.frameWidth) || 1080,
+                            seqHeight: Number(data.frameHeight) || 1920,
+                            scope: scope,
+                            rangeStart: rangeStart,
+                            rangeEnd: rangeEnd
                         };
 
                         CaptionGenerator.generateCaptions(clips, apiKey, lang, options, function (pct, msg) {
                             updateProgress(pct, msg);
                         }).then(function (capResult) {
-                            updateProgress(90, "מייבא ומניח כתוביות לכל הסיקוונס בטיים-ליין...");
+                            var destDesc = (scope === "inout") ? "לטווח In/Out" : "לכל הסיקוונס";
+
+                            var btnEdit = document.getElementById("btnEditCaptions");
+                            if (btnEdit && capResult.cues && capResult.cues.length > 0) {
+                                btnEdit.style.display = "flex";
+                                btnEdit.innerHTML = "<span>✏️ עריכת טקסט הכתוביות (" + capResult.cues.length + " שורות)</span>";
+                            }
+
+                            if (capResult.highlightWords && capResult.highlightManifestPath) {
+                                updateProgress(95, "מניח שכבות מרקר מילים " + destDesc + " בטיים-ליין...");
+                                var manifestEsc = escapeForEval(capResult.highlightManifestPath);
+                                csInterface.evalScript('importHighlightedSubtitles("' + manifestEsc + '")', function (hlRes) {
+                                    updateProgress(100, "הושלם!");
+                                    setBusy(false);
+                                    try {
+                                        var hlData = JSON.parse(hlRes);
+                                        if (hlData.success) {
+                                            log("נוצרו " + capResult.highlightClipsCount + " הדגשות מרקר מילים (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
+                                        } else {
+                                            log("שגיאה בהנחת שכבות המרקר בטיים-ליין: " + (hlData.error || hlRes), "error");
+                                        }
+                                    } catch (e) {
+                                        log("כתוביות המרקר יובאו לפרמייר בהצלחה!", "success");
+                                    }
+                                });
+                                return;
+                            }
+
+                            updateProgress(90, "מייבא ומניח כתוביות " + destDesc + " בטיים-ליין...");
                             var srtEsc = escapeForEval(capResult.srtPath);
                             csInterface.evalScript('importSubtitles("' + srtEsc + '", 0)', function (hostRes) {
                                 updateProgress(100, "הושלם!");
@@ -462,7 +971,7 @@ window.addEventListener("DOMContentLoaded", function () {
                                 try {
                                     var hData = JSON.parse(hostRes);
                                     if (hData.success) {
-                                        var subMsg = "נוצרו " + capResult.blocksCount + " כתוביות והונחו ישירות בסיקוונס בטיים-ליין!";
+                                        var subMsg = "נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") והונחו ישירות בסיקוונס בטיים-ליין!";
                                         if (hData.inTimeline === false) {
                                             subMsg = "נוצרו " + capResult.blocksCount + " כתוביות ויובאו לחלונית הפרויקט.";
                                         }
@@ -488,10 +997,221 @@ window.addEventListener("DOMContentLoaded", function () {
             });
             });
         }
+
+        // Caption Text Editor (Fix typos & re-render markers without re-transcribing)
+        var btnEditCaptions = document.getElementById("btnEditCaptions");
+        var btnBackFromEditor = document.getElementById("btnBackFromEditor");
+        var btnApplyCaptionEdits = document.getElementById("btnApplyCaptionEdits");
+
+        try {
+            if (typeof CaptionGenerator !== "undefined" && (!CaptionGenerator.lastGeneratedCues || CaptionGenerator.lastGeneratedCues.length === 0)) {
+                var savedCuesRaw = localStorage.getItem("autocut_last_cues");
+                var savedOptsRaw = localStorage.getItem("autocut_last_options");
+                if (savedCuesRaw) {
+                    var parsedCues = JSON.parse(savedCuesRaw);
+                    if (Array.isArray(parsedCues) && parsedCues.length > 0) {
+                        CaptionGenerator.lastGeneratedCues = parsedCues;
+                        if (savedOptsRaw) {
+                            try { CaptionGenerator.lastGeneratedOptions = JSON.parse(savedOptsRaw) || {}; } catch (e2) {}
+                        }
+                        if (btnEditCaptions) {
+                            btnEditCaptions.style.display = "flex";
+                            btnEditCaptions.innerHTML = "<span>✏️ עריכת טקסט הכתוביות (" + parsedCues.length + " שורות)</span>";
+                        }
+                    }
+                }
+            }
+        } catch (restoreErr) {}
+
+        function openCaptionEditor() {
+            var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];
+            if (!cues || cues.length === 0) {
+                log("אין כתוביות שמורות לעריכה. צור כתוביות תחילה.", "info");
+                return;
+            }
+
+            var listEl = document.getElementById("captionEditorList");
+            var countEl = document.getElementById("editorLinesCount");
+            if (countEl) {
+                countEl.textContent = cues.length + " שורות";
+            }
+
+            if (listEl) {
+                listEl.innerHTML = "";
+                for (var i = 0; i < cues.length; i++) {
+                    (function (idx, cue) {
+                        var row = document.createElement("div");
+                        row.className = "caption-editor-row";
+
+                        var timeBtn = document.createElement("button");
+                        timeBtn.type = "button";
+                        timeBtn.className = "caption-time-btn";
+                        timeBtn.textContent = formatTimeSec(cue.start);
+                        timeBtn.title = "קפוץ לזמן " + formatTimeSec(cue.start) + " בפרמייר";
+                        timeBtn.addEventListener("click", function () {
+                            csInterface.evalScript("setPlayheadPosition(" + Number(cue.start).toFixed(3) + ")");
+                        });
+
+                        var input = document.createElement("input");
+                        input.type = "text";
+                        input.className = "caption-text-input";
+                        input.value = cue.text || "";
+                        input.setAttribute("data-cue-index", String(idx));
+                        input.dir = "rtl";
+
+                        row.appendChild(timeBtn);
+                        row.appendChild(input);
+                        listEl.appendChild(row);
+                    })(i, cues[i]);
+                }
+            }
+
+            var tabViews = document.querySelectorAll(".tab-view");
+            for (var k = 0; k < tabViews.length; k++) {
+                if (tabViews[k].id === "view-caption-editor") {
+                    tabViews[k].style.display = "block";
+                    tabViews[k].classList.remove("active");
+                    void tabViews[k].offsetWidth;
+                    tabViews[k].classList.add("active");
+                } else {
+                    tabViews[k].style.display = "none";
+                    tabViews[k].classList.remove("active");
+                }
+            }
+        }
+
+        function closeCaptionEditor() {
+            var tabViews = document.querySelectorAll(".tab-view");
+            for (var k = 0; k < tabViews.length; k++) {
+                if (tabViews[k].id === "view-captions") {
+                    tabViews[k].style.display = "block";
+                    tabViews[k].classList.remove("active");
+                    void tabViews[k].offsetWidth;
+                    tabViews[k].classList.add("active");
+                } else {
+                    tabViews[k].style.display = "none";
+                    tabViews[k].classList.remove("active");
+                }
+            }
+        }
+
+        if (btnEditCaptions) {
+            btnEditCaptions.addEventListener("click", openCaptionEditor);
+        }
+
+        if (btnBackFromEditor) {
+            btnBackFromEditor.addEventListener("click", closeCaptionEditor);
+        }
+
+        if (btnApplyCaptionEdits) {
+            btnApplyCaptionEdits.addEventListener("click", function () {
+                var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];
+                if (!cues || cues.length === 0) return;
+
+                var inputs = document.querySelectorAll("#captionEditorList .caption-text-input");
+                var updatedCues = [];
+
+                for (var i = 0; i < inputs.length; i++) {
+                    var idx = parseInt(inputs[i].getAttribute("data-cue-index"), 10);
+                    var origCue = cues[idx];
+                    if (!origCue) continue;
+
+                    var newText = (inputs[i].value || "").trim();
+                    if (!newText) continue;
+
+                    var newWordsParts = newText.split(/\s+/).filter(Boolean);
+                    var origWords = origCue.words || [];
+                    var newWords = [];
+
+                    if (newWordsParts.length === origWords.length && origWords.length > 0) {
+                        for (var w = 0; w < origWords.length; w++) {
+                            newWords.push({
+                                word: newWordsParts[w],
+                                start: origWords[w].start,
+                                end: origWords[w].end
+                            });
+                        }
+                    } else {
+                        var dur = Math.max(0.15, origCue.end - origCue.start);
+                        var step = dur / Math.max(1, newWordsParts.length);
+                        for (var nw = 0; nw < newWordsParts.length; nw++) {
+                            newWords.push({
+                                word: newWordsParts[nw],
+                                start: origCue.start + nw * step,
+                                end: (nw === newWordsParts.length - 1) ? origCue.end : (origCue.start + (nw + 1) * step)
+                            });
+                        }
+                    }
+
+                    updatedCues.push({
+                        start: origCue.start,
+                        end: origCue.end,
+                        text: newText,
+                        words: newWords
+                    });
+                }
+
+                if (updatedCues.length === 0) {
+                    log("לא נמצאו שורות כתוביות תקינות לעדכון.", "error");
+                    return;
+                }
+
+                var savedOpts = (CaptionGenerator.lastGeneratedOptions) ? CaptionGenerator.lastGeneratedOptions : {};
+                var hlEl = document.getElementById("captionWordHighlight");
+                savedOpts.highlightWords = hlEl ? hlEl.checked : Boolean(savedOpts.highlightWords);
+                savedOpts.highlightColor = selectedHighlightColor || savedOpts.highlightColor || "#FACC15";
+
+                setBusy(true);
+                closeCaptionEditor();
+                updateProgress(20, "מעדכן טקסט ומרקר בטיים-ליין...");
+
+                CaptionGenerator.regenerateFromEditedCues(updatedCues, savedOpts, function (pct, msg) {
+                    updateProgress(pct, msg);
+                }).then(function (capResult) {
+                    if (capResult.highlightWords && capResult.highlightManifestPath) {
+                        updateProgress(92, "מחליף שכבות מרקר בטיים-ליין עם הטקסט המתוקן...");
+                        var manifestEsc = escapeForEval(capResult.highlightManifestPath);
+                        csInterface.evalScript('importHighlightedSubtitles("' + manifestEsc + '")', function (hlRes) {
+                            updateProgress(100, "הושלם!");
+                            setBusy(false);
+                            try {
+                                var hlData = JSON.parse(hlRes);
+                                if (hlData.success) {
+                                    log("הטקסט והמרקרים עודכנו בהצלחה בטיים-ליין (" + capResult.highlightClipsCount + " מילים)!", "success");
+                                } else {
+                                    log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
+                                }
+                            } catch (e) {
+                                log("הכתוביות המתוקנות עודכנו בהצלחה!", "success");
+                            }
+                        });
+                        return;
+                    }
+
+                    updateProgress(92, "מעדכן כתוביות בטיים-ליין...");
+                    var srtEsc = escapeForEval(capResult.srtPath);
+                    csInterface.evalScript('importSubtitles("' + srtEsc + '", 0)', function () {
+                        updateProgress(100, "הושלם!");
+                        setBusy(false);
+                        log("הכתוביות המתוקנות עודכנו בהצלחה בטיים-ליין!", "success");
+                    });
+                }).catch(function (err) {
+                    updateProgress(0, "");
+                    setBusy(false);
+                    log("שגיאה בעדכון כתוביות: " + err.message, "error");
+                });
+            });
+        }
     } catch (e) {
         log("שגיאה באתחול הפאנל: " + e.message, "error");
     }
-});
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", initApp);
+} else {
+    initApp();
+}
 
 function runSilenceDetection(onSuccess) {
     setBusy(true);

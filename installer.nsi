@@ -25,12 +25,12 @@ ManifestDPIAware true
 ; --------------------------------
 ; Version Metadata (Prevents Defender & Chrome Heuristic Flags)
 ; --------------------------------
-VIProductVersion "1.0.2.0"
+VIProductVersion "1.0.3.0"
 VIAddVersionKey "ProductName" "CS Trim"
 VIAddVersionKey "CompanyName" "CS Trim"
 VIAddVersionKey "LegalCopyright" "© 2026 CS Trim"
 VIAddVersionKey "FileDescription" "התקנת תוסף CS Trim עבור Adobe Premiere Pro"
-VIAddVersionKey "FileVersion" "1.0.2.0"
+VIAddVersionKey "FileVersion" "1.0.3.0"
 VIAddVersionKey "OriginalFilename" "CS-Trim-Setup.exe"
 VIAddVersionKey "InternalName" "CS-Trim"
 
@@ -98,6 +98,11 @@ SetCompressor /SOLID lzma
 Section "תוסף CS Trim" SecMain
     SetShellVarContext current
     RMDir /r "$INSTDIR"
+
+    ; Clean CEP browser cache so Premiere Pro won't serve stale cached JS/CSS
+    RMDir /r "$LOCALAPPDATA\Temp\cep_cache"
+    RMDir /r "$APPDATA\Adobe\CEP\cache"
+
     SetOutPath "$INSTDIR"
 
     ; Copy all extension files including bundled binaries to User AppData

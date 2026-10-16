@@ -532,6 +532,12 @@ var CaptionGenerator = {
                         var wordClean = cleanText(wordObj.word);
 
                         if (wordClean && wEnd > wStart) {
+                            if (options && options.scope === "inout" && typeof options.rangeStart === "number" && typeof options.rangeEnd === "number") {
+                                var wordMid = (wStart + wEnd) / 2;
+                                if (wordMid < options.rangeStart || wordMid > options.rangeEnd) {
+                                    continue;
+                                }
+                            }
                             allTimelineWords.push({
                                 word: wordClean,
                                 start: wStart,
@@ -555,10 +561,18 @@ var CaptionGenerator = {
                             var segWordsList = txt.split(/\s+/).filter(Boolean);
                             var perWordDur = (sEnd - sStart) / Math.max(1, segWordsList.length);
                             for (var sw = 0; sw < segWordsList.length; sw++) {
+                                var pwStart = sStart + sw * perWordDur;
+                                var pwEnd = sStart + (sw + 1) * perWordDur;
+                                if (options && options.scope === "inout" && typeof options.rangeStart === "number" && typeof options.rangeEnd === "number") {
+                                    var pwMid = (pwStart + pwEnd) / 2;
+                                    if (pwMid < options.rangeStart || pwMid > options.rangeEnd) {
+                                        continue;
+                                    }
+                                }
                                 allTimelineWords.push({
                                     word: segWordsList[sw],
-                                    start: sStart + sw * perWordDur,
-                                    end: sStart + (sw + 1) * perWordDur
+                                    start: pwStart,
+                                    end: pwEnd
                                 });
                             }
                         }
@@ -571,7 +585,7 @@ var CaptionGenerator = {
         allTimelineWords.sort(function (a, b) { return a.start - b.start; });
 
         if (allTimelineWords.length === 0) {
-            return "";
+            return options && options._returnCuesOnly ? [] : "";
         }
 
         var stretchGaps = Boolean(options.stretchGaps);
@@ -586,12 +600,12 @@ var CaptionGenerator = {
             var rawEnd = chunk[chunk.length - 1].end;
 
             var startTime = Math.max(0, rawStart + syncDelay);
-            var endTime = Math.max(startTime + 0.35, rawEnd + syncDelay);
+            var endTime = Math.max(startTime + Math.max(0.35, chunk.length * 0.14), rawEnd + syncDelay);
 
             if (startTime < prevEnd) {
                 startTime = prevEnd;
                 if (endTime <= startTime) {
-                    endTime = startTime + 0.35;
+                    endTime = startTime + Math.max(0.35, chunk.length * 0.14);
                 }
             }
             prevEnd = endTime;
@@ -599,10 +613,32 @@ var CaptionGenerator = {
             var text = chunk.map(function (w) { return w.word; }).join(" ");
             text = self.correctHebrewSpelling(text);
             if (text) {
+                var correctedParts = text.split(/\s+/).filter(Boolean);
+                var rawWords = [];
+                if (correctedParts.length === chunk.length) {
+                    for (var cw = 0; cw < chunk.length; cw++) {
+                        rawWords.push({
+                            word: correctedParts[cw],
+                            rawStart: chunk[cw].start + syncDelay,
+                            rawEnd: chunk[cw].end + syncDelay
+                        });
+                    }
+                } else {
+                    var stepDur = (endTime - startTime) / Math.max(1, correctedParts.length);
+                    for (var cp = 0; cp < correctedParts.length; cp++) {
+                        rawWords.push({
+                            word: correctedParts[cp],
+                            rawStart: startTime + cp * stepDur,
+                            rawEnd: startTime + (cp + 1) * stepDur
+                        });
+                    }
+                }
+
                 cues.push({
                     start: startTime,
                     end: endTime,
-                    text: text
+                    text: text,
+                    rawWords: rawWords
                 });
             }
         }
@@ -614,6 +650,68 @@ var CaptionGenerator = {
                     cues[k].end = cues[k + 1].start;
                 }
             }
+        }
+
+        // Clamp cues to range if scope is inout
+        if (options && options.scope === "inout") {
+            if (typeof options.rangeStart === "number") {
+                for (var c1 = 0; c1 < cues.length; c1++) {
+                    if (cues[c1].start < options.rangeStart) {
+                        cues[c1].start = options.rangeStart;
+                    }
+                }
+            }
+            if (typeof options.rangeEnd === "number") {
+                for (var c2 = 0; c2 < cues.length; c2++) {
+                    if (cues[c2].end > options.rangeEnd) {
+                        cues[c2].end = options.rangeEnd;
+                    }
+                }
+            }
+            cues = cues.filter(function (cue) {
+                return (cue.end - cue.start) > 0.05;
+            });
+        }
+
+        // Compute contiguous per-word intervals within each cue so word-by-word highlight never flickers
+        for (var q = 0; q < cues.length; q++) {
+            var cueItem = cues[q];
+            var rw = cueItem.rawWords || [];
+            var wordTimings = [];
+            var n = rw.length;
+            var minWordDur = 0.08;
+
+            if (n === 1) {
+                wordTimings.push({
+                    word: rw[0].word,
+                    start: cueItem.start,
+                    end: cueItem.end
+                });
+            } else if (n > 1) {
+                var curStart = cueItem.start;
+                for (var idx = 0; idx < n; idx++) {
+                    var wStart = (idx === 0) ? cueItem.start : Math.max(curStart, rw[idx].rawStart);
+                    var maxAllowedStart = cueItem.end - (n - idx) * minWordDur;
+                    if (wStart > maxAllowedStart) {
+                        wStart = maxAllowedStart;
+                    }
+                    if (idx > 0) {
+                        wordTimings[idx - 1].end = wStart;
+                    }
+                    wordTimings.push({
+                        word: rw[idx].word,
+                        start: wStart,
+                        end: cueItem.end
+                    });
+                    curStart = wStart + minWordDur;
+                }
+                wordTimings[n - 1].end = cueItem.end;
+            }
+            cueItem.words = wordTimings;
+        }
+
+        if (options && options._returnCuesOnly) {
+            return cues;
         }
 
         // Build SRT output blocks
@@ -631,6 +729,222 @@ var CaptionGenerator = {
     },
 
     /**
+     * Draw a rounded rectangle path on an HTML5 Canvas 2D context
+     */
+    drawRoundedRect: function (ctx, x, y, width, height, radius) {
+        var r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    },
+
+    /**
+     * Render transparent PNG overlay frames for each spoken word with a colored marker highlight box
+     */
+    renderHighlightFrames: function (cues, options, onProgress) {
+        var self = this;
+        options = options || {};
+        return new Promise(function (resolve, reject) {
+            try {
+                var nodeReq = self.getNodeRequire();
+                if (!nodeReq) return reject(new Error("Node.js runtime not available for rendering highlight frames"));
+                var fs = nodeReq("fs");
+                var os = nodeReq("os");
+                var path = nodeReq("path");
+
+                var seqWidth = parseInt(options.seqWidth, 10) || 1080;
+                var seqHeight = parseInt(options.seqHeight, 10) || 1920;
+                var highlightColor = options.highlightColor || "#FACC15";
+
+                var outDir = path.join(os.tmpdir(), "autocut_hl_" + Date.now());
+                if (!fs.existsSync(outDir)) {
+                    fs.mkdirSync(outDir, { recursive: true });
+                }
+
+                var fontReadyPromise = (typeof document !== "undefined" && document.fonts && document.fonts.ready)
+                    ? document.fonts.ready
+                    : Promise.resolve();
+
+                fontReadyPromise.then(function () {
+                    var canvas = document.createElement("canvas");
+                    canvas.width = seqWidth;
+                    canvas.height = seqHeight;
+                    var ctx = canvas.getContext("2d");
+
+                    var minDim = Math.min(seqWidth, seqHeight);
+                    var fontSize = Math.round(minDim * 0.068);
+                    var lineHeight = Math.round(fontSize * 1.38);
+                    var spaceW = Math.round(fontSize * 0.32);
+                    var maxLineWidth = Math.round(seqWidth * 0.84);
+                    var baseCenterY = Math.round(seqHeight * 0.78);
+
+                    var padX = Math.round(fontSize * 0.21);
+                    var padY = Math.round(fontSize * 0.13);
+                    var cornerRadius = Math.round(fontSize * 0.22);
+                    var strokeW = Math.max(4, Math.round(fontSize * 0.16));
+
+                    var items = [];
+                    var frameCounter = 0;
+
+                    for (var cIdx = 0; cIdx < cues.length; cIdx++) {
+                        var cue = cues[cIdx];
+                        var wordsArr = cue.words || [];
+                        if (wordsArr.length === 0) continue;
+
+                        ctx.font = "900 " + fontSize + "px 'Heebo', 'Arial', sans-serif";
+                        ctx.direction = "rtl";
+                        ctx.textBaseline = "middle";
+                        ctx.textAlign = "center";
+
+                        // Measure each word and wrap into RTL lines if needed
+                        var lines = [];
+                        var currentLine = [];
+                        var currentLineWidth = 0;
+
+                        for (var m = 0; m < wordsArr.length; m++) {
+                            var wText = wordsArr[m].word;
+                            var wWidth = Math.ceil(ctx.measureText(wText).width);
+                            var addedWidth = (currentLine.length === 0) ? wWidth : (spaceW + wWidth);
+
+                            if (currentLine.length > 0 && (currentLineWidth + addedWidth) > maxLineWidth) {
+                                lines.push({ words: currentLine, totalWidth: currentLineWidth });
+                                currentLine = [{ index: m, word: wText, width: wWidth }];
+                                currentLineWidth = wWidth;
+                            } else {
+                                currentLine.push({ index: m, word: wText, width: wWidth });
+                                currentLineWidth += addedWidth;
+                            }
+                        }
+                        if (currentLine.length > 0) {
+                            lines.push({ words: currentLine, totalWidth: currentLineWidth });
+                        }
+
+                        // Compute locked coordinates for every word in this cue (Right-to-Left)
+                        var wordLayouts = new Array(wordsArr.length);
+                        var totalBlockHeight = (lines.length - 1) * lineHeight;
+                        var startLineY = baseCenterY - Math.round(totalBlockHeight / 2);
+
+                        for (var lIdx = 0; lIdx < lines.length; lIdx++) {
+                            var lineObj = lines[lIdx];
+                            var lineY = startLineY + lIdx * lineHeight;
+                            var cursorRightX = Math.round((seqWidth + lineObj.totalWidth) / 2);
+
+                            for (var lw = 0; lw < lineObj.words.length; lw++) {
+                                var itemW = lineObj.words[lw];
+                                var wRight = cursorRightX;
+                                var wLeft = wRight - itemW.width;
+                                var wCenterX = Math.round((wLeft + wRight) / 2);
+
+                                wordLayouts[itemW.index] = {
+                                    word: itemW.word,
+                                    left: wLeft,
+                                    right: wRight,
+                                    width: itemW.width,
+                                    centerX: wCenterX,
+                                    centerY: lineY
+                                };
+
+                                cursorRightX = wLeft - spaceW;
+                            }
+                        }
+
+                        // Render one PNG state per active word in this cue
+                        for (var activeIdx = 0; activeIdx < wordsArr.length; activeIdx++) {
+                            var wTiming = wordsArr[activeIdx];
+                            var activeLayout = wordLayouts[activeIdx];
+                            if (!activeLayout) continue;
+
+                            ctx.clearRect(0, 0, seqWidth, seqHeight);
+                            ctx.font = "900 " + fontSize + "px 'Heebo', 'Arial', sans-serif";
+                            ctx.direction = "rtl";
+                            ctx.textBaseline = "middle";
+                            ctx.textAlign = "center";
+
+                            // 1. Draw the colored Marker Highlight box behind the active word
+                            var boxX = activeLayout.left - padX;
+                            var boxY = activeLayout.centerY - Math.round(fontSize * 0.52) - padY;
+                            var boxW = activeLayout.width + padX * 2;
+                            var boxH = Math.round(fontSize * 1.04) + padY * 2;
+
+                            ctx.save();
+                            ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                            ctx.shadowBlur = Math.round(fontSize * 0.2);
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = Math.round(fontSize * 0.06);
+                            ctx.fillStyle = highlightColor;
+                            self.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, cornerRadius);
+                            ctx.fill();
+                            ctx.restore();
+
+                            // 2. Draw all words of the sentence in their locked positions
+                            for (var dIdx = 0; dIdx < wordLayouts.length; dIdx++) {
+                                var wl = wordLayouts[dIdx];
+                                if (!wl) continue;
+
+                                ctx.save();
+                                ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+                                ctx.shadowBlur = Math.round(fontSize * 0.14);
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = Math.round(fontSize * 0.05);
+
+                                ctx.lineJoin = "round";
+                                ctx.lineCap = "round";
+                                ctx.miterLimit = 2;
+                                ctx.strokeStyle = "#000000";
+                                ctx.lineWidth = strokeW;
+                                ctx.strokeText(wl.word, wl.centerX, wl.centerY);
+
+                                ctx.shadowColor = "transparent";
+                                ctx.fillStyle = "#FFFFFF";
+                                ctx.fillText(wl.word, wl.centerX, wl.centerY);
+                                ctx.restore();
+                            }
+
+                            frameCounter++;
+                            var padNum = ("0000" + frameCounter).slice(-4);
+                            var runTag = String(Date.now()).slice(-4);
+                            var pngName = "hl_" + runTag + "_" + padNum + ".png";
+                            var pngPath = path.join(outDir, pngName);
+
+                            var dataUrl = canvas.toDataURL("image/png");
+                            var base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+                            fs.writeFileSync(pngPath, Buffer.from(base64Data, "base64"));
+
+                            items.push({
+                                pngName: pngName,
+                                pngPath: pngPath,
+                                start: Number(wTiming.start.toFixed(3)),
+                                end: Number(wTiming.end.toFixed(3)),
+                                word: wTiming.word
+                            });
+                        }
+
+                        if (onProgress && cIdx % 4 === 0) {
+                            var renderPct = 86 + Math.round(((cIdx + 1) / cues.length) * 8);
+                            onProgress(renderPct, "מייצר מרקר על המילים (" + (cIdx + 1) + "/" + cues.length + ")...");
+                        }
+                    }
+
+                    resolve({
+                        outDir: outDir,
+                        items: items
+                    });
+                }).catch(reject);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    },
+
+    /**
      * Generate captions for the ENTIRE active sequence across all its clips
      */
     generateCaptionsForSequence: function (timelineClips, apiKey, language, options, onProgress) {
@@ -643,10 +957,20 @@ var CaptionGenerator = {
                 return reject(new Error("לא נמצאו קליפים בסיקוונס הפעיל."));
             }
 
+            var targetClips = timelineClips;
+            if (options && options.scope === "inout" && typeof options.rangeStart === "number" && typeof options.rangeEnd === "number") {
+                targetClips = timelineClips.filter(function (clip) {
+                    return clip.end > options.rangeStart + 0.01 && clip.start < options.rangeEnd - 0.01;
+                });
+                if (targetClips.length === 0) {
+                    return reject(new Error("לא נמצאו קליפים בטווח ה-In/Out שנבחר בסיקוונס."));
+                }
+            }
+
             // Find distinct media file paths in the sequence
             var uniquePaths = [];
-            for (var i = 0; i < timelineClips.length; i++) {
-                var p = timelineClips[i].path;
+            for (var i = 0; i < targetClips.length; i++) {
+                var p = targetClips[i].path;
                 if (p && uniquePaths.indexOf(p) === -1) {
                     uniquePaths.push(p);
                 }
@@ -657,13 +981,39 @@ var CaptionGenerator = {
 
             var processNextPath = function () {
                 if (currentPathIdx >= uniquePaths.length) {
-                    // All media files transcribed! Now build full-sequence SRT
-                    onProgress(85, "מעבד ומסנכרן כתוביות לכל הסיקוונס...");
+                    var isInOut = (options && options.scope === "inout");
+                    var targetLabel = isInOut ? "לטווח In/Out" : "לכל הסיקוונס";
+                    onProgress(85, "מעבד ומסנכרן כתוביות " + targetLabel + "...");
                     try {
-                        var srtContent = self.buildTimelineSrt(whisperResultsByPath, timelineClips, options);
-                        if (!srtContent || !srtContent.trim()) {
-                            return reject(new Error("לא זוהה דיבור ברור בקליפים בסיקוונס."));
+                        var cueOpts = {};
+                        if (options) {
+                            for (var k in options) {
+                                if (Object.prototype.hasOwnProperty.call(options, k)) cueOpts[k] = options[k];
+                            }
                         }
+                        cueOpts._returnCuesOnly = true;
+                        var cues = self.buildTimelineSrt(whisperResultsByPath, targetClips, cueOpts);
+                        if (!cues || cues.length === 0) {
+                            return reject(new Error(isInOut ? "לא זוהה דיבור בטווח ה-In/Out שנבחר." : "לא זוהה דיבור ברור בקליפים בסיקוונס."));
+                        }
+
+                        self.lastGeneratedCues = cues;
+                        self.lastGeneratedOptions = options || {};
+                        try {
+                            localStorage.setItem("autocut_last_cues", JSON.stringify(cues));
+                            localStorage.setItem("autocut_last_options", JSON.stringify(options || {}));
+                        } catch (e) {}
+
+                        var srtBlocks = [];
+                        for (var b = 0; b < cues.length; b++) {
+                            var cue = cues[b];
+                            srtBlocks.push(
+                                (b + 1) + "\n" +
+                                self.formatSrtTime(cue.start) + " --> " + self.formatSrtTime(cue.end) + "\n" +
+                                cue.text + "\n"
+                            );
+                        }
+                        var srtContent = srtBlocks.join("\n");
 
                         var nodeReq = self.getNodeRequire();
                         var fs = nodeReq("fs");
@@ -675,12 +1025,37 @@ var CaptionGenerator = {
                         var bom = "\uFEFF";
                         fs.writeFileSync(srtPath, bom + srtContent, "utf8");
 
-                        onProgress(100, "הכתוביות לכל הסיקוונס מוכנות!");
+                        if (options && options.highlightWords) {
+                            onProgress(86, "מייצר שכבות מרקר (הייליט) לכל מילה...");
+                            self.renderHighlightFrames(cues, options, onProgress).then(function (hlData) {
+                                var manifestPath = path.join(hlData.outDir, "manifest.json");
+                                var manifestObj = {
+                                    srtPath: srtPath,
+                                    highlightColor: options.highlightColor || "#FACC15",
+                                    items: hlData.items
+                                };
+                                fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
 
-                        var blockMatches = srtContent.match(/\d+\n\d\d:/g) || [];
+                                onProgress(100, "כתוביות המרקר " + targetLabel + " מוכנות!");
+                                resolve({
+                                    srtPath: srtPath,
+                                    blocksCount: cues.length,
+                                    highlightWords: true,
+                                    highlightManifestPath: manifestPath,
+                                    highlightClipsCount: hlData.items.length,
+                                    cues: cues
+                                });
+                            }).catch(reject);
+                            return;
+                        }
+
+                        onProgress(100, "הכתוביות " + targetLabel + " מוכנות!");
+
                         resolve({
                             srtPath: srtPath,
-                            blocksCount: blockMatches.length
+                            blocksCount: cues.length,
+                            highlightWords: false,
+                            cues: cues
                         });
                     } catch (e) {
                         reject(e);
@@ -711,6 +1086,80 @@ var CaptionGenerator = {
             self.fetchRemoteCorrections().catch(function () {}).then(function () {
                 processNextPath();
             });
+        });
+    },
+
+    /**
+     * Re-generate SRT and word-highlight marker frames from edited cues (instant, no AI API call)
+     */
+    regenerateFromEditedCues: function (cues, options, onProgress) {
+        var self = this;
+        return new Promise(function (resolve, reject) {
+            try {
+                if (!cues || cues.length === 0) {
+                    return reject(new Error("אין שורות כתוביות לעדכון."));
+                }
+                self.lastGeneratedCues = cues;
+                self.lastGeneratedOptions = options || {};
+                try {
+                    localStorage.setItem("autocut_last_cues", JSON.stringify(cues));
+                    localStorage.setItem("autocut_last_options", JSON.stringify(options || {}));
+                } catch (e) {}
+
+                var srtBlocks = [];
+                for (var b = 0; b < cues.length; b++) {
+                    var cue = cues[b];
+                    srtBlocks.push(
+                        (b + 1) + "\n" +
+                        self.formatSrtTime(cue.start) + " --> " + self.formatSrtTime(cue.end) + "\n" +
+                        cue.text + "\n"
+                    );
+                }
+                var srtContent = srtBlocks.join("\n");
+
+                var nodeReq = self.getNodeRequire();
+                var fs = nodeReq("fs");
+                var os = nodeReq("os");
+                var path = nodeReq("path");
+
+                var srtPath = path.join(os.tmpdir(), "captions_" + Date.now() + ".srt");
+                var bom = "\uFEFF";
+                fs.writeFileSync(srtPath, bom + srtContent, "utf8");
+
+                if (options && options.highlightWords) {
+                    if (onProgress) onProgress(30, "מייצר מחדש שכבות מרקר עם הטקסט המתוקן...");
+                    self.renderHighlightFrames(cues, options, function (p, msg) {
+                        if (onProgress) onProgress(p, msg);
+                    }).then(function (hlData) {
+                        var manifestPath = path.join(hlData.outDir, "manifest.json");
+                        var manifestObj = {
+                            srtPath: srtPath,
+                            highlightColor: options.highlightColor || "#FACC15",
+                            items: hlData.items
+                        };
+                        fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
+
+                        resolve({
+                            srtPath: srtPath,
+                            blocksCount: cues.length,
+                            highlightWords: true,
+                            highlightManifestPath: manifestPath,
+                            highlightClipsCount: hlData.items.length,
+                            cues: cues
+                        });
+                    }).catch(reject);
+                    return;
+                }
+
+                resolve({
+                    srtPath: srtPath,
+                    blocksCount: cues.length,
+                    highlightWords: false,
+                    cues: cues
+                });
+            } catch (e) {
+                reject(e);
+            }
         });
     },
 

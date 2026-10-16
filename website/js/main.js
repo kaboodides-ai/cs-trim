@@ -193,9 +193,80 @@ function initFaq() {
 }
 
 // -----------------------------------------------------------------------------
-// 6. Smooth Navbar Scroll & Init
+// 6. Automatic OS Detection & Download Button Highlighting
+// -----------------------------------------------------------------------------
+function detectUserOS() {
+    try {
+        if (navigator.userAgentData && navigator.userAgentData.platform) {
+            const p = navigator.userAgentData.platform.toLowerCase();
+            if (p.includes("mac")) return "mac";
+            if (p.includes("win")) return "win";
+        }
+    } catch (e) {}
+
+    const platform = (navigator.platform || "").toLowerCase();
+    const ua = (navigator.userAgent || "").toLowerCase();
+
+    // Mac detection (excluding iOS devices)
+    if (platform.includes("mac") || ua.includes("macintosh") || ua.includes("mac os")) {
+        const isIOS = /ipad|iphone|ipod/.test(ua) || (platform === "macintel" && navigator.maxTouchPoints > 1);
+        if (!isIOS) return "mac";
+    }
+
+    // Windows detection
+    if (platform.includes("win") || ua.includes("windows")) {
+        return "win";
+    }
+
+    return "other";
+}
+
+function initOSDetection() {
+    const os = detectUserOS();
+    if (os !== "mac" && os !== "win") return;
+
+    const isWin = (os === "win");
+    const heroMac = document.getElementById("btnHeroDownloadMac");
+    const heroWin = document.getElementById("btnHeroDownloadWin");
+    const cardMac = document.getElementById("btnCardDownloadMac");
+    const cardWin = document.getElementById("btnCardDownloadWin");
+
+    function highlightButton(btn, isRecommended) {
+        if (!btn) return;
+        if (isRecommended) {
+            btn.classList.remove("btn-secondary");
+            btn.classList.add("btn-primary", "btn-os-highlight");
+            if (!btn.querySelector(".os-pill-badge")) {
+                const badge = document.createElement("span");
+                badge.className = "os-pill-badge";
+                badge.textContent = "למחשב שלך";
+                btn.appendChild(badge);
+            }
+        } else {
+            btn.classList.remove("btn-primary", "btn-os-highlight");
+            btn.classList.add("btn-secondary");
+            const badge = btn.querySelector(".os-pill-badge");
+            if (badge) badge.remove();
+        }
+    }
+
+    highlightButton(heroWin, isWin);
+    highlightButton(heroMac, !isWin);
+
+    highlightButton(cardWin, isWin);
+    highlightButton(cardMac, !isWin);
+
+    // Auto-select the installation guide tab corresponding to user's OS
+    if (typeof switchGuideTab === "function") {
+        switchGuideTab(isWin ? "win" : "mac");
+    }
+}
+
+// -----------------------------------------------------------------------------
+// 7. Smooth Navbar Scroll & Init
 // -----------------------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
+    initOSDetection();
     renderTimeline(false);
     updateWordSim(3);
     initFaq();

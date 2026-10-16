@@ -3,29 +3,6 @@
  * Handles timeline simulation, caption word-count simulator, FAQ accordion, and tab switching.
  */
 
-// -----------------------------------------------------------------------------
-// 1. Hero Mockup Tabs
-// -----------------------------------------------------------------------------
-function switchHeroMockupTab(tab) {
-    const tabTrim = document.getElementById("heroTabTrim");
-    const tabCaptions = document.getElementById("heroTabCaptions");
-    const viewTrim = document.getElementById("heroViewTrim");
-    const viewCaptions = document.getElementById("heroViewCaptions");
-
-    if (!tabTrim || !tabCaptions || !viewTrim || !viewCaptions) return;
-
-    if (tab === "trim") {
-        tabTrim.classList.add("active");
-        tabCaptions.classList.remove("active");
-        viewTrim.style.display = "block";
-        viewCaptions.style.display = "none";
-    } else {
-        tabCaptions.classList.add("active");
-        tabTrim.classList.remove("active");
-        viewCaptions.style.display = "block";
-        viewTrim.style.display = "none";
-    }
-}
 
 // -----------------------------------------------------------------------------
 // 2. Interactive Simulator 1: Timeline Silence Trimming

@@ -337,6 +337,7 @@ window.addEventListener("DOMContentLoaded", () => {
     renderTimeline(false);
     updateWordSim(3);
     initFaq();
+    setupDownloadGating();
 
     // Auto open first FAQ
     const firstFaq = document.querySelector(".faq-item");
@@ -350,7 +351,7 @@ const CLIENT_RESERVED_WORDS = new Set([
     "של", "את", "על", "עם", "אם", "אל", "מן", "זה", "זו", "זאת", "אלה", "אלו",
     "אני", "אתה", "את", "הוא", "היא", "אנחנו", "אתם", "אתן", "הם", "הן",
     "לא", "כן", "אין", "יש", "רק", "כל", "מה", "מי", "איך", "כיצד", "למה", "מדוע",
-    "קרחת", "קדחת", "מערכת", "מארחת", "כלב", "חלב", "חבר", "חרב", "בית", "זית", "ספר", "סיר", "סרט",
+    "קרחת", "קדחת", "כלב", "חלב", "חבר", "חרב", "בית", "זית", "ספר", "סיר", "סרט",
     "שמש", "ירח", "שקט", "שבט", "בוקר", "מוקר", "ערב", "לילה", "איש", "אישה", "ילד", "ילדה",
     "ראש", "פנים", "עין", "אוזן", "פה", "יד", "רגל", "לב", "גוף", "דם", "עור", "שיער",
     "דלת", "חלון", "חדר", "שולחן", "כיסא", "אוכל", "לחם", "מים", "אש", "כסף", "דרך", "מקום"
@@ -553,3 +554,252 @@ function handleSuggestSubmit(event) {
         }
     });
 }
+
+// =============================================================================
+// 9. Lead Capture & Download Gate (איסוף לידים לפני הורדה)
+// =============================================================================
+
+// הדבק כאן את כתובת ה-Web App של Google Apps Script כשתרצה לסנכרן אוטומטית לגוגל שיטס
+let GOOGLE_SHEETS_WEBHOOK_URL = ""; 
+
+let pendingDownload = {
+    url: "",
+    filename: "",
+    platform: ""
+};
+
+function showToast(message, duration = 4500) {
+    const toast = document.getElementById("downloadToast");
+    const toastText = document.getElementById("downloadToastText");
+    if (!toast) return;
+    if (toastText) toastText.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, duration);
+}
+
+function hasUserRegistered() {
+    try {
+        return !!localStorage.getItem("cs_trim_lead_email");
+    } catch (e) {
+        return false;
+    }
+}
+
+function openLeadModal(targetUrl, filename, platformName) {
+    pendingDownload = {
+        url: targetUrl || "",
+        filename: filename || "",
+        platform: platformName || "Windows"
+    };
+
+    const modal = document.getElementById("leadModal");
+    const badgeText = document.getElementById("leadTargetText");
+    const badgeIcon = document.getElementById("leadTargetIcon");
+    const emailInput = document.getElementById("leadEmailInput");
+    const errorMsg = document.getElementById("leadErrorMsg");
+
+    if (errorMsg) errorMsg.style.display = "none";
+    if (badgeText) {
+        if (platformName.includes("Mac") || targetUrl.includes("Mac") || targetUrl.includes(".pkg")) {
+            badgeText.textContent = "עבור Mac (קובץ התקנה PKG)";
+            if (badgeIcon) badgeIcon.textContent = "🍏";
+        } else if (targetUrl.includes(".zip")) {
+            badgeText.textContent = "עבור Windows (חבילת ZIP מלאה)";
+            if (badgeIcon) badgeIcon.textContent = "📦";
+        } else {
+            badgeText.textContent = "עבור Windows (קובץ התקנה Setup.exe)";
+            if (badgeIcon) badgeIcon.textContent = "🪟";
+        }
+    }
+
+    if (modal) {
+        modal.style.display = "flex";
+        modal.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+
+    setTimeout(() => {
+        if (emailInput) {
+            emailInput.focus();
+        }
+    }, 150);
+}
+
+function closeLeadModal(e) {
+    if (e && e.target && e.target !== e.currentTarget && !e.target.classList.contains("lead-modal-close-btn")) {
+        return;
+    }
+    const modal = document.getElementById("leadModal");
+    if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+        document.body.style.overflow = "";
+    }
+}
+
+function triggerFileDownload(url, filename) {
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    if (filename) a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        if (a.parentNode) a.parentNode.removeChild(a);
+    }, 100);
+}
+
+function recordLeadLocally(leadData) {
+    try {
+        const stored = JSON.parse(localStorage.getItem("cs_trim_leads_cache") || "[]");
+        stored.push(leadData);
+        localStorage.setItem("cs_trim_leads_cache", JSON.stringify(stored));
+    } catch (e) {
+        console.warn("Could not save to localStorage cache", e);
+    }
+}
+
+// כלי עזר: הצגת כל הלידים שנאספו בקונסול
+window.getCSLeads = function() {
+    try {
+        const leads = JSON.parse(localStorage.getItem("cs_trim_leads_cache") || "[]");
+        console.table(leads);
+        return leads;
+    } catch (e) {
+        return [];
+    }
+};
+
+// כלי עזר: איפוס הרשמה מקומית לצורך בדיקות
+window.resetLeadGate = function() {
+    localStorage.removeItem("cs_trim_lead_email");
+    console.log("Lead gate reset successfully! Next download will prompt for email.");
+};
+
+async function handleLeadSubmit(e) {
+    if (e) e.preventDefault();
+    const emailInput = document.getElementById("leadEmailInput");
+    const errorMsg = document.getElementById("leadErrorMsg");
+    const submitBtn = document.getElementById("btnLeadSubmit");
+
+    const email = (emailInput ? emailInput.value : "").trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email || !emailRegex.test(email)) {
+        if (errorMsg) {
+            errorMsg.textContent = "נא להזין כתובת אימייל תקינה";
+            errorMsg.style.display = "block";
+        }
+        if (emailInput) emailInput.focus();
+        return;
+    }
+
+    if (errorMsg) errorMsg.style.display = "none";
+
+    // כפתור למצב טעינה
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>מכין את ההורדה...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>`;
+    }
+
+    const leadData = {
+        email: email,
+        platform: pendingDownload.platform || "Windows",
+        fileName: pendingDownload.filename || pendingDownload.url,
+        timestamp: new Date().toISOString(),
+        dateFormatted: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+        referrer: document.referrer || "direct"
+    };
+
+    // שמירה ב-localStorage
+    try {
+        localStorage.setItem("cs_trim_lead_email", email);
+    } catch (err) {}
+    recordLeadLocally(leadData);
+
+    // שליחה לגוגל שיטס (אם מוגדר קישור Webhook)
+    if (GOOGLE_SHEETS_WEBHOOK_URL && GOOGLE_SHEETS_WEBHOOK_URL.trim() !== "") {
+        try {
+            fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(leadData)
+            }).catch(err => console.warn("Google Sheets dispatch note:", err));
+        } catch (err) {
+            console.warn("Could not dispatch webhook:", err);
+        }
+    }
+
+    // מעבר חלק: סגירת מודל והורדת הקובץ
+    setTimeout(() => {
+        closeLeadModal();
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+        }
+
+        if (pendingDownload.url) {
+            triggerFileDownload(pendingDownload.url, pendingDownload.filename);
+            showToast("תודה שנרשמת! קובץ ההתקנה מתחיל לרדת כעת 🚀");
+        }
+    }, 600);
+}
+
+// יירוט כל כפתורי ההורדה באתר
+window.handleDownloadLinkClick = function(e, element) {
+    if (!element) return true;
+    const url = element.getAttribute("href") || "";
+    const filename = element.getAttribute("download") || "";
+    let platformName = "Windows";
+    if (url.includes("Mac") || url.includes(".pkg")) {
+        platformName = "Mac";
+    } else if (url.includes(".zip")) {
+        platformName = "Windows ZIP";
+    }
+
+    // אם המשתמש כבר נרשם בעבר במחשב זה - ההורדה ממשיכה מיידית
+    if (hasUserRegistered()) {
+        showToast("מוריד את CS Trim... תהנה מהעריכה!");
+        return true;
+    }
+
+    // מניעת הורדה ישירה ופתיחת הפופ-אפ
+    if (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+    openLeadModal(url, filename, platformName);
+    return false;
+};
+
+window.openLeadModal = openLeadModal;
+window.closeLeadModal = closeLeadModal;
+window.handleLeadSubmit = handleLeadSubmit;
+
+function setupDownloadGating() {
+    // 1. האזנה גלובלית לכל לחיצה על קישור המכיל download/
+    document.addEventListener("click", function(e) {
+        const link = e.target.closest('a[href*="download/"], #btnHeroDownloadMac, #btnHeroDownloadWin, #btnCardDownloadMac, #btnCardDownloadWin');
+        if (!link) return;
+        window.handleDownloadLinkClick(e, link);
+    }, true);
+}
+
+// הפעלה מיידית של מנגנון היירוט
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupDownloadGating);
+} else {
+    setupDownloadGating();
+}
+
+// סגירה במקש Escape
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        closeLeadModal();
+    }
+});

@@ -41,7 +41,7 @@ const RESERVED_CORE_WORDS = new Set([
     "איפה", "היכן", "מתי", "לאן", "כי", "אבל", "אך", "גם", "עוד", "כבר",
     "שם", "פה", "כאן", "עכשיו", "היום", "אתמול", "מחר",
     // מילים עצמאיות נפוצות שאינן שגיאות כתיב של מילים אחרות
-    "קרחת", "קדחת", "מערכת", "מארחת", "אורחת", "אורח",
+    "קרחת", "קדחת", "אורחת", "אורח",
     "כלב", "חלב", "חבל", "חבר", "חרב", "בית", "זית", "ספר", "סיר", "סרט",
     "שמש", "ירח", "כוכב", "שמיים", "ענן", "גשם", "אש", "מים", "ים", "הר",
     "שקט", "שבט", "שבת", "בוקר", "מוקר", "ערב", "לילה", "צהריים", "יום", "שבוע", "חודש", "שנה", "שעה", "זמן",
@@ -282,7 +282,7 @@ export default async function handler(req, res) {
 In video subtitles, dictionary replacements are applied GLOBALLY to all subtitles.
 
 CRITICAL REJECTION RULES:
-1. REJECT if [wrong] is already a legitimate, standard Hebrew word with its own meaning (e.g. "קרחת" = baldness vs "קדחת" = fever; "מערכת" = system vs "מארחת" = hostess; "כלב" = dog vs "חלב" = milk; "בית" vs "זית"). Replacing an existing real word corrupts video subtitles whenever that word was intentionally spoken!
+1. REJECT if [wrong] is already a legitimate, standard Hebrew word with its own meaning (e.g. "קרחת" = baldness vs "קדחת" = fever; "כלב" = dog vs "חלב" = milk; "בית" vs "זית"). Replacing an existing real word corrupts video subtitles whenever that word was intentionally spoken!
 2. REJECT if the difference involves non-homophonic consonants (e.g. ר and ד sound completely different and are NOT a phonetic transcription error).
 3. REJECT jokes, slang, vandalism, unrelated words, or insults.
 

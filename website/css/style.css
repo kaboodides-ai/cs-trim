@@ -1904,3 +1904,259 @@ a {
     }
 }
 
+/* ==========================================================================
+   Lead Capture Modal & Download Gate
+   ========================================================================== */
+.lead-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(4, 7, 15, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.lead-modal-overlay.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.lead-modal-card {
+    position: relative;
+    max-width: 480px;
+    width: 100%;
+    background: linear-gradient(180deg, #131826 0%, #0c0f18 100%);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(37, 99, 235, 0.22);
+    border-radius: 22px;
+    padding: 34px 28px 28px;
+    text-align: center;
+    direction: rtl;
+    transform: scale(0.93) translateY(14px);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lead-modal-overlay.active .lead-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+.lead-modal-close-btn {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.35rem;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.lead-modal-close-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #f87171;
+    transform: rotate(90deg);
+}
+
+.lead-icon-bubble {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(56, 189, 248, 0.25));
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #38bdf8;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.28);
+    animation: pulseLeadBadge 3s ease-in-out infinite;
+}
+
+@keyframes pulseLeadBadge {
+    0%, 100% { transform: scale(1); box-shadow: 0 8px 24px rgba(37, 99, 235, 0.28); }
+    50% { transform: scale(1.05); box-shadow: 0 12px 30px rgba(56, 189, 248, 0.38); }
+}
+
+.lead-modal-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.lead-modal-subtitle {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    line-height: 1.55;
+    margin-bottom: 18px;
+}
+
+.lead-target-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(37, 99, 235, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    border-radius: 9999px;
+    color: #93c5fd;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 22px;
+}
+
+.lead-form-group {
+    margin-bottom: 16px;
+    text-align: right;
+}
+
+.lead-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.lead-input-icon {
+    position: absolute;
+    right: 14px;
+    color: #64748b;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.lead-input {
+    width: 100%;
+    padding: 14px 44px 14px 16px;
+    background: rgba(10, 14, 24, 0.85);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 1.02rem;
+    font-family: inherit;
+    direction: ltr;
+    text-align: right;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.lead-input:focus {
+    border-color: #3b82f6;
+    background: rgba(15, 23, 42, 0.95);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+}
+
+.lead-input:focus ~ .lead-input-icon {
+    color: #38bdf8;
+}
+
+.lead-btn-submit {
+    width: 100%;
+    padding: 15px 24px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+    transition: all 0.22s ease;
+}
+
+.lead-btn-submit:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.55);
+    transform: translateY(-2px);
+}
+
+.lead-btn-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.lead-footer-note {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.lead-error-msg {
+    color: #f87171;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    text-align: right;
+    display: none;
+}
+
+/* Toast notification */
+.download-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #101524;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(37, 99, 235, 0.25);
+    color: #f8fafc;
+    padding: 14px 24px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100001;
+    font-size: 0.95rem;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    direction: rtl;
+}
+
+.download-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.download-toast-icon {
+    width: 24px;
+    height: 24px;
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+

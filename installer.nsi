@@ -38,6 +38,15 @@ SetCompressor /SOLID lzma
 ; --------------------------------
 !define MUI_ABORTWARNING
 !define MUI_ICON "img/logo.ico"
+!define MUI_UNICON "img/logo.ico"
+
+; Installer Branding Graphics
+!define MUI_WELCOMEFINISHPAGE_BITMAP "img/installer_welcome.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "img/installer_welcome.bmp"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_BITMAP "img/installer_header.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "img/installer_header.bmp"
+!define MUI_HEADERIMAGE_RIGHT
 
 ; --------------------------------
 ; Pages
@@ -161,6 +170,7 @@ skip_common64:
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayName" "CS Trim for Adobe Premiere Pro"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayIcon" "$INSTDIR\img\logo.ico"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayVersion" "1.0.0"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "Publisher" "CS Trim"
 SectionEnd

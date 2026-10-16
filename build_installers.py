@@ -3,11 +3,15 @@ import os
 import shutil
 import subprocess
 import zipfile
+import generate_installer_assets
 
 def build():
     base = os.path.abspath(os.path.dirname(__file__))
     dl_dir = os.path.join(base, "website", "download")
     os.makedirs(dl_dir, exist_ok=True)
+
+    # Ensure all installer icons & branding bitmaps are fresh
+    generate_installer_assets.generate_assets()
 
     extension_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug"]
 

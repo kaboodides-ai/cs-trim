@@ -239,5 +239,23 @@ pause >nul
     shutil.rmtree(win_temp)
     print(f"Created Windows Safe ZIP: {final_win_zip} ({os.path.getsize(final_win_zip)} bytes)")
 
+    # -------------------------------------------------------------
+    # 4. Build In-App Auto-Update ZIP Bundle (Lightweight, ~300KB)
+    # -------------------------------------------------------------
+    update_zip = os.path.join(dl_dir, "cs-trim-update.zip")
+    update_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug"]
+    with zipfile.ZipFile(update_zip, "w", zipfile.ZIP_DEFLATED) as uzf:
+        for item in update_items:
+            src = os.path.join(base, item)
+            if os.path.isfile(src):
+                uzf.write(src, item)
+            elif os.path.isdir(src):
+                for root, dirs, files in os.walk(src):
+                    for file in files:
+                        full_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(full_path, base)
+                        uzf.write(full_path, rel_path)
+    print(f"Created In-App Auto-Update Bundle: {update_zip} ({os.path.getsize(update_zip)} bytes)")
+
 if __name__ == "__main__":
     build()

@@ -1,0 +1,14 @@
+{
+  "version": "1.0.4",
+  "versionCode": 104,
+  "releaseDate": "2026-10-16",
+  "title": "עדכון חכם: מרקר מילים, עורך כתוביות ועדכון אוטומטי",
+  "changelog": [
+    "מרקר מילים אוטומטי בזמן הדיבור עם בחירת צבעי הדגשה",
+    "עורך טקסט כתוביות מובנה לתיקון שגיאות והחלפת שכבות בטיים-ליין",
+    "מנגנון עדכון אוטומטי מובנה בלחיצת כפתור אחת מתוך פרמייר"
+  ],
+  "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
+  "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
+  "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg"
+}

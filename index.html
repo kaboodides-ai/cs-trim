@@ -32,6 +32,33 @@
         </div>
     </div>
 
+    <!-- In-App Auto Update Banner -->
+    <div id="updateBanner" class="update-banner" style="display:none;">
+        <div class="update-banner-main">
+            <div class="update-sparkle-icon">✨</div>
+            <div class="update-banner-info">
+                <div class="update-title-line">
+                    <span class="update-main-title">גרסה חדשה זמינה!</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.4</span>
+                </div>
+                <div id="updateNotesPreview" class="update-notes-preview">לחץ לעדכון מהיר בלחיצה אחת</div>
+            </div>
+            <div class="update-banner-actions">
+                <button type="button" id="btnRunUpdate" class="btn-update-apply">עדכן עכשיו</button>
+                <button type="button" id="btnDismissUpdate" class="btn-update-close" title="סגור">✕</button>
+            </div>
+        </div>
+        <div id="updateProgressWrap" class="update-progress-wrap" style="display:none;">
+            <div class="update-progress-head">
+                <span id="updateProgressMsg" class="update-progress-msg">מוריד עדכון...</span>
+                <span id="updateProgressPct" class="update-progress-pct">0%</span>
+            </div>
+            <div class="update-progress-track">
+                <div id="updateProgressBar" class="update-progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Segmented Navigation Tabs -->
     <div class="tabs-nav" id="tabsNav">
         <button type="button" class="tab-btn active" data-tab="view-trim">חיתוך שקט</button>
@@ -225,8 +252,15 @@
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
     </div>
 
-    <!-- Footer Credit -->
-    <div class="footer-credit">Created by Kaboodi</div>
+    <!-- Footer Credit & Version Check -->
+    <div class="footer-credit-row">
+        <span class="footer-credit">Created by Kaboodi</span>
+        <span class="footer-dot">•</span>
+        <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="checkUpdateManual(event)" title="לחץ לבדיקת עדכונים">
+            <span id="footerVersionText">v1.0.4</span>
+            <span id="footerCheckSpin" class="spin-icon">🔄</span>
+        </button>
+    </div>
 
     <!-- Plugin Logo -->
     <div class="plugin-logo-wrap">
@@ -234,6 +268,7 @@
     </div>
 
     <script src="js/CSInterface.js?v=5"></script>
+    <script src="js/updater.js?v=5"></script>
     <script src="js/audioAnalyzer.js?v=5"></script>
     <script src="js/captionGenerator.js?v=5"></script>
     <script src="js/main.js?v=5"></script>

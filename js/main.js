@@ -1202,6 +1202,99 @@ function initApp() {
                 });
             });
         }
+
+        // AutoUpdater In-App UI Controller
+        var currentUpdateData = null;
+        var updateBanner = document.getElementById("updateBanner");
+        var btnRunUpdate = document.getElementById("btnRunUpdate");
+        var btnDismissUpdate = document.getElementById("btnDismissUpdate");
+        var footerVerText = document.getElementById("footerVersionText");
+        var footerSpin = document.getElementById("footerCheckSpin");
+
+        if (typeof AutoUpdater !== "undefined" && footerVerText) {
+            footerVerText.textContent = "v" + AutoUpdater.CURRENT_VERSION;
+        }
+
+        function showUpdateBanner(updateInfo) {
+            if (!updateBanner) return;
+            currentUpdateData = updateInfo;
+            var badge = document.getElementById("updateVersionBadge");
+            var notes = document.getElementById("updateNotesPreview");
+            if (badge) badge.textContent = "v" + updateInfo.latestVersion;
+            if (notes) {
+                var changelogSummary = (updateInfo.changelog && updateInfo.changelog.length > 0)
+                    ? updateInfo.changelog[0]
+                    : (updateInfo.title || "עדכון תכונות ותיקוני באגים");
+                notes.textContent = changelogSummary;
+            }
+            updateBanner.style.display = "flex";
+        }
+
+        if (btnDismissUpdate) {
+            btnDismissUpdate.addEventListener("click", function () {
+                if (updateBanner) updateBanner.style.display = "none";
+            });
+        }
+
+        if (btnRunUpdate) {
+            btnRunUpdate.addEventListener("click", function () {
+                if (!currentUpdateData || typeof AutoUpdater === "undefined") return;
+                var actionsWrap = document.querySelector(".update-banner-actions");
+                var progWrap = document.getElementById("updateProgressWrap");
+                var progMsg = document.getElementById("updateProgressMsg");
+                var progPct = document.getElementById("updateProgressPct");
+                var progFill = document.getElementById("updateProgressBar");
+
+                if (actionsWrap) actionsWrap.style.display = "none";
+                if (progWrap) progWrap.style.display = "flex";
+
+                AutoUpdater.applyUpdate(currentUpdateData, function (pct, msg) {
+                    if (progMsg) progMsg.textContent = msg;
+                    if (progPct) progPct.textContent = pct + "%";
+                    if (progFill) progFill.style.width = pct + "%";
+                }).then(function () {
+                    log("התוסף עודכן בהצלחה לגרסה v" + currentUpdateData.latestVersion + "!", "success");
+                }).catch(function (err) {
+                    if (actionsWrap) actionsWrap.style.display = "flex";
+                    if (progWrap) progWrap.style.display = "none";
+                    log("שגיאה בעדכון אוטומטי: " + err.message, "error");
+                });
+            });
+        }
+
+        window.checkUpdateManual = function (ev) {
+            if (ev) ev.preventDefault();
+            if (typeof AutoUpdater === "undefined") {
+                log("מערכת העדכונים אינה זמינה כרגע.", "error");
+                return;
+            }
+            if (footerSpin) footerSpin.classList.add("spinning");
+            log("בודק עדכונים מול השרת...", "info");
+
+            AutoUpdater.checkForUpdates().then(function (res) {
+                if (footerSpin) footerSpin.classList.remove("spinning");
+                if (res.hasUpdate) {
+                    showUpdateBanner(res);
+                    log("נמצאה גרסה חדשה זמינה: v" + res.latestVersion + "! לחץ 'עדכן עכשיו' בראש הפאנל.", "success");
+                } else {
+                    log("התוסף מעודכן לגרסה האחרונה (v" + AutoUpdater.CURRENT_VERSION + ") ✔️", "success");
+                }
+            }).catch(function (err) {
+                if (footerSpin) footerSpin.classList.remove("spinning");
+                log("בדיקת עדכונים נכשלה: " + err.message, "error");
+            });
+        };
+
+        // Quiet background check after initial startup
+        setTimeout(function () {
+            if (typeof AutoUpdater !== "undefined") {
+                AutoUpdater.checkForUpdates().then(function (res) {
+                    if (res.hasUpdate) {
+                        showUpdateBanner(res);
+                    }
+                }).catch(function () {});
+            }
+        }, 2500);
     } catch (e) {
         log("שגיאה באתחול הפאנל: " + e.message, "error");
     }

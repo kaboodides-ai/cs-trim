@@ -248,6 +248,10 @@ def generate_assets():
                 r = int(r * (1 - line_alpha) + 56 * line_alpha)
                 g = int(g * (1 - line_alpha) + 189 * line_alpha)
                 b = int(b * (1 - line_alpha) + 248 * line_alpha)
+
+            # Elegant subtle border at x = 0 (left edge touching white dialog in RTL)
+            if x == 0:
+                r, g, b = 220, 226, 235
                 
             row[x*3] = min(255, max(0, r))
             row[x*3 + 1] = min(255, max(0, g))
@@ -260,14 +264,15 @@ def generate_assets():
     
     # -------------------------------------------------------------
     # 3. Generate img/installer_header.bmp (150 x 57)
-    # White background with crisp CS Trim logo on the right
+    # White background with crisp CS Trim logo on the left (RTL friendly)
     # -------------------------------------------------------------
     h_width, h_height = 150, 57
-    h_logo_h = 46
-    h_logo_w = int(round(h_logo_h * (orig_w / orig_h))) # ~40
+    h_logo_h = 44
+    h_logo_w = int(round(h_logo_h * (orig_w / orig_h))) # ~38
     h_logo_resized = resize_rgba(orig_pixels, orig_w, orig_h, h_logo_w, h_logo_h)
     
-    h_start_x = h_width - h_logo_w - 12
+    # Align to left side (x=12) so in RTL it sits gracefully on the left while Hebrew title is on right
+    h_start_x = 12
     h_start_y = (h_height - h_logo_h) // 2
     
     header_rows = []

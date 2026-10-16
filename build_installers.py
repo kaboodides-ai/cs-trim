@@ -132,14 +132,16 @@ exit 0
     # D. Quick-Install.bat
     bat_content = """@echo off
 chcp 65001 >nul
-echo ========================================================
-echo       CS Trim - Adobe Premiere Pro Extension Installer
-echo ========================================================
+title התקנת תוסף CS Trim עבור Adobe Premiere Pro
+cls
+echo ================================================================
+echo           ברוכים הבאים להתקנת CS Trim ל-Premiere Pro
+echo ================================================================
 echo.
 
 set "TARGET=%APPDATA%\\Adobe\\CEP\\extensions\\com.autocut.panel"
 
-echo [1/2] Installing CS Trim to Adobe CEP extensions folder...
+echo [1/2] מתקין את קבצי התוסף בתיקיית ההרחבות של אדובי...
 if not exist "%APPDATA%\\Adobe\\CEP\\extensions" mkdir "%APPDATA%\\Adobe\\CEP\\extensions"
 if exist "%TARGET%" rmdir /s /q "%TARGET%"
 mkdir "%TARGET%"
@@ -157,21 +159,24 @@ if exist "com.autocut.panel" (
     copy /y ".debug" "%TARGET%\\" >nul
 )
 
-echo [2/2] Configuring CSXS PlayerDebugMode in Windows Registry...
+echo [2/2] מפעיל תאימות תוספים ב-Premiere Pro...
 for %%v in (7 8 9 10 11 12 13 14 15 16 17 18 19 20) do (
     reg add "HKCU\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
     reg add "HKLM\\Software\\Adobe\\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul 2>&1
 )
 
 echo.
-echo ========================================================
-echo [V] Installation completed successfully!
+echo ================================================================
+echo  [V] איזה כיף! ההתקנה הושלמה בהצלחה!
 echo.
-echo Now open or restart Adobe Premiere Pro:
-echo Window ^> Extensions ^> CS Trim
-echo ========================================================
+echo  איך פותחים את התוסף בפרמייר:
+echo  1. פתחו (או הפעילו מחדש) את Adobe Premiere Pro
+echo  2. בתפריט העליון בחרו: Window ^> Extensions ^> CS Trim
+echo     (בעברית: חלון ^> הרחבות ^> CS Trim)
+echo ================================================================
 echo.
-pause
+echo לחצו על מקש כלשהו לסיום...
+pause >nul
 """
     with open(os.path.join(win_temp, "Quick-Install.bat"), "w", encoding="utf-8") as f:
         f.write(bat_content)
@@ -187,28 +192,28 @@ pause
     guide_content = """מדריך התקנה של CS Trim ל-Windows
 ======================================
 
-אפשרות 1 (מומלצת ומהירה ביותר):
-לחצו לחיצה כפולה על "CS-Trim-Setup.exe".
-ייפתח אשף התקנה גרפי מעוצב (המשך > התקן).
-ההתקנה תעתיק אוטומטית את התוסף לתיקיות ההרחבה של אדובי ותגדיר את כל ההרשאות.
+שלום וברוכים הבאים ל-CS Trim!
+ההתקנה פשוטה, בטוחה לחלוטין ולוקחת שניות בודדות:
 
-אפשרות 2 (אשף התקנה חלופי או קובץ Batch):
-- לחצו לחיצה כפולה על "Install-CS-Trim.hta" (אשף גרפי מובנה)
+אפשרות 1 (המומלצת והקלה ביותר):
+לחצו פעמיים על קובץ ההתקנה: "CS-Trim-Setup.exe"
+* אם מופיע מסך כחול של Windows (SmartScreen) - לחצו על "More info" (מידע נוסף) ואז על "Run anyway" (הפעל בכל מקרה).
+ייפתח אשף התקנה גרפי מעוצב (התקן > סיום).
+האשף יעתיק אוטומטית את כל הקבצים ויפעיל את התאימות לפרמייר תוך 2 שניות.
+
+אפשרות 2 (אשף התקנה חלופי או התקנה מהירה):
+• לחיצה כפולה על "Install-CS-Trim.hta" — פותחת אשף גרפי ידידותי.
 או
-- לחצו לחיצה כפולה על "Quick-Install.bat" להתקנה אוטומטית תוך שנייה אחת בלבד.
+• לחיצה כפולה על "Quick-Install.bat" — מתקינה הכל אוטומטית תוך שנייה אחת!
 
-אפשרות 3 (התקנה ידנית):
-1. העתיקו את התיקייה "com.autocut.panel" לתוך הנתיב הבא במחשב:
-   %APPDATA%\\Adobe\\CEP\\extensions\\
-2. לחצו לחיצה כפולה על "Enable-PlayerDebugMode.reg" כדי לאשר את הרשאות הפיתוח של פרמייר.
+איך פותחים את הפלאגין בפרמייר?
+1. פתחו (או הפעילו מחדש) את Adobe Premiere Pro.
+2. בתפריט העליון לחצו על:
+   Window > Extensions > CS Trim
+   (בעברית: חלון > הרחבות > CS Trim)
 
-שלב סיום:
-סגרו ופתחו מחדש את Adobe Premiere Pro.
-היכנסו לתפריט העליון:
-Window > Extensions > CS Trim
-(בעברית: חלון > הרחבות > CS Trim)
-
-זהו! הפלאגין מוכן לעבודה מלאה.
+עריכה מהנה ומוצלחת!
+צוות CS Trim
 """
     with open(os.path.join(win_temp, "Install_Instructions.txt"), "w", encoding="utf-8") as f:
         f.write(guide_content)

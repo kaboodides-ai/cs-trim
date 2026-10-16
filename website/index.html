@@ -430,13 +430,13 @@
                 <!-- Tabbed Installation Guides -->
                 <div class="install-guide-card">
                     <div class="guide-tabs">
-                        <button class="guide-tab active" onclick="switchGuideTab('mac', this)">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
-                            <span>התקנה ב-Mac</span>
-                        </button>
-                        <button class="guide-tab" onclick="switchGuideTab('win', this)">
+                        <button class="guide-tab active" onclick="switchGuideTab('win', this)">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
                             <span>התקנה ב-Windows</span>
+                        </button>
+                        <button class="guide-tab" onclick="switchGuideTab('mac', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
+                            <span>התקנה ב-Mac</span>
                         </button>
                         <button class="guide-tab" onclick="switchGuideTab('api', this)">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
@@ -445,7 +445,7 @@
                     </div>
 
                     <!-- Mac Guide -->
-                    <div class="guide-pane active" id="paneMac">
+                    <div class="guide-pane" id="paneMac" style="display:none;">
                         <ol class="guide-steps">
                             <li>
                                 <strong>הפעילו את הקובץ:</strong> הורידו ולחצו פעמיים על קובץ ה-PKG.
@@ -463,19 +463,67 @@
                     </div>
 
                     <!-- Windows Guide -->
-                    <div class="guide-pane" id="paneWin" style="display:none;">
+                    <div class="guide-pane active" id="paneWin">
                         <ol class="guide-steps">
                             <li>
-                                <strong>הפעילו את הקובץ:</strong> הורידו ולחצו פעמיים על <code>CS-Trim-Setup.exe</code>.
-                                <div class="tip-box">
-                                    <em>מסך כחול (SmartScreen)?</em> לחצו על <strong>מידע נוסף (More info) &gt; הפעל בכל מקרה (Run anyway)</strong>.
+                                <strong>הורידו והפעילו את הקובץ:</strong> לחצו פעמיים על קובץ ההתקנה <code>CS-Trim-Setup.exe</code>.
+                            </li>
+                            <li>
+                                <div class="ss-header-row">
+                                    <strong>הודעת אבטחה של Windows (מסך כחול)?</strong>
+                                    <span class="ss-badge-safe">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                        בטוח לחלוטין
+                                    </span>
+                                </div>
+                                <p class="ss-subtext">
+                                    בשל העובדה שמדובר בקובץ התקנה חדש ברשת, ייתכן שיופיע חלון כחול של Defender SmartScreen (<em>Windows protected your PC</em>).<br>
+                                    <strong>הקובץ נקי ובטוח ב-100%!</strong> מאשרים את ההפעלה ב-2 לחיצות קלות:
+                                </p>
+
+                                <div class="ss-steps-grid">
+                                    <!-- Step 1 Card -->
+                                    <div class="ss-step-box" onclick="openGuideModal('assets/smartscreen-step1.png', 'שלב 1: לחצו על הקישור More info (מידע נוסף)')" title="לחצו לצפייה בתמונה מוגדלת">
+                                        <div class="ss-step-top">
+                                            <span class="ss-step-num">1</span>
+                                            <span>לחיצה על More info</span>
+                                        </div>
+                                        <div class="ss-img-wrap">
+                                            <img src="assets/smartscreen-step1.png" alt="שלב 1: לחיצה על More info במסך SmartScreen" loading="lazy">
+                                            <div class="ss-zoom-pill">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                                <span>הגדלה</span>
+                                            </div>
+                                        </div>
+                                        <div class="ss-step-bottom">
+                                            לחצו על הקישור <strong class="link-glow">More info</strong> (מידע נוסף) שמתחת לטקסט.
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 2 Card -->
+                                    <div class="ss-step-box" onclick="openGuideModal('assets/smartscreen-step2.png', 'שלב 2: לחצו על הכפתור Run anyway (הפעל בכל מקרה)')" title="לחצו לצפייה בתמונה מוגדלת">
+                                        <div class="ss-step-top">
+                                            <span class="ss-step-num">2</span>
+                                            <span>לחיצה על Run anyway</span>
+                                        </div>
+                                        <div class="ss-img-wrap">
+                                            <img src="assets/smartscreen-step2.png" alt="שלב 2: לחיצה על Run anyway במסך SmartScreen" loading="lazy">
+                                            <div class="ss-zoom-pill">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                                <span>הגדלה</span>
+                                            </div>
+                                        </div>
+                                        <div class="ss-step-bottom">
+                                            כעת נפתח כפתור חדש — לחצו על <strong class="highlight-btn">Run anyway</strong> (הפעל בכל מקרה).
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li>
-                                <strong>התקנה בלחיצה:</strong> לחצו על <strong>התקן (Install)</strong> — ההתקנה מסתיימת תוך 2 שניות!
+                                <strong>התקנה מהירה בלחיצה:</strong> באשף ההתקנה שנפתח לחצו על <strong>התקן (Install)</strong> — כל הקבצים וההרשאות בפרמייר מוגדרים אוטומטית תוך 2 שניות!
                             </li>
                             <li>
-                                <strong>פותחים בפרמייר:</strong> פתחו מחדש את Premiere Pro ובתפריט העליון בחרו: <code>Window &gt; Extensions &gt; CS Trim</code>.
+                                <strong>פותחים ונהנים בפרמייר:</strong> פתחו מחדש את Premiere Pro ובתפריט העליון בחרו: <code>Window &gt; Extensions &gt; CS Trim</code> (חלון &gt; הרחבות &gt; CS Trim).
                             </li>
                         </ol>
                     </div>
@@ -658,6 +706,17 @@
             </div>
         </div>
     </footer>
+
+    <!-- Guide Screenshot Lightbox Modal -->
+    <div id="guideModal" class="guide-modal-overlay" onclick="closeGuideModal()">
+        <div class="guide-modal-box" onclick="event.stopPropagation()">
+            <div class="guide-modal-header">
+                <span id="guideModalCaption" class="guide-modal-caption"></span>
+                <button class="guide-modal-close" onclick="closeGuideModal()" title="סגור">&times;</button>
+            </div>
+            <img id="guideModalImg" src="" alt="תמונת מדריך התקנה" class="guide-modal-img">
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="js/main.js"></script>

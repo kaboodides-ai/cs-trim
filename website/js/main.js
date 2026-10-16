@@ -161,7 +161,7 @@ function switchGuideTab(tab, el) {
     if (paneWin) paneWin.style.display = "none";
     if (paneApi) paneApi.style.display = "none";
 
-    const tabMap = { mac: 0, win: 1, api: 2 };
+    const tabMap = { win: 0, mac: 1, api: 2 };
     if (el) {
         el.classList.add("active");
     } else if (tabMap[tab] !== undefined && tabs[tabMap[tab]]) {
@@ -172,6 +172,35 @@ function switchGuideTab(tab, el) {
     if (tab === "win" && paneWin) paneWin.style.display = "block";
     if (tab === "api" && paneApi) paneApi.style.display = "block";
 }
+
+// -----------------------------------------------------------------------------
+// 4b. Guide Screenshot Modal (Lightbox)
+// -----------------------------------------------------------------------------
+function openGuideModal(src, caption) {
+    const modal = document.getElementById("guideModal");
+    const img = document.getElementById("guideModalImg");
+    const cap = document.getElementById("guideModalCaption");
+    if (modal && img) {
+        img.src = src;
+        if (cap) cap.textContent = caption || "מדריך התקנה";
+        modal.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+}
+
+function closeGuideModal() {
+    const modal = document.getElementById("guideModal");
+    if (modal) {
+        modal.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        closeGuideModal();
+    }
+});
 
 // -----------------------------------------------------------------------------
 // 5. FAQ Accordion
@@ -255,11 +284,6 @@ function initOSDetection() {
 
     highlightButton(cardWin, isWin);
     highlightButton(cardMac, !isWin);
-
-    // Auto-select the installation guide tab corresponding to user's OS
-    if (typeof switchGuideTab === "function") {
-        switchGuideTab(isWin ? "win" : "mac");
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -277,6 +301,111 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // -----------------------------------------------------------------------------
+// Hebrew Typo Pre-Validator (Client Side)
+// -----------------------------------------------------------------------------
+const CLIENT_RESERVED_WORDS = new Set([
+    "של", "את", "על", "עם", "אם", "אל", "מן", "זה", "זו", "זאת", "אלה", "אלו",
+    "אני", "אתה", "את", "הוא", "היא", "אנחנו", "אתם", "אתן", "הם", "הן",
+    "לא", "כן", "אין", "יש", "רק", "כל", "מה", "מי", "איך", "כיצד", "למה", "מדוע",
+    "קרחת", "קדחת", "מערכת", "מארחת", "כלב", "חלב", "חבר", "חרב", "בית", "זית", "ספר", "סיר", "סרט",
+    "שמש", "ירח", "שקט", "שבט", "בוקר", "מוקר", "ערב", "לילה", "איש", "אישה", "ילד", "ילדה",
+    "ראש", "פנים", "עין", "אוזן", "פה", "יד", "רגל", "לב", "גוף", "דם", "עור", "שיער",
+    "דלת", "חלון", "חדר", "שולחן", "כיסא", "אוכל", "לחם", "מים", "אש", "כסף", "דרך", "מקום"
+]);
+
+const CLIENT_HOMOPHONES = [
+    new Set(["ט", "ת"]),
+    new Set(["כ", "ק"]),
+    new Set(["א", "ע", "ה"]),
+    new Set(["ח", "כ"]),
+    new Set(["ס", "ש"]),
+    new Set(["ב", "ו"])
+];
+
+const CLIENT_FINAL_MAP = { "ם": "מ", "ן": "נ", "ץ": "צ", "ף": "פ", "ך": "כ" };
+const CLIENT_MATRES = new Set(["י", "ו", "א", "ה"]);
+
+function normalizeClientChar(c) {
+    return CLIENT_FINAL_MAP[c] || c;
+}
+
+function areClientHomophones(c1, c2) {
+    const n1 = normalizeClientChar(c1);
+    const n2 = normalizeClientChar(c2);
+    if (n1 === n2) return true;
+    for (const group of CLIENT_HOMOPHONES) {
+        if (group.has(n1) && group.has(n2)) return true;
+    }
+    return false;
+}
+
+function validateClientTypo(wrong, correct) {
+    const w = (wrong || "").trim().toLowerCase();
+    const c = (correct || "").trim().toLowerCase();
+
+    if (w === c) {
+        return { valid: false, reason: "המילה השגויה והתיקון זהים לחלוטין." };
+    }
+
+    if (CLIENT_RESERVED_WORDS.has(w)) {
+        return {
+            valid: false,
+            reason: `המילה "${w}" היא מילה תקנית ועצמאית בעברית ולא ניתן להחליפה כשגיאת כתיב (החלפתה תשבש כתוביות שבהן המילה נאמרה בכוונה).`
+        };
+    }
+
+    const cleanRegex = /[\s\-_'"״׳]/g;
+    const wClean = w.replace(cleanRegex, "").split("").map(normalizeClientChar).join("");
+    const cClean = c.replace(cleanRegex, "").split("").map(normalizeClientChar).join("");
+
+    if (!wClean || !cClean) {
+        return { valid: false, reason: "נא להזין מילים תקינות בעברית." };
+    }
+
+    // Spacing / punctuation
+    if (wClean === cClean) return { valid: true };
+
+    // Transliteration variants (e.g. צ <-> טס / תס)
+    const wTrans = wClean.replace(/טס/g, "צ").replace(/תס/g, "צ");
+    const cTrans = cClean.replace(/טס/g, "צ").replace(/תס/g, "צ");
+    if (wTrans === cTrans) return { valid: true };
+
+    // Phonetic alignment
+    const n = wClean.length;
+    const m = cClean.length;
+    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+
+    for (let i = 1; i <= n; i++) dp[i][0] = dp[i - 1][0] + (CLIENT_MATRES.has(wClean[i - 1]) ? 1 : 10);
+    for (let j = 1; j <= m; j++) dp[0][j] = dp[0][j - 1] + (CLIENT_MATRES.has(cClean[j - 1]) ? 1 : 10);
+
+    for (let i = 1; i <= n; i++) {
+        const ch1 = wClean[i - 1];
+        for (let j = 1; j <= m; j++) {
+            const ch2 = cClean[j - 1];
+            let subCost = (ch1 === ch2) ? 0 : (areClientHomophones(ch1, ch2) ? 1 : 10);
+            let delCost = CLIENT_MATRES.has(ch1) ? 1 : 10;
+            let insCost = CLIENT_MATRES.has(ch2) ? 1 : 10;
+
+            dp[i][j] = Math.min(
+                dp[i - 1][j - 1] + subCost,
+                dp[i - 1][j] + delCost,
+                dp[i][j - 1] + insCost
+            );
+        }
+    }
+
+    const dist = dp[n][m];
+    const maxAllowed = Math.max(n, m) >= 6 ? 3 : 2;
+
+    if (dist <= maxAllowed) return { valid: true };
+
+    return {
+        valid: false,
+        reason: `המילים "${w}" ו-"${c}" אינן דומות בצליל ואינן שגיאת כתיב פונטית (אותיות כמו ר' ו-ד' נשמעות שונה לחלוטין). מערכת התיקון נועדה לשגיאות כתיב בלבד (כגון ט/ת, ק/כ, א/ע, רווחים או תעתיק).`
+    };
+}
+
+// -----------------------------------------------------------------------------
 // Typo Report & Suggestion Handler
 // -----------------------------------------------------------------------------
 function handleSuggestSubmit(event) {
@@ -292,6 +421,20 @@ function handleSuggestSubmit(event) {
     const example = (exampleInput ? exampleInput.value : "").trim();
 
     if (!wrongWord || !correctWord) return;
+
+    // Client-side linguistic guard
+    const clientCheck = validateClientTypo(wrongWord, correctWord);
+    if (!clientCheck.valid) {
+        if (statusBox) {
+            statusBox.className = "suggest-status error";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = `
+                <strong>שימו לב:</strong> ${clientCheck.reason}<br>
+                <span style="font-size: 0.85rem; opacity: 0.85;">נא לוודא שמדובר בשגיאת כתיב או תעתיק עברית אמיתית, ולא בשתי מילים שונות.</span>
+            `;
+        }
+        return;
+    }
 
     submitBtn.disabled = true;
     submitBtn.innerHTML = "<span>שולח למערכת...</span>";

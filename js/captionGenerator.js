@@ -40,7 +40,6 @@ var CaptionGenerator = {
         "אינסטה": "אינסטגרם",
         "אינסטה גרם": "אינסטגרם",
         "וואצאפ": "וואטסאפ",
-        "מערכת": "מארחת",
         "ספוטיפי": "ספוטיפיי"
     },
 
@@ -151,8 +150,11 @@ var CaptionGenerator = {
         var allMaps = [this.HEBREW_CORRECTIONS, remote, custom];
         for (var m = 0; m < allMaps.length; m++) {
             var map = allMaps[m];
-            for (var wrong in map) {
-                if (map.hasOwnProperty(wrong) && wrong) {
+            if (!map) continue;
+            var keys = Object.keys(map).sort(function (a, b) { return b.length - a.length; });
+            for (var k = 0; k < keys.length; k++) {
+                var wrong = keys[k];
+                if (wrong && map.hasOwnProperty(wrong)) {
                     var correct = map[wrong];
                     var escaped = wrong.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
                     if (wrong.indexOf(" ") === -1) {

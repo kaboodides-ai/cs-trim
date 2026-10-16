@@ -2,16 +2,19 @@ Unicode True
 
 ; --------------------------------
 ; CS Trim Windows Installer Script
-; Modern UI 2 (MUI2) with Full Metadata & Compatibility
+; Modern UI 2 (MUI2) - 100% Hebrew, Friendly & Reassuring
 ; --------------------------------
 
 !include "MUI2.nsh"
 
 Name "CS Trim"
+Caption "התקנת CS Trim עבור Adobe Premiere Pro"
+UninstallCaption "הסרת CS Trim"
+BrandingText "CS Trim • תוסף חכם לעריכת וידאו בפרמייר"
 OutFile "website/download/CS-Trim-Setup.exe"
 InstallDir "$APPDATA\Adobe\CEP\extensions\com.autocut.panel"
 InstallDirRegKey HKCU "Software\CS Trim" "Install_Dir"
-RequestExecutionLevel highest
+RequestExecutionLevel user
 
 ; --------------------------------
 ; OS Compatibility & DPI Manifests
@@ -26,7 +29,7 @@ VIProductVersion "1.0.2.0"
 VIAddVersionKey "ProductName" "CS Trim"
 VIAddVersionKey "CompanyName" "CS Trim"
 VIAddVersionKey "LegalCopyright" "© 2026 CS Trim"
-VIAddVersionKey "FileDescription" "CS Trim Extension Installer for Adobe Premiere Pro"
+VIAddVersionKey "FileDescription" "התקנת תוסף CS Trim עבור Adobe Premiere Pro"
 VIAddVersionKey "FileVersion" "1.0.2.0"
 VIAddVersionKey "OriginalFilename" "CS-Trim-Setup.exe"
 VIAddVersionKey "InternalName" "CS-Trim"
@@ -37,6 +40,7 @@ SetCompressor /SOLID lzma
 ; Interface Settings
 ; --------------------------------
 !define MUI_ABORTWARNING
+!define MUI_ABORTWARNING_TEXT "האם אתם בטוחים שברצונכם לבטל את התקנת CS Trim?"
 !define MUI_ICON "img/logo.ico"
 !define MUI_UNICON "img/logo.ico"
 
@@ -46,33 +50,52 @@ SetCompressor /SOLID lzma
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "img/installer_header.bmp"
 !define MUI_HEADERIMAGE_UNBITMAP "img/installer_header.bmp"
-!define MUI_HEADERIMAGE_RIGHT
 
 ; --------------------------------
-; Pages
+; Pages (All Customized in Warm, Reassuring Hebrew)
 ; --------------------------------
+
+; 1. Welcome Page
+!define MUI_WELCOMEPAGE_TITLE "ברוכים הבאים להתקנת CS Trim"
+!define MUI_WELCOMEPAGE_TEXT "אשף זה יתקין עבורכם את תוסף CS Trim ב-Adobe Premiere Pro בצורה פשוטה, מהירה ובטוחה.$\r$\n$\r$\nמה CS Trim מעניק לכם?$\r$\n  • חיתוך שקט אוטומטי ומדויק לקטעי וידאו$\r$\n  • כתוביות AI אוטומטיות ומדויקות בעברית$\r$\n  • תהליך עבודה חלק וחיסכון משמעותי בזמן עריכה$\r$\n$\r$\nההתקנה מאובטחת לחלוטין ואינה דורשת הפעלה מחדש של המחשב.$\r$\n$\r$\nלחצו על 'הבא' כדי להתחיל בהתקנה."
 !insertmacro MUI_PAGE_WELCOME
+
+; 2. Directory Page
+!define MUI_DIRECTORYPAGE_TEXT_TOP "תוסף CS Trim יותקן אוטומטית בתיקיית ההרחבות של Adobe Premiere Pro.$\r$\n$\r$\nנתיב היעד הוגדר מראש ומוכן עבורכם — פשוט לחצו על 'התקן'."
+!define MUI_DIRECTORYPAGE_TEXT_DESTINATION "נתיב ההתקנה במחשב:"
 !insertmacro MUI_PAGE_DIRECTORY
+
+; 3. Installation Progress Page
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "ההתקנה הושלמה בהצלחה!"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "תוסף CS Trim הותקן ומוכן לשימוש"
 !insertmacro MUI_PAGE_INSTFILES
+
+; 4. Finish Page
 !define MUI_FINISHPAGE_NOAUTOCLOSE
-!define MUI_FINISHPAGE_TITLE "ההתקנה הושלמה בהצלחה!"
-!define MUI_FINISHPAGE_TEXT "CS Trim הותקן בהצלחה עבור Adobe Premiere Pro.$\r$\n$\r$\nכעת סגור ופתח מחדש את Premiere Pro והיכנס ל:$\r$\nWindow > Extensions > CS Trim$\r$\n(חלון > הרחבות > CS Trim)"
+!define MUI_FINISHPAGE_TITLE "איזה כיף! ההתקנה הושלמה בהצלחה 🎉"
+!define MUI_FINISHPAGE_TEXT "תוסף CS Trim מותקן כעת ומוכן לעבודה ב-Adobe Premiere Pro!$\r$\n$\r$\nאיך פותחים את התוסף?$\r$\n1. פתחו (או הפעילו מחדש) את Adobe Premiere Pro.$\r$\n2. בתפריט העליון בחרו:$\r$\n   חלון > הרחבות > CS Trim$\r$\n   (Window > Extensions > CS Trim)$\r$\n$\r$\nמאחלים לכם עריכה מהנה ויצירתית!"
+!define MUI_FINISHPAGE_BUTTONTEXT "סיום"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller Pages
+!define MUI_UNTEXT_WELCOME_INFO_TITLE "הסרת תוסף CS Trim"
+!define MUI_UNTEXT_WELCOME_INFO_TEXT "אשף זה יסיר את תוסף CS Trim מ-Adobe Premiere Pro במחשב שלכם.$\r$\n$\r$\nלחצו על 'הסר' כדי להסיר את התוסף."
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
+!define MUI_UNFINISHPAGE_TITLE "ההסרה הושלמה"
+!define MUI_UNFINISHPAGE_TEXT "תוסף CS Trim הוסר בהצלחה מהמחשב."
+!define MUI_UNFINISHPAGE_BUTTONTEXT "סיום"
+!insertmacro MUI_UNPAGE_FINISH
 
 ; --------------------------------
-; Languages
+; Languages - Hebrew Only
 ; --------------------------------
 !insertmacro MUI_LANGUAGE "Hebrew"
-!insertmacro MUI_LANGUAGE "English"
 
 ; --------------------------------
 ; Installer Section
 ; --------------------------------
-Section "CS Trim Extension" SecMain
+Section "תוסף CS Trim" SecMain
     SetShellVarContext current
     RMDir /r "$INSTDIR"
     SetOutPath "$INSTDIR"
@@ -87,7 +110,7 @@ Section "CS Trim Extension" SecMain
     File "index.html"
     File ".debug"
 
-    ; Also copy to 32-bit Common Files (standard Adobe CEP system extension folder on Windows)
+    ; Also copy to 32-bit Common Files if permissions allow (e.g. if run as admin)
     ClearErrors
     RMDir /r "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
     CreateDirectory "$COMMONFILES\Adobe\CEP\extensions\com.autocut.panel"
@@ -168,7 +191,7 @@ skip_common64:
 
     ; Create Uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayName" "CS Trim for Adobe Premiere Pro"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayName" "תוסף CS Trim עבור Adobe Premiere Pro"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "UninstallString" '"$INSTDIR\Uninstall.exe"'
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayIcon" "$INSTDIR\img\logo.ico"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayVersion" "1.0.0"

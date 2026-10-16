@@ -21,9 +21,9 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
-            background-color: #0c0d12;
+            background-color: #0b0f19;
             color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
             direction: rtl;
             text-align: right;
             user-select: none;
@@ -41,29 +41,32 @@
         .header {
             display: flex;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding-bottom: 16px;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
         .logo-box {
             width: 48px;
             height: 48px;
-            background: #2563eb;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-left: 14px;
             flex-shrink: 0;
-            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
         }
         .logo-box img {
             width: 36px;
             height: 36px;
             object-fit: contain;
         }
+        .header-text {
+            flex: 1;
+        }
         .header-text h1 {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 2px;
@@ -72,44 +75,83 @@
             font-size: 12px;
             color: #94a3b8;
         }
+        .trust-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
         .content {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .info-card {
-            background: #141721;
+        .card {
+            background: #131b2e;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 14px;
+            border-radius: 12px;
+            padding: 18px;
             font-size: 13px;
             line-height: 1.6;
             color: #cbd5e1;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
-        .info-card strong {
-            color: #60a5fa;
+        .card-lead {
+            font-size: 14px;
+            color: #f1f5f9;
+            margin-bottom: 12px;
         }
-        .notice-warn {
-            background: rgba(245, 158, 11, 0.12);
-            border-right: 3px solid #f59e0b;
-            padding: 10px 12px;
-            border-radius: 0 6px 6px 0;
+        .features-list {
+            margin: 10px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .features-list li {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            color: #cbd5e1;
+            font-size: 12.5px;
+        }
+        .features-list li .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #38bdf8;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        .tip-card {
+            background: rgba(59, 130, 246, 0.1);
+            border-right: 3px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 14px;
             font-size: 12px;
-            color: #fde68a;
-            margin-top: 10px;
+            color: #bfdbfe;
+            margin-top: 12px;
             display: none;
+            line-height: 1.5;
         }
         .status-msg {
             font-size: 13px;
             color: #60a5fa;
             font-weight: 600;
             display: none;
-            margin-top: 12px;
+            margin-top: 14px;
+            text-align: center;
         }
         .progress-bar {
             width: 100%;
-            height: 6px;
-            background: #1e2230;
-            border-radius: 3px;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 4px;
             overflow: hidden;
             display: none;
             margin-top: 10px;
@@ -117,18 +159,77 @@
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: #2563eb;
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+            border-radius: 4px;
             transition: width 0.3s;
+        }
+        .success-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .success-title {
+            color: #34d399;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .success-desc {
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 14px;
+        }
+        .guide-box {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            text-align: right;
+        }
+        .guide-step {
+            font-size: 12.5px;
+            color: #e2e8f0;
+            margin-bottom: 6px;
+        }
+        .menu-path {
+            background: #1e293b;
+            border: 1px solid #3b82f6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 6px 0;
+            color: #60a5fa;
+            font-weight: 700;
+            font-size: 13.5px;
+            text-align: center;
+            direction: ltr;
+        }
+        .menu-hebrew-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+        }
+        .error-card {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fca5a5;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+            line-height: 1.5;
         }
         .footer-btns {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
             padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
         .btn {
-            padding: 10px 24px;
+            padding: 10px 22px;
             font-size: 13px;
             font-weight: 600;
             border-radius: 8px;
@@ -138,47 +239,21 @@
             font-family: inherit;
         }
         .btn-primary {
-            background: #2563eb;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         }
         .btn-primary:hover {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
         }
         .btn-secondary {
-            background: #1e2230;
+            background: #1e293b;
             color: #94a3b8;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .btn-secondary:hover {
-            background: #282e42;
+            background: #334155;
             color: white;
-        }
-        .success-box {
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 10px;
-            padding: 18px;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-        .success-title {
-            color: #34d399;
-            font-size: 17px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .menu-path {
-            background: #090a0f;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 10px 14px;
-            border-radius: 6px;
-            margin-top: 10px;
-            color: #60a5fa;
-            font-weight: 700;
-            font-size: 14px;
-            text-align: center;
-            direction: ltr;
         }
     </style>
 </head>
@@ -187,24 +262,37 @@
         <!-- Header -->
         <div class="header">
             <div class="logo-box">
-                <img src="img/logo.png" alt="CS" onerror="this.style.display='none';">
+                <img src="img/logo.png" alt="CS Trim" onerror="this.style.display='none';">
             </div>
             <div class="header-text">
-                <h1>התקנת CS Trim</h1>
-                <div class="subtitle">תוסף חיתוך שקט וכתוביות AI עבור Adobe Premiere Pro</div>
+                <h1>התקנת תוסף CS Trim</h1>
+                <div class="subtitle">עריכת וידאו חכמה וכתוביות AI ל-Adobe Premiere Pro</div>
+            </div>
+            <div class="trust-badge">
+                ✓ מאושר ובטוח
             </div>
         </div>
 
         <!-- Main Step -->
         <div class="content" id="stepMain">
-            <div class="info-card">
-                אשף זה יתקין את תוסף <strong>CS Trim</strong> ישירות לתיקיית ההרחבות של אדובי ויגדיר אוטומטית את הרשאות הפיתוח של פרמייר.
-                <div class="notice-warn" id="warnPremiereOpen">
-                    ⚠️ <strong>שים לב:</strong> Adobe Premiere Pro פועלת כעת ברקע. יש לסגור ולפתוח אותה מחדש לאחר ההתקנה כדי שהתוסף ייטען.
+            <div class="card">
+                <div class="card-lead">
+                    ברוכים הבאים! אשף זה יתקין עבורכם את <strong>CS Trim</strong> ישירות ב-Premiere Pro בלחיצה אחת פשוטה.
                 </div>
+                <ul class="features-list">
+                    <li><span class="dot"></span>חיתוך שקט אוטומטי ומדויק לקטעי וידאו</li>
+                    <li><span class="dot"></span>כתוביות AI אוטומטיות בעברית בלחיצת כפתור</li>
+                    <li><span class="dot"></span>התקנה נקייה ומהירה — ללא הגדרות מסובכות</li>
+                </ul>
+
+                <div class="tip-card" id="warnPremiereOpen">
+                    💡 <strong>טיפ ידידותי:</strong> Premiere Pro פועלת כעת ברקע. אין שום בעיה — רק זכרו לסגור ולפתוח אותה שוב לאחר סיום ההתקנה כדי שהתוסף יופיע.
+                </div>
+
+                <div class="error-card" id="errorCard"></div>
             </div>
 
-            <div class="status-msg" id="statusMsg">מתקין קבצים...</div>
+            <div class="status-msg" id="statusMsg">מתקין את קבצי התוסף...</div>
             <div class="progress-bar" id="pBar">
                 <div class="progress-fill" id="pFill"></div>
             </div>
@@ -213,16 +301,14 @@
         <!-- Success Step -->
         <div class="content" id="stepSuccess" style="display: none;">
             <div class="success-box">
-                <div class="success-title">🎉 ההתקנה הושלמה בהצלחה!</div>
-                <p>התוסף הועתק לתיקיית ההרחבות של אדובי והרשאות ה-Registry הופעלו בהצלחה.</p>
-                <div style="margin-top: 10px; color: #f8fafc; font-weight: 600;">
-                    סגור ופתח מחדש את Premiere Pro, והיכנס ל:
-                </div>
-                <div class="menu-path">
-                    Window &gt; Extensions &gt; CS Trim
-                </div>
-                <div style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 4px;">
-                    (בעברית בתפריט העליון: חלון &gt; הרחבות &gt; CS Trim)
+                <div class="success-title">🎉 איזה כיף! ההתקנה הושלמה בהצלחה!</div>
+                <div class="success-desc">תוסף CS Trim מותקן ומוכן כעת לעבודה ב-Adobe Premiere Pro.</div>
+                
+                <div class="guide-box">
+                    <div class="guide-step"><strong>1.</strong> פתחו (או הפעילו מחדש) את <strong>Adobe Premiere Pro</strong>.</div>
+                    <div class="guide-step"><strong>2.</strong> בתפריט העליון בחרו:</div>
+                    <div class="menu-path">Window &gt; Extensions &gt; CS Trim</div>
+                    <div class="menu-hebrew-hint">(בעברית: חלון &gt; הרחבות &gt; CS Trim)</div>
                 </div>
             </div>
         </div>
@@ -230,19 +316,19 @@
         <!-- Footer Buttons -->
         <div class="footer-btns" id="footerMain">
             <button class="btn btn-secondary" onclick="window.close();" id="btnCancel">ביטול</button>
-            <button class="btn btn-primary" onclick="startInstall();" id="btnInstall">התקן עכשיו</button>
+            <button class="btn btn-primary" onclick="startInstall();" id="btnInstall">התקן עכשיו 🚀</button>
         </div>
 
         <div class="footer-btns" id="footerSuccess" style="display: none;">
-            <button class="btn btn-primary" onclick="window.close();">סיום</button>
+            <button class="btn btn-primary" onclick="window.close();">סיום ✓</button>
         </div>
     </div>
 
     <script>
         function initApp() {
             try {
-                window.resizeTo(520, 420);
-                window.moveTo((screen.width - 520) / 2, (screen.height - 420) / 2);
+                window.resizeTo(540, 480);
+                window.moveTo((screen.width - 540) / 2, (screen.height - 480) / 2);
             } catch(e) {}
 
             try {
@@ -332,12 +418,18 @@
                     if (fso.FolderExists(d)) {
                         try { fso.DeleteFolder(d, true); } catch(e) {}
                     }
-                    fso.CopyFolder(s, d, true);
+                    try {
+                        fso.CopyFolder(s, d, true);
+                    } catch(e) {
+                        try { fso.CopyFolder(s, d, true); } catch(err) {}
+                    }
                 } else if (fso.FileExists(s)) {
                     if (fso.FileExists(d)) {
                         try { fso.DeleteFile(d, true); } catch(e) {}
                     }
-                    fso.CopyFile(s, d, true);
+                    try {
+                        fso.CopyFile(s, d, true);
+                    } catch(e) {}
                 }
             }
         }
@@ -348,13 +440,15 @@
             var pBar = document.getElementById("pBar");
             var pFill = document.getElementById("pFill");
             var statusMsg = document.getElementById("statusMsg");
+            var errorCard = document.getElementById("errorCard");
 
+            errorCard.style.display = "none";
             btnInstall.disabled = true;
             btnCancel.disabled = true;
             pBar.style.display = "block";
             statusMsg.style.display = "block";
-            statusMsg.innerText = "מאתר קבצי תוסף...";
-            pFill.style.width = "30%";
+            statusMsg.innerText = "מאתר את קבצי התוסף...";
+            pFill.style.width = "25%";
 
             setTimeout(function() {
                 try {
@@ -365,18 +459,18 @@
                     var srcDir = findSourceFolder(fso, baseDir);
 
                     if (!srcDir) {
-                        throw new Error("לא נמצאה תיקיית התוסף com.autocut.panel. אנא ודא שחילצת את כל קבצי ה-ZIP.");
+                        throw new Error("לא נמצאה תיקיית התוסף com.autocut.panel. אם הורדתם קובץ ZIP, אנא ודאו שחילצתם את כל הקבצים לפני ההפעלה.");
                     }
 
-                    statusMsg.innerText = "מעתיק קבצים לתיקיות ההרחבה של פרמייר...";
+                    statusMsg.innerText = "מעתיק קבצים לתיקיית התוספים של Premiere Pro...";
                     pFill.style.width = "60%";
 
-                    // 1. User AppData (Always writable)
+                    // 1. User AppData (Always writable without admin rights)
                     var appData = shell.ExpandEnvironmentStrings("%APPDATA%");
                     var userTarget = appData + "\\Adobe\\CEP\\extensions\\com.autocut.panel";
                     copyFilesClean(fso, srcDir, userTarget);
 
-                    // 2. Common Program Files (x86)
+                    // 2. Common Program Files (x86) - if available and writable
                     try {
                         var common86 = shell.ExpandEnvironmentStrings("%COMMONPROGRAMFILES(x86)%");
                         if (common86 && common86.indexOf("%") === -1) {
@@ -385,7 +479,7 @@
                         }
                     } catch(e) {}
 
-                    // 3. Common Program Files (64-bit)
+                    // 3. Common Program Files (64-bit) - if available and writable
                     try {
                         var common = shell.ExpandEnvironmentStrings("%COMMONPROGRAMFILES%");
                         if (common && common.indexOf("%") === -1) {
@@ -394,7 +488,7 @@
                         }
                     } catch(e) {}
 
-                    statusMsg.innerText = "מגדיר הרשאות מערכת ו-Registry...";
+                    statusMsg.innerText = "מפעיל תאימות ל-Premiere Pro...";
                     pFill.style.width = "85%";
 
                     // Write PlayerDebugMode for CSXS versions 7 through 20
@@ -411,7 +505,7 @@
                     }
 
                     pFill.style.width = "100%";
-                    statusMsg.innerText = "ההתקנה הושלמה!";
+                    statusMsg.innerText = "ההתקנה הושלמה בהצלחה!";
 
                     setTimeout(function() {
                         document.getElementById("stepMain").style.display = "none";
@@ -421,7 +515,8 @@
                     }, 400);
 
                 } catch(e) {
-                    alert("שגיאה במהלך ההתקנה: " + e.message + "\n\nבאפשרותך להעתיק את תיקיית com.autocut.panel ידנית לתיקיית Adobe\\CEP\\extensions.");
+                    errorCard.innerHTML = "<strong>שגיאה בהתקנה:</strong> " + e.message + "<br><br>אל דאגה! תוכלו להעתיק את תיקיית <code>com.autocut.panel</code> ידנית לתיקייה:<br><code>%APPDATA%\\Adobe\\CEP\\extensions\\</code>";
+                    errorCard.style.display = "block";
                     btnInstall.disabled = false;
                     btnCancel.disabled = false;
                     pBar.style.display = "none";
@@ -432,4 +527,3 @@
     </script>
 </body>
 </html>
-

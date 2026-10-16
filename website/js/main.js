@@ -271,26 +271,26 @@ function detectUserOS() {
     try {
         if (navigator.userAgentData && navigator.userAgentData.platform) {
             const p = navigator.userAgentData.platform.toLowerCase();
-            if (p.includes("mac")) return "mac";
             if (p.includes("win")) return "win";
+            if (p.includes("mac")) return "mac";
         }
     } catch (e) {}
 
-    const platform = (navigator.platform || "").toLowerCase();
     const ua = (navigator.userAgent || "").toLowerCase();
+    const platform = (navigator.platform || "").toLowerCase();
+
+    // Windows detection (checked first)
+    if (ua.includes("windows") || ua.includes("win32") || ua.includes("win64") || platform.includes("win")) {
+        return "win";
+    }
 
     // Mac detection (excluding iOS devices)
-    if (platform.includes("mac") || ua.includes("macintosh") || ua.includes("mac os")) {
+    if (ua.includes("macintosh") || ua.includes("mac os") || platform.includes("mac")) {
         const isIOS = /ipad|iphone|ipod/.test(ua) || (platform === "macintel" && navigator.maxTouchPoints > 1);
         if (!isIOS) return "mac";
     }
 
-    // Windows detection
-    if (platform.includes("win") || ua.includes("windows")) {
-        return "win";
-    }
-
-    return "other";
+    return "win";
 }
 
 function initOSDetection() {

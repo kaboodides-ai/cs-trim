@@ -232,3 +232,4 @@ var AutoUpdater = {
 if (typeof window !== "undefined") {
     window.AutoUpdater = AutoUpdater;
 }
+

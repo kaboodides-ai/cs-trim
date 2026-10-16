@@ -86,13 +86,23 @@ function toggleSimCut() {
 const SAMPLE_TEXT = "איך יוצרים סרטונים ויראליים ברשת בלי להוציא שקל על תוכנות יקרות";
 let currentWordChunk = 3;
 let captionInterval = null;
+let wordHighlightSubInterval = null;
 let currentChunkIndex = 0;
+let simHighlightColor = "#FACC15";
 
-function chunkWords(text, n) {
+function setSimHighlightColor(color, btn) {
+    simHighlightColor = color;
+    const btns = document.querySelectorAll(".sim-hl-btn");
+    btns.forEach(b => b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+    startCaptionLoop();
+}
+
+function chunkWordsList(text, n) {
     const words = text.split(" ");
     const chunks = [];
     for (let i = 0; i < words.length; i += n) {
-        chunks.push(words.slice(i, i + n).join(" "));
+        chunks.push(words.slice(i, i + n));
     }
     return chunks;
 }
@@ -121,28 +131,61 @@ function setWordSimPreset(words) {
 
 function startCaptionLoop() {
     if (captionInterval) clearInterval(captionInterval);
+    if (wordHighlightSubInterval) clearInterval(wordHighlightSubInterval);
 
-    const chunks = chunkWords(SAMPLE_TEXT, currentWordChunk);
+    const chunks = chunkWordsList(SAMPLE_TEXT, currentWordChunk);
     currentChunkIndex = 0;
 
     const displayBox = document.getElementById("simCaptionBox");
     if (!displayBox) return;
 
+    const renderWords = (chunk, activeIdx) => {
+        displayBox.innerHTML = "";
+        chunk.forEach((word, wIdx) => {
+            const span = document.createElement("span");
+            span.className = "sim-word";
+            span.textContent = word;
+            if (simHighlightColor !== "none" && wIdx === activeIdx) {
+                span.classList.add("sim-highlighted-word");
+                span.style.backgroundColor = simHighlightColor;
+            }
+            displayBox.appendChild(span);
+        });
+    };
+
     const showNextChunk = () => {
         if (!chunks.length) return;
-        displayBox.innerText = chunks[currentChunkIndex];
+        if (wordHighlightSubInterval) clearInterval(wordHighlightSubInterval);
+
+        const currentWords = chunks[currentChunkIndex];
+        const chunkDuration = Math.max(900, currentWordChunk * 550);
+        const perWordTime = Math.floor(chunkDuration / currentWords.length);
+
         // Trigger CSS popIn animation
         displayBox.style.animation = "none";
-        // Force reflow
         void displayBox.offsetWidth;
         displayBox.style.animation = "popIn 0.25s ease";
+
+        if (simHighlightColor === "none") {
+            renderWords(currentWords, -1);
+        } else {
+            let activeWord = 0;
+            renderWords(currentWords, activeWord);
+            wordHighlightSubInterval = setInterval(() => {
+                activeWord++;
+                if (activeWord < currentWords.length) {
+                    renderWords(currentWords, activeWord);
+                } else {
+                    clearInterval(wordHighlightSubInterval);
+                }
+            }, perWordTime);
+        }
 
         currentChunkIndex = (currentChunkIndex + 1) % chunks.length;
     };
 
     showNextChunk();
-    // Timing adapts to word count
-    const intervalTime = Math.max(700, currentWordChunk * 450);
+    const intervalTime = Math.max(900, currentWordChunk * 550);
     captionInterval = setInterval(showNextChunk, intervalTime);
 }
 

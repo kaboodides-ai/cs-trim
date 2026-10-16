@@ -64,11 +64,12 @@
                 <span class="hero-tagline">תוסף <span class="highlight-free">חינמי</span> לכתוביות וחיתוך שקט לפריימיר פרו</span>
             </h1>
 
-            <div class="hero-love-wrap">
-                <span class="hero-love-pill">
-                    <span class="heart-beat-icon">❤️</span>
-                    <span>נוצר <span class="love-word">באהבה</span> מעורך לעורכי ישראל</span>
-                </span>
+            <div class="hero-announcement-wrap">
+                <a href="#features" class="hero-announcement-pill">
+                    <span class="hero-badge-sparkle">✨ חדש ב-v1.0.4</span>
+                    <span class="hero-badge-text">פיצ'ר <strong>היילייט מילים (מרקר)</strong> דינמי על גבי הכתוביות בזמן הדיבור!</span>
+                    <span class="hero-badge-arrow">←</span>
+                </a>
             </div>
 
             <div class="hero-cta-group">
@@ -103,6 +104,10 @@
                 <div class="hero-feat-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <span>תמיכה מלאה בעברית</span>
+                </div>
+                <div class="hero-feat-item hero-feat-highlight">
+                    <span class="feat-sparkle">🖍️</span>
+                    <span><strong>חדש:</strong> מרקר היילייט מילים</span>
                 </div>
             </div>
 
@@ -194,6 +199,13 @@
                     <h3>כתוביות AI מהירות שיא בעברית</h3>
                     <p class="feature-lead">מנוע Whisper Large v3 עם מעבדי Groq המהירים בעולם — חינמי וללא הגבלה.</p>
                     <ul class="feature-points">
+                        <li class="feature-point-featured">
+                            <span class="icon-check" style="color: #facc15;">✨</span>
+                            <div>
+                                <strong style="color: #fde047;">חדש! היילייט מילים דינמי (Word Highlight / מרקר):</strong>
+                                הדגשה ויזואלית חיה של כל מילה בדיוק כשהיא נאמרת בקול — בסגנון סרטוני הרילס והטיקטוק הוויראליים. כולל בחירת צבע מרקר מותאם אישית (צהוב זוהר, ירוק, ורוד, כחול ועוד), סנכרון מושלם לפי קצב הדיבור ועורך מובנה לתיקון שגיאות!
+                            </div>
+                        </li>
                         <li>
                             <span class="icon-check">✓</span>
                             <div>
@@ -215,6 +227,12 @@
                         <li>
                             <span class="icon-check">✓</span>
                             <div>
+                                <strong>עריכת כתוביות מובנית ותיקון שגיאות:</strong> פאנל עורך ייעודי בפרמייר לעריכת שגיאות כתיב והחלפה מיידית של שכבות הטקסט והמרקר בטיימליין.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="icon-check">✓</span>
+                            <div>
                                 <strong>יצירה ישירה בטיימליין:</strong> מייצרת קובץ כתוביות וטראק ייעודי ישירות בתוך הפרויקט שלך בפרמייר.
                             </div>
                         </li>
@@ -228,6 +246,11 @@
                     <div class="perk-icon">⚡</div>
                     <h4>עבודה מקומית ומהירה</h4>
                     <p>אלגוריתם זיהוי השקט רץ 100% על המחשב שלך (Mac afconvert / Win ffmpeg) ללא צורך בהעלאת קבצי ענק לרשת.</p>
+                </div>
+                <div class="perk-box perk-highlight">
+                    <div class="perk-icon">🖍️</div>
+                    <h4>מרקר היילייט מותאם אישית</h4>
+                    <p>הדגשת מילים צבעונית בזמן אמת כמו אצל גדולי היוצרים בעולם, עם פלטת גוונים עשירה או בחירת צבע מותאם אישית לפי מיתוג הסרטון.</p>
                 </div>
                 <div class="perk-box">
                     <div class="perk-icon">🎯</div>
@@ -319,6 +342,30 @@
                             </div>
                         </div>
 
+                        <!-- Highlight Marker Selector for Simulator -->
+                        <div class="sim-highlight-bar">
+                            <span class="sim-hl-label">✨ מרקר היילייט:</span>
+                            <button type="button" class="sim-hl-btn active" id="simHlYellow" onclick="setSimHighlightColor('#FACC15', this)" title="צהוב מרקר">
+                                <span class="sim-swatch" style="background:#FACC15;"></span>
+                                <span>צהוב</span>
+                            </button>
+                            <button type="button" class="sim-hl-btn" id="simHlGreen" onclick="setSimHighlightColor('#22C55E', this)" title="ירוק זוהר">
+                                <span class="sim-swatch" style="background:#22C55E;"></span>
+                                <span>ירוק</span>
+                            </button>
+                            <button type="button" class="sim-hl-btn" id="simHlPink" onclick="setSimHighlightColor('#EC4899', this)" title="ורוד מרקר">
+                                <span class="sim-swatch" style="background:#EC4899;"></span>
+                                <span>ורוד</span>
+                            </button>
+                            <button type="button" class="sim-hl-btn" id="simHlCyan" onclick="setSimHighlightColor('#38BDF8', this)" title="כחול טורקיז">
+                                <span class="sim-swatch" style="background:#38BDF8;"></span>
+                                <span>כחול</span>
+                            </button>
+                            <button type="button" class="sim-hl-btn sim-hl-off" id="simHlOff" onclick="setSimHighlightColor('none', this)" title="ללא מרקר">
+                                <span>ללא</span>
+                            </button>
+                        </div>
+
                         <!-- Live Phone Video Mockup with Animated Captions -->
                         <div class="phone-mockup">
                             <div class="phone-speaker"></div>
@@ -398,9 +445,9 @@
         <div class="container">
             <div class="download-box-wrapper" id="download">
                 <div class="dl-content">
-                    <span class="dl-tag">הורדה חינם • גרסה 1.0.0</span>
+                    <span class="dl-tag">הורדה חינם • גרסה 1.0.4 (כולל היילייט מילים)</span>
                     <h2 class="dl-title">מוכן לקצר 80% מזמן העריכה שלך?</h2>
-                    <p class="dl-subtitle">הורד את CS Trim עכשיו. התקנה קלה ומהירה בלחיצה אחת, פתיחה ישירה בפרמייר, ו-100% חינם לתמיד.</p>
+                    <p class="dl-subtitle">הורד את CS Trim עכשיו. חיתוך שקט אוטומטי, כתוביות AI מדויקות, היילייט מילים דינמי, ו-100% חינם לתמיד.</p>
 
                     <div class="dl-buttons-row" style="display: flex; gap: 14px; flex-wrap: wrap;">
                         <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.4" class="btn btn-primary" id="btnCardDownloadMac" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download>
@@ -579,6 +626,16 @@
                     </button>
                     <div class="faq-answer">
                         <p>בהחלט! התוסף משתמש במודל המוביל <strong>Whisper Large v3</strong> המופעל על גבי מעבדי Groq המהירים. רמת הדיוק בעברית פנומנלית, ובנוסף קיים מנגנון דיווח שגיאות קהילתי באתר: כל מילה שמדווחת נכנסת ישירות למילון האוטומטי ומתעדכנת אצל כולם, כך שככל שאנשים מדווחים יותר — הפלאגין מגיע ל-100% דיוק מלא!</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>איך עובד פיצ'ר ההיילייט (הדגשת מילים / מרקר) על הטקסט?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>פיצ'ר ההיילייט (Word Highlight) מזהה בעזרת בינה מלאכותית את התזמון המדויק שבו כל מילה נאמרת. הוא יוצר באופן אוטומטי שכבת מרקר ויזואלית על גבי ערוץ וידאו ייעודי בטיימליין בפרמייר, שמדגישה את המילה הפעילה ברגע הדיבור (בסגנון קריוקי / MrBeast / Alex Hormozi). ניתן לבחור בלחיצת כפתור כל צבע מרקר שתרצו — צהוב זוהר, ירוק, ורוד, כחול, או כל צבע מותאם אישית שנבחר בעזרת ה-Color Picker.</p>
                     </div>
                 </div>
 

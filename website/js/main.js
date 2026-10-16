@@ -777,6 +777,25 @@ window.handleDownloadLinkClick = function(e, element) {
     return false;
 };
 
+// כפתור הורדה עליון ב-Navbar
+window.handleNavDownloadClick = function(e) {
+    if (hasUserRegistered()) {
+        return true; // ממשיך בגלילה רגילה ל-#download
+    }
+    if (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+    }
+    const os = (typeof detectUserOS === "function") ? detectUserOS() : "win";
+    const isMac = (os === "mac");
+    const url = isMac 
+        ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" 
+        : "download/CS-Trim-Setup.exe?v=1.0.5";
+    const filename = isMac ? "CS-Trim-v1.0.0-Mac.pkg" : "CS-Trim-Setup.exe";
+    openLeadModal(url, filename, isMac ? "Mac" : "Windows");
+    return false;
+};
+
 window.openLeadModal = openLeadModal;
 window.closeLeadModal = closeLeadModal;
 window.handleLeadSubmit = handleLeadSubmit;

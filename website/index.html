@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="css/style.css?v=1.4.0">
+    <link rel="stylesheet" href="css/style.css?v=1.4.1">
     <link rel="icon" type="image/png" href="assets/logo.png">
 
     <style id="leadModalStyles">
@@ -603,9 +603,9 @@
                         </div>
 
                         <div class="caption-presets">
-                            <button class="preset-pill" onclick="setWordSimPreset(1)">מילה אחת (MrBeast)</button>
-                            <button class="preset-pill active" onclick="setWordSimPreset(3)">3 מילים (Hormozi Style)</button>
-                            <button class="preset-pill" onclick="setWordSimPreset(6)">6 מילים (פודקאסט קלאסי)</button>
+                            <button class="preset-pill" data-words="1" onclick="setWordSimPreset(1)">מילה אחת (MrBeast)</button>
+                            <button class="preset-pill active" data-words="3" onclick="setWordSimPreset(3)">3 מילים (Hormozi Style)</button>
+                            <button class="preset-pill" data-words="6" onclick="setWordSimPreset(6)">6 מילים (פודקאסט קלאסי)</button>
                         </div>
                     </div>
                 </div>
@@ -1034,7 +1034,7 @@
 
                         <label class="lead-consent-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-top: 10px; text-align: right; user-select: none;">
                             <input type="checkbox" id="leadConsentCheckbox" checked style="width: 17px; height: 17px; accent-color: #2563eb; cursor: pointer;">
-                            <span>אני מאשר קבלת עדכוני גרסה וטיפים לעריכה בפרמייר (ללא ספאם)</span>
+                            <span>אני מאשר קבלת עדכונים על תכונות חדשות ושיפורים בתוכנה</span>
                         </label>
                     </div>
 
@@ -1408,6 +1408,6 @@
     </script>
 
     <!-- Scripts -->
-    <script src="js/main.js?v=1.4.0"></script>
+    <script src="js/main.js?v=1.4.1"></script>
 </body>
 </html>

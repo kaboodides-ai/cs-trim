@@ -29,30 +29,58 @@ function renderTimeline(isCut) {
 
     if (!container) return;
 
-    container.innerHTML = "";
+    let clips = container.querySelectorAll(".sim-clip");
 
+    // Populate track elements if not already present
+    if (clips.length !== TIMELINE_DATA.length) {
+        container.innerHTML = "";
+        TIMELINE_DATA.forEach((item) => {
+            const clipEl = document.createElement("div");
+            clipEl.className = `sim-clip ${item.type === "speech" ? "sim-clip-speech" : "sim-clip-silence"}`;
+            if (item.type === "speech") {
+                clipEl.innerText = item.label;
+            } else {
+                clipEl.title = "שקט (נחתך אוטומטית)";
+                clipEl.innerHTML = `<span class="sim-silence-tag">✂️ שקט</span>`;
+            }
+            container.appendChild(clipEl);
+        });
+        clips = container.querySelectorAll(".sim-clip");
+    }
+
+    // Smoothly animate existing elements without destroying DOM
     TIMELINE_DATA.forEach((item, index) => {
-        const clipEl = document.createElement("div");
-        clipEl.className = `sim-clip ${item.type === "speech" ? "sim-clip-speech" : "sim-clip-silence"}`;
-        
+        const clipEl = clips[index];
+        if (!clipEl) return;
+
         if (item.type === "speech") {
-            clipEl.innerText = item.label;
             clipEl.style.flex = isCut ? `${item.width * 1.5}` : `${item.width}`;
             clipEl.style.opacity = "1";
         } else {
             if (isCut) {
+                clipEl.style.flex = "0 0 0px";
                 clipEl.style.width = "0px";
+                clipEl.style.minWidth = "0px";
+                clipEl.style.maxWidth = "0px";
                 clipEl.style.padding = "0px";
                 clipEl.style.margin = "0px";
-                clipEl.style.border = "none";
+                clipEl.style.borderWidth = "0px";
                 clipEl.style.opacity = "0";
+                clipEl.style.overflow = "hidden";
+                clipEl.style.pointerEvents = "none";
             } else {
                 clipEl.style.flex = `${item.width}`;
-                clipEl.title = "שקט (נחתך אוטומטית)";
+                clipEl.style.width = "";
+                clipEl.style.minWidth = "";
+                clipEl.style.maxWidth = "";
+                clipEl.style.padding = "";
+                clipEl.style.margin = "";
+                clipEl.style.borderWidth = "";
                 clipEl.style.opacity = "1";
+                clipEl.style.overflow = "hidden";
+                clipEl.style.pointerEvents = "auto";
             }
         }
-        container.appendChild(clipEl);
     });
 
     if (isCut) {
@@ -94,7 +122,15 @@ function setSimHighlightColor(color, btn) {
     simHighlightColor = color;
     const btns = document.querySelectorAll(".sim-hl-btn");
     btns.forEach(b => b.classList.remove("active"));
-    if (btn) btn.classList.add("active");
+    if (btn) {
+        btn.classList.add("active");
+    } else {
+        const match = Array.from(btns).find(b => {
+            const attr = b.getAttribute("onclick") || "";
+            return attr.includes(color);
+        });
+        if (match) match.classList.add("active");
+    }
     startCaptionLoop();
 }
 
@@ -108,17 +144,27 @@ function chunkWordsList(text, n) {
 }
 
 function updateWordSim(wordsPerCaption) {
-    currentWordChunk = parseInt(wordsPerCaption, 10);
+    currentWordChunk = parseInt(wordsPerCaption, 10) || 3;
     const label = document.getElementById("simWordsLabel");
     if (label) {
         label.innerText = `${currentWordChunk} ${currentWordChunk === 1 ? "מילה" : "מילים"}`;
     }
 
-    // Update active preset button highlight
+    // Update active preset button highlight (handles digit and Hebrew text)
     const presets = document.querySelectorAll(".preset-pill");
     presets.forEach(p => p.classList.remove("active"));
-    const matchingPreset = Array.from(presets).find(p => p.textContent.includes(String(currentWordChunk)));
+    const matchingPreset = Array.from(presets).find(p => {
+        const wordsAttr = p.getAttribute("data-words");
+        if (wordsAttr) return wordsAttr === String(currentWordChunk);
+        if (currentWordChunk === 1 && (p.textContent.includes("אחת") || p.textContent.includes("1"))) return true;
+        return p.textContent.includes(String(currentWordChunk));
+    });
     if (matchingPreset) matchingPreset.classList.add("active");
+
+    const slider = document.getElementById("interactiveWordSlider");
+    if (slider && String(slider.value) !== String(currentWordChunk)) {
+        slider.value = currentWordChunk;
+    }
 
     startCaptionLoop();
 }
@@ -139,7 +185,31 @@ function startCaptionLoop() {
     const displayBox = document.getElementById("simCaptionBox");
     if (!displayBox) return;
 
+    // Reactively tint border and glow to match the selected highlight color
+    if (simHighlightColor === "none") {
+        displayBox.style.borderColor = "rgba(255, 255, 255, 0.2)";
+        displayBox.style.boxShadow = "none";
+    } else {
+        displayBox.style.borderColor = simHighlightColor;
+        displayBox.style.boxShadow = `0 0 16px ${simHighlightColor}44`;
+    }
+
     const renderWords = (chunk, activeIdx) => {
+        const existingSpans = displayBox.querySelectorAll(".sim-word");
+        if (existingSpans.length === chunk.length) {
+            existingSpans.forEach((span, wIdx) => {
+                span.textContent = chunk[wIdx];
+                if (simHighlightColor !== "none" && wIdx === activeIdx) {
+                    span.classList.add("sim-highlighted-word");
+                    span.style.backgroundColor = simHighlightColor;
+                } else {
+                    span.classList.remove("sim-highlighted-word");
+                    span.style.backgroundColor = "";
+                }
+            });
+            return;
+        }
+
         displayBox.innerHTML = "";
         chunk.forEach((word, wIdx) => {
             const span = document.createElement("span");
@@ -332,17 +402,23 @@ function initOSDetection() {
 // -----------------------------------------------------------------------------
 // 7. Smooth Navbar Scroll & Init
 // -----------------------------------------------------------------------------
-window.addEventListener("DOMContentLoaded", () => {
-    initOSDetection();
+function initAll() {
+    if (typeof initOSDetection === "function") initOSDetection();
     renderTimeline(false);
     updateWordSim(3);
     initFaq();
-    setupDownloadGating();
+    if (typeof setupDownloadGating === "function") setupDownloadGating();
 
     // Auto open first FAQ
     const firstFaq = document.querySelector(".faq-item");
     if (firstFaq) firstFaq.classList.add("active");
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAll);
+} else {
+    initAll();
+}
 
 // -----------------------------------------------------------------------------
 // Hebrew Typo Pre-Validator (Client Side)
@@ -560,9 +636,9 @@ function handleSuggestSubmit(event) {
 // =============================================================================
 
 // הדבק כאן את כתובת ה-Web App של Google Apps Script כשתרצה לסנכרן אוטומטית לגוגל שיטס
-let GOOGLE_SHEETS_WEBHOOK_URL = ""; 
+var GOOGLE_SHEETS_WEBHOOK_URL = (typeof window !== "undefined" && window.GOOGLE_SHEETS_WEBHOOK_URL) || ""; 
 
-let pendingDownload = {
+var pendingDownload = (typeof window !== "undefined" && window.pendingDownload) || {
     url: "",
     filename: "",
     platform: ""
@@ -850,3 +926,20 @@ document.addEventListener("keydown", function(e) {
         closeLeadModal();
     }
 });
+
+// Explicitly expose all interactive simulator & UI functions to window
+if (typeof window !== "undefined") {
+    window.setSimCutMode = setSimCutMode;
+    window.toggleSimCut = toggleSimCut;
+    window.renderTimeline = renderTimeline;
+    window.updateWordSim = updateWordSim;
+    window.setWordSimPreset = setWordSimPreset;
+    window.setSimHighlightColor = setSimHighlightColor;
+    window.startCaptionLoop = startCaptionLoop;
+    window.switchGuideTab = switchGuideTab;
+    window.openGuideModal = openGuideModal;
+    window.closeGuideModal = closeGuideModal;
+    window.handleSuggestSubmit = handleSuggestSubmit;
+    window.initFaq = initFaq;
+    window.initAll = initAll;
+}

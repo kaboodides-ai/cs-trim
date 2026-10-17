@@ -848,6 +848,8 @@ a {
     font-size: 0.75rem;
     font-weight: 600;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    white-space: nowrap;
 }
 .sim-clip-speech {
     background: linear-gradient(135deg, #059669 0%, #10b981 100%);
@@ -862,6 +864,12 @@ a {
         rgba(239, 68, 68, 0.6) 12px
     );
     border: 1px dashed #ef4444;
+}
+.sim-silence-tag {
+    font-size: 0.72rem;
+    opacity: 0.85;
+    color: #fca5a5;
+    pointer-events: none;
 }
 
 .sim-legend {
@@ -1028,6 +1036,23 @@ a {
     box-shadow: 0 0 10px rgba(250, 204, 21, 0.25);
 }
 
+#simHlYellow.active {
+    border-color: #facc15;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.35);
+}
+#simHlGreen.active {
+    border-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
+}
+#simHlPink.active {
+    border-color: #ec4899;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.35);
+}
+#simHlCyan.active {
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+}
+
 .sim-swatch {
     width: 10px;
     height: 10px;
@@ -1050,6 +1075,7 @@ a {
     text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     border: 2px solid rgba(250, 204, 21, 0.35);
     min-height: 52px;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
     display: flex;
     flex-wrap: wrap;
     align-items: center;

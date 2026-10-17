@@ -45,11 +45,9 @@ const DISPOSABLE_DOMAINS = new Set([
     "trashymail.com", "deadaddress.com", "trashmail.io", "tempmail.net", "disbox.net"
 ]);
 
-// Reserved and dummy domains
+// Reserved and dummy domains (RFC reserved)
 const RESERVED_DOMAINS = new Set([
-    "example.com", "example.org", "example.net", "test.com", "invalid.com", "localhost.com",
-    "domain.com", "sample.com", "none.com", "null.com", "fake.com", "website.com", "site.com",
-    "somesite.com", "sitedomain.com", "email.com", "mail.com"
+    "example.com", "example.org", "example.net", "test.com", "invalid.com", "localhost.com"
 ]);
 
 // Common domain typos and their corrections
@@ -97,13 +95,18 @@ const DOMAIN_TYPOS = {
     "icloud.con": "icloud.com"
 };
 
-// Obvious dummy / spam usernames
+// Known explicit troll email addresses
+const FAKE_FULL_EMAILS = new Set([
+    "test@test.com", "asdf@asdf.com", "a@a.com", "fake@fake.com", "me@me.com",
+    "123@123.com", "abc@abc.com", "qwer@qwer.com", "none@none.com", "null@null.com",
+    "no@no.com", "spam@spam.com", "test@example.com", "asdf@gmail.com", "test@gmail.com",
+    "123456@gmail.com", "123@gmail.com", "aaaa@gmail.com", "fake@gmail.com"
+]);
+
+// Pure keyboard mash / test words (only blocked if the exact localPart is one of these)
 const DUMMY_LOCAL_PARTS = new Set([
-    "test", "testing", "test1", "tester", "asdf", "asdfg", "asdfgh", "qwer", "qwerty", "zxcv",
-    "123", "1234", "12345", "123456", "fake", "dummy", "spam", "none", "noemail", "temp",
-    "trash", "sample", "aaa", "bbb", "ccc", "abc", "abcd", "abcde", "bla", "blabla", "user",
-    "admin", "root", "email", "mail", "myemail", "someone", "nobody", "null", "undefined",
-    "anonymous", "nothankyou", "no", "nah", "idk", "wtf", "random", "fakeemail"
+    "asdf", "asdfg", "asdfgh", "qwer", "qwerty", "zxcv",
+    "123456", "fake", "dummy", "noemail", "fakeemail"
 ]);
 
 // Top major email providers guaranteed to have valid MX
@@ -111,6 +114,7 @@ const TOP_VERIFIED_PROVIDERS = new Set([
     "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "live.com", "msn.com",
     "yahoo.com", "yahoo.co.uk", "yahoo.fr", "icloud.com", "me.com", "mac.com",
     "walla.co.il", "walla.com", "proton.me", "protonmail.com", "aol.com", "zoho.com",
+    "mail.com", "email.com", "gmx.com", "yandex.com",
     "012.net.il", "netvision.net.il", "bezeqint.net"
 ]);
 
@@ -252,17 +256,26 @@ export default async function handler(req, res) {
         });
     }
 
-    // Dummy local part check
+    // Known explicit troll email addresses
+    if (FAKE_FULL_EMAILS.has(email)) {
+        return res.status(200).json({
+            valid: false,
+            reason: "dummy_name",
+            message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת בדיקה"
+        });
+    }
+
+    // Dummy keyboard-mash local part check
     if (DUMMY_LOCAL_PARTS.has(localPart)) {
         return res.status(200).json({
             valid: false,
             reason: "dummy_name",
-            message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת בדיקה/דמה"
+            message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת בדיקה"
         });
     }
 
-    // Repeated characters check (e.g. "aaaaaa", "111111")
-    if (localPart.length >= 4 && new Set(localPart.split("")).size === 1) {
+    // Repeated characters check (only if 6 or more of the exact same character, e.g. "aaaaaa")
+    if (localPart.length >= 6 && new Set(localPart.split("")).size === 1) {
         return res.status(200).json({
             valid: false,
             reason: "repeated_chars",
@@ -317,3 +330,4 @@ export default async function handler(req, res) {
         message: "כתובת האימייל אומתה בהצלחה"
     });
 }
+

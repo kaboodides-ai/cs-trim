@@ -1325,18 +1325,20 @@
             "icloud.con": "icloud.com"
         };
 
+        var FAKE_FULL_EMAILS = [
+            "test@test.com", "asdf@asdf.com", "a@a.com", "fake@fake.com", "me@me.com",
+            "123@123.com", "abc@abc.com", "qwer@qwer.com", "none@none.com", "null@null.com",
+            "no@no.com", "spam@spam.com", "test@example.com", "asdf@gmail.com", "test@gmail.com",
+            "123456@gmail.com", "123@gmail.com", "aaaa@gmail.com", "fake@gmail.com"
+        ];
+
         var DUMMY_USERNAMES = [
-            "test", "testing", "test1", "tester", "asdf", "asdfg", "asdfgh", "qwer", "qwerty", "zxcv",
-            "123", "1234", "12345", "123456", "fake", "dummy", "spam", "none", "noemail", "temp",
-            "trash", "sample", "aaa", "bbb", "ccc", "abc", "abcd", "abcde", "bla", "blabla", "user",
-            "admin", "root", "email", "mail", "myemail", "someone", "nobody", "null", "undefined",
-            "anonymous", "nothankyou", "no", "nah", "idk", "wtf", "random", "fakeemail"
+            "asdf", "asdfg", "asdfgh", "qwer", "qwerty", "zxcv",
+            "123456", "fake", "dummy", "noemail", "fakeemail"
         ];
 
         var RESERVED_DOMAINS = [
-            "example.com", "example.org", "example.net", "test.com", "invalid.com", "localhost.com",
-            "domain.com", "sample.com", "none.com", "null.com", "fake.com", "website.com", "site.com",
-            "somesite.com", "sitedomain.com", "email.com", "mail.com"
+            "example.com", "example.org", "example.net", "test.com", "invalid.com", "localhost.com"
         ];
 
         function checkEmailSyntaxAndPlausibility(email) {
@@ -1380,11 +1382,15 @@
                 };
             }
 
-            if (DUMMY_USERNAMES.indexOf(localPart) !== -1) {
-                return { valid: false, reason: "dummy", message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת דמה" };
+            if (FAKE_FULL_EMAILS.indexOf(email) !== -1) {
+                return { valid: false, reason: "dummy", message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת בדיקה" };
             }
 
-            if (localPart.length >= 4) {
+            if (DUMMY_USERNAMES.indexOf(localPart) !== -1) {
+                return { valid: false, reason: "dummy", message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת בדיקה" };
+            }
+
+            if (localPart.length >= 6) {
                 var allSame = true;
                 for (var i = 1; i < localPart.length; i++) {
                     if (localPart[i] !== localPart[0]) {
@@ -1403,13 +1409,6 @@
 
             if (RESERVED_DOMAINS.indexOf(domain) !== -1) {
                 return { valid: false, reason: "reserved", message: "הדומיין שהוזן אינו פעיל לקבלת דואר" };
-            }
-
-            if (domain === "gmail.com" || domain === "googlemail.com") {
-                var cleanGmailUser = localPart.replace(/\./g, "");
-                if (cleanGmailUser.length < 6) {
-                    return { valid: false, reason: "gmail_too_short", message: "שם משתמש ב-Gmail חייב להכיל לפחות 6 תווים" };
-                }
             }
 
             return { valid: true, email: email, domain: domain };

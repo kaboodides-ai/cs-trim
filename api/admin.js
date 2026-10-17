@@ -177,27 +177,6 @@ export default async function handler(req, res) {
                 lastSeenFormatted: new Date(now).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })
             });
 
-            // Async record in sessions.json on GitHub (fire and forget)
-            updateGitHubFile("website/sessions.json", function(data) {
-                const sessions = Array.isArray(data.sessions) ? data.sessions : [];
-                const existingIdx = sessions.findIndex(s => s.installId === installId);
-                const sessionRecord = {
-                    installId: installId,
-                    platform: platform,
-                    version: version,
-                    lastSeen: new Date().toISOString(),
-                    lastSeenFormatted: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-                    totalLaunches: (existingIdx !== -1 && sessions[existingIdx].totalLaunches) ? sessions[existingIdx].totalLaunches + 1 : 1
-                };
-
-                if (existingIdx !== -1) {
-                    sessions[existingIdx] = sessionRecord;
-                } else {
-                    sessions.unshift(sessionRecord);
-                }
-                return { sessions: sessions, lastUpdated: new Date().toISOString().slice(0, 10) };
-            }, `Heartbeat: active session ${platform} [${installId.slice(0, 8)}]`).catch(() => {});
-
             return res.status(200).json({ ok: true, activeUsers: liveSessions.size });
         } catch (err) {
             return res.status(200).json({ ok: false, error: err.message });

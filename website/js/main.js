@@ -260,54 +260,6 @@ function startCaptionLoop() {
 }
 
 // -----------------------------------------------------------------------------
-// 3b. Interactive Simulator 3: Live Text Animations
-// -----------------------------------------------------------------------------
-let simAnimPreset = "pop";
-let simAnimAutoLoop = null;
-
-const PRESET_HEBREW_NAMES = {
-    pop: "פופ קופצני (Bounce)",
-    slide_up: "החלקה למעלה (Slide Up)",
-    zoom_in: "זום פנימה (Zoom In)",
-    fade: "עמעום חלק (Smooth Fade)"
-};
-
-function setSimAnimPreset(preset, btn) {
-    simAnimPreset = preset || "pop";
-    const controls = document.getElementById("simAnimControls");
-    if (controls) {
-        const btns = controls.querySelectorAll(".sim-btn");
-        btns.forEach(b => b.classList.remove("active"));
-    }
-    if (btn) btn.classList.add("active");
-
-    const label = document.getElementById("simAnimPresetLabel");
-    if (label) {
-        label.textContent = PRESET_HEBREW_NAMES[simAnimPreset] || "פופ קופצני (Bounce)";
-    }
-    triggerSimAnimation();
-}
-
-function replaySimAnim() {
-    triggerSimAnimation();
-}
-
-function triggerSimAnimation() {
-    const target = document.getElementById("simAnimTextTarget");
-    if (!target) return;
-
-    target.className = "sim-simple-anim-text";
-    void target.offsetWidth; // Force CSS reflow
-    target.classList.add(`anim-${simAnimPreset}`);
-}
-
-function initTextAnimationSimulator() {
-    triggerSimAnimation();
-    if (simAnimAutoLoop) clearInterval(simAnimAutoLoop);
-    simAnimAutoLoop = setInterval(triggerSimAnimation, 3000);
-}
-
-// -----------------------------------------------------------------------------
 // 4. Installation Guide Tabs
 // -----------------------------------------------------------------------------
 function switchGuideTab(tab, el) {
@@ -454,7 +406,6 @@ function initAll() {
     if (typeof initOSDetection === "function") initOSDetection();
     renderTimeline(false);
     updateWordSim(3);
-    initTextAnimationSimulator();
     initFaq();
     if (typeof setupDownloadGating === "function") setupDownloadGating();
 
@@ -1116,9 +1067,6 @@ if (typeof window !== "undefined") {
     window.setWordSimPreset = setWordSimPreset;
     window.setSimHighlightColor = setSimHighlightColor;
     window.startCaptionLoop = startCaptionLoop;
-    window.setSimAnimPreset = setSimAnimPreset;
-    window.replaySimAnim = replaySimAnim;
-    window.initTextAnimationSimulator = initTextAnimationSimulator;
     window.switchGuideTab = switchGuideTab;
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;

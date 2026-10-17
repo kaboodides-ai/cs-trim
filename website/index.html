@@ -644,50 +644,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Sim 3: Live Text Animations -->
-                <div class="sim-card">
-                    <div class="sim-card-header">
-                        <div class="sim-card-title">
-                            <span class="sim-pill">סימולטור 3</span>
-                            <h3>אנימציות טקסט בקליק</h3>
-                        </div>
-                        <div class="sim-controls" id="simAnimControls">
-                            <button class="sim-btn active" data-anim="pop" onclick="setSimAnimPreset('pop', this)">פופ</button>
-                            <button class="sim-btn" data-anim="slide_up" onclick="setSimAnimPreset('slide_up', this)">החלקה</button>
-                            <button class="sim-btn" data-anim="zoom_in" onclick="setSimAnimPreset('zoom_in', this)">זום</button>
-                            <button class="sim-btn" data-anim="fade" onclick="setSimAnimPreset('fade', this)">עמעום</button>
-                        </div>
-                    </div>
-
-                    <div class="sim-stage">
-                        <div class="sim-stage-info">
-                            <div>
-                                <span class="sim-label">אפקט נבחר:</span>
-                                <strong id="simAnimPresetLabel" class="sim-val text-accent">פופ קופצני (Bounce)</strong>
-                            </div>
-                            <div>
-                                <span class="sim-label">זמן החלה:</span>
-                                <strong class="sim-val">קליק אחד בשנייה</strong>
-                            </div>
-                        </div>
-
-                        <!-- Clean minimal preview screen -->
-                        <div class="sim-simple-anim-screen" onclick="replaySimAnim()" title="לחץ להפעלה חוזרת">
-                            <div class="sim-simple-anim-text anim-pop" id="simAnimTextTarget">
-                                טקסט מונפש בקליק ✨
-                            </div>
-                            <span class="sim-screen-click-hint">לחץ להפעלה חוזרת 🔄</span>
-                        </div>
-
-                        <div class="sim-action-bar">
-                            <button class="btn btn-primary btn-sm" onclick="replaySimAnim()">
-                                <span>הפעל שוב</span>
-                            </button>
-                            <span class="sim-hint">בחר סגנון למעלה וראה איך הטקסט קופץ לחיים ברגע!</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>

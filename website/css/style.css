@@ -759,14 +759,8 @@ a {
 
 .sim-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 28px;
-}
-
-@media (max-width: 1080px) {
-    .sim-grid {
-        grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
 }
 
 .sim-card {
@@ -2253,88 +2247,6 @@ a {
     align-items: center;
     justify-content: center;
 }
-
-/* ==========================================================================
-   Simulator 3: Clean & Simple Text Animations
-   ========================================================================== */
-.sim-simple-anim-screen {
-    height: 200px;
-    background: radial-gradient(circle at center, #171d2f 0%, #0a0c13 85%);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-    overflow: hidden;
-    margin-bottom: 16px;
-    transition: var(--transition);
-}
-
-.sim-simple-anim-screen:hover {
-    border-color: rgba(59, 130, 246, 0.45);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-}
-
-.sim-simple-anim-text {
-    font-size: 1.55rem;
-    font-weight: 800;
-    color: #ffffff;
-    padding: 10px 22px;
-    border-radius: 12px;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(37, 99, 235, 0.25);
-    will-change: transform, opacity;
-    transform-origin: center center;
-    text-align: center;
-    user-select: none;
-}
-
-.sim-screen-click-hint {
-    position: absolute;
-    bottom: 10px;
-    font-size: 0.76rem;
-    color: var(--text-muted);
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-    user-select: none;
-}
-
-.sim-simple-anim-screen:hover .sim-screen-click-hint {
-    opacity: 1;
-    color: #93c5fd;
-}
-
-/* 4 Simple Keyframe Animations */
-@keyframes simPop {
-    0% { transform: scale(0.3); opacity: 0; filter: blur(5px); }
-    55% { transform: scale(1.15); opacity: 1; filter: blur(0); }
-    78% { transform: scale(0.96); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes simSlide {
-    0% { transform: translateY(40px); opacity: 0; filter: blur(4px); }
-    100% { transform: translateY(0); opacity: 1; filter: blur(0); }
-}
-
-@keyframes simZoom {
-    0% { transform: scale(0.25); opacity: 0; filter: blur(6px); }
-    100% { transform: scale(1); opacity: 1; filter: blur(0); }
-}
-
-@keyframes simFade {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-.anim-pop { animation: simPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-.anim-slide_up { animation: simSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.anim-zoom_in { animation: simZoom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.anim-fade { animation: simFade 0.35s ease-in-out forwards; }
 
 
 

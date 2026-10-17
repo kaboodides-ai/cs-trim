@@ -260,6 +260,106 @@ function startCaptionLoop() {
 }
 
 // -----------------------------------------------------------------------------
+// 3b. Interactive Simulator 3: Live Text Animations & Premiere Monitor
+// -----------------------------------------------------------------------------
+let simAnimPreset = "pop";
+let simAnimSpeed = 0.35;
+let simAnimMotionBlur = true;
+let simAnimCustomText = "טקסט מונפש בפרמייר ✨";
+let simAnimAutoLoop = null;
+
+const PRESET_DISPLAY_NAMES = {
+    pop: "Pop (Bounce)",
+    slide_up: "החלקה למעלה (Slide Up)",
+    zoom_in: "זום פנימה (Zoom In)",
+    fade: "עמעום חלק (Smooth Fade)"
+};
+
+function setSimAnimPreset(preset, btn) {
+    simAnimPreset = preset || "pop";
+    const btns = document.querySelectorAll(".sim-anim-btn");
+    btns.forEach(b => b.classList.remove("active"));
+    if (btn) {
+        btn.classList.add("active");
+    } else {
+        const match = Array.from(btns).find(b => b.getAttribute("data-anim") === preset);
+        if (match) match.classList.add("active");
+    }
+    triggerSimAnimation();
+}
+
+function setSimAnimSpeed(dur, btn) {
+    simAnimSpeed = parseFloat(dur) || 0.35;
+    const btns = document.querySelectorAll(".sim-speed-btn");
+    btns.forEach(b => b.classList.remove("active"));
+    if (btn) {
+        btn.classList.add("active");
+    } else {
+        const match = Array.from(btns).find(b => b.getAttribute("data-speed") === String(dur));
+        if (match) match.classList.add("active");
+    }
+    triggerSimAnimation();
+}
+
+function toggleSimMotionBlur(enable) {
+    simAnimMotionBlur = !!enable;
+    triggerSimAnimation();
+}
+
+function updateSimCustomText(text) {
+    simAnimCustomText = (text && text.trim()) ? text : "טקסט מונפש בפרמייר ✨";
+    const target = document.getElementById("simAnimTextTarget");
+    if (target) target.textContent = simAnimCustomText;
+    triggerSimAnimation();
+}
+
+function replaySimAnim() {
+    triggerSimAnimation();
+}
+
+function triggerSimAnimation() {
+    const target = document.getElementById("simAnimTextTarget");
+    const statusText = document.getElementById("simMonitorStatusText");
+    if (!target) return;
+
+    target.textContent = simAnimCustomText || "טקסט מונפש בפרמייר ✨";
+
+    // Update status text
+    if (statusText) {
+        const pName = PRESET_DISPLAY_NAMES[simAnimPreset] || simAnimPreset;
+        const blurTag = simAnimMotionBlur ? " • Blur ON" : "";
+        statusText.textContent = `Preset: ${pName} • ${simAnimSpeed}s${blurTag}`;
+    }
+
+    // Reset classes
+    target.className = "monitor-animated-text";
+    if (simAnimMotionBlur) {
+        target.classList.add("with-blur");
+    }
+
+    // Force reflow
+    void target.offsetWidth;
+
+    // Apply animation
+    target.style.animationDuration = `${simAnimSpeed}s`;
+    target.classList.add(`anim-effect-${simAnimPreset}`);
+}
+
+function initTextAnimationSimulator() {
+    const input = document.getElementById("simCustomTextInput");
+    if (input) {
+        input.value = simAnimCustomText;
+    }
+    triggerSimAnimation();
+
+    // Gentle auto-loop every 3.5s
+    if (simAnimAutoLoop) clearInterval(simAnimAutoLoop);
+    simAnimAutoLoop = setInterval(function() {
+        triggerSimAnimation();
+    }, 3500);
+}
+
+// -----------------------------------------------------------------------------
 // 4. Installation Guide Tabs
 // -----------------------------------------------------------------------------
 function switchGuideTab(tab, el) {
@@ -406,6 +506,7 @@ function initAll() {
     if (typeof initOSDetection === "function") initOSDetection();
     renderTimeline(false);
     updateWordSim(3);
+    initTextAnimationSimulator();
     initFaq();
     if (typeof setupDownloadGating === "function") setupDownloadGating();
 
@@ -1067,6 +1168,12 @@ if (typeof window !== "undefined") {
     window.setWordSimPreset = setWordSimPreset;
     window.setSimHighlightColor = setSimHighlightColor;
     window.startCaptionLoop = startCaptionLoop;
+    window.setSimAnimPreset = setSimAnimPreset;
+    window.setSimAnimSpeed = setSimAnimSpeed;
+    window.toggleSimMotionBlur = toggleSimMotionBlur;
+    window.updateSimCustomText = updateSimCustomText;
+    window.replaySimAnim = replaySimAnim;
+    window.initTextAnimationSimulator = initTextAnimationSimulator;
     window.switchGuideTab = switchGuideTab;
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;

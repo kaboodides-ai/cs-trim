@@ -1,6 +1,18 @@
 {
   "feedbacks": [
     {
+      "id": "fb_1792263750342_2tzd8",
+      "timestamp": "2026-10-17T19:02:30.342Z",
+      "dateFormatted": "17.10.2026, 22:02:30",
+      "type": "improvement",
+      "typeLabel": "💡 הצעת שיפור / פיצ'ר",
+      "message": "test",
+      "contact": "לא צוין",
+      "source": "website",
+      "platform": "Unknown",
+      "version": "1.0.7"
+    },
+    {
       "id": "fb_1792254338347_i9obu",
       "timestamp": "2026-10-17T16:25:38.347Z",
       "dateFormatted": "17.10.2026, 19:25:38",

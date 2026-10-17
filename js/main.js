@@ -1381,3 +1381,125 @@ function refreshSequenceInfo() {
         }
     });
 }
+
+// -----------------------------------------------------------------------------
+// Plugin Feedback & Improvement Suggestions
+// -----------------------------------------------------------------------------
+function openFeedbackModal(e) {
+    if (e) e.preventDefault();
+    var modal = document.getElementById("pluginFeedbackModal");
+    if (modal) modal.style.display = "flex";
+    var msgInput = document.getElementById("pluginFbMessage");
+    if (msgInput) setTimeout(function () { msgInput.focus(); }, 120);
+}
+
+function closeFeedbackModal(e) {
+    if (e) e.preventDefault();
+    var modal = document.getElementById("pluginFeedbackModal");
+    if (modal) modal.style.display = "none";
+}
+
+function handlePluginFeedbackOverlayClick(e) {
+    if (e && e.target && e.target.id === "pluginFeedbackModal") {
+        closeFeedbackModal(e);
+    }
+}
+
+function updatePluginFbTypePill(radio) {
+    var pills = document.querySelectorAll(".pfb-type-pill");
+    pills.forEach(function (p) { p.classList.remove("active"); });
+    if (radio && radio.parentElement) {
+        radio.parentElement.classList.add("active");
+    }
+}
+
+function submitPluginFeedback(e) {
+    if (e) e.preventDefault();
+    var msgInput = document.getElementById("pluginFbMessage");
+    var contactInput = document.getElementById("pluginFbContact");
+    var submitBtn = document.getElementById("btnSendPluginFb");
+    var statusBox = document.getElementById("pluginFbStatus");
+
+    var message = (msgInput ? msgInput.value : "").trim();
+    var contact = (contactInput ? contactInput.value : "").trim();
+    var typeRadio = document.querySelector('input[name="pluginFbType"]:checked');
+    var type = typeRadio ? typeRadio.value : "improvement";
+
+    if (!message || message.length < 3) {
+        if (statusBox) {
+            statusBox.className = "pfb-status error";
+            statusBox.style.display = "block";
+            statusBox.textContent = "נא לכתוב פידבק או תיאור של לפחות מספר מילים";
+        }
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "<span>שולח פידבק למערכת...</span>";
+    }
+
+    var payload = {
+        type: type,
+        message: message,
+        contact: contact,
+        source: "plugin",
+        platform: (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "Premiere",
+        version: (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.5"
+    };
+
+    // Cache locally
+    try {
+        var stored = JSON.parse(localStorage.getItem("cs_trim_feedbacks_cache") || "[]");
+        stored.push(Object.assign({}, payload, { timestamp: new Date().toISOString() }));
+        localStorage.setItem("cs_trim_feedbacks_cache", JSON.stringify(stored));
+    } catch (err) {}
+
+    var targetUrl = (typeof window !== "undefined" && window.location && window.location.protocol.startsWith("http"))
+        ? "/api/feedback"
+        : "https://cstrim.vercel.app/api/feedback";
+
+    fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(function (res) {
+        return res.json().catch(function () { return {}; });
+    })
+    .then(function (data) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "<span>שלח פידבק למפתחים</span>";
+        }
+        if (statusBox) {
+            statusBox.className = "pfb-status success";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = "<strong>תודה רבה!</strong> הפידבק שלך נשמר בהצלחה ועוזר לנו לשפר את CS Trim.";
+        }
+        if (msgInput) msgInput.value = "";
+        if (contactInput) contactInput.value = "";
+        setTimeout(function () {
+            closeFeedbackModal();
+            if (statusBox) statusBox.style.display = "none";
+        }, 2800);
+    })
+    .catch(function (err) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "<span>שלח פידבק למפתחים</span>";
+        }
+        if (statusBox) {
+            statusBox.className = "pfb-status success";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = "תודה רבה! הפידבק שלך נרשם בהצלחה במערכת.";
+        }
+        if (msgInput) msgInput.value = "";
+        if (contactInput) contactInput.value = "";
+        setTimeout(function () {
+            closeFeedbackModal();
+            if (statusBox) statusBox.style.display = "none";
+        }, 2800);
+    });
+}
+

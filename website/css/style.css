@@ -1762,6 +1762,63 @@ a {
     color: #fca5a5;
 }
 
+/* Community Section Tabs & Feedback */
+.com-tab-btn {
+    padding: 10px 22px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    color: #94a3b8;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+.com-tab-btn:hover {
+    background: rgba(37, 99, 235, 0.15);
+    color: #ffffff;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+.com-tab-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+
+.web-fb-pill {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+.web-fb-pill input {
+    display: none !important;
+}
+.web-fb-pill:hover {
+    background: rgba(37, 99, 235, 0.12);
+    color: #ffffff;
+}
+.web-fb-pill.active {
+    background: rgba(37, 99, 235, 0.25);
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+}
+
 @media (max-width: 768px) {
     .suggest-card {
         padding: 30px 20px;

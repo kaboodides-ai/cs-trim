@@ -631,6 +631,137 @@ function handleSuggestSubmit(event) {
     });
 }
 
+// -----------------------------------------------------------------------------
+// Community Section Tab Switcher (Feedback / Typo Reporting)
+// -----------------------------------------------------------------------------
+function switchCommunityTab(tabName, btn) {
+    var feedbackPane = document.getElementById("paneFeedback");
+    var typoPane = document.getElementById("paneTypo");
+    var btns = document.querySelectorAll(".com-tab-btn");
+    btns.forEach(function(b) { b.classList.remove("active"); });
+
+    if (btn) btn.classList.add("active");
+
+    if (tabName === "feedback") {
+        if (feedbackPane) feedbackPane.style.display = "block";
+        if (typoPane) typoPane.style.display = "none";
+    } else {
+        if (feedbackPane) feedbackPane.style.display = "none";
+        if (typoPane) typoPane.style.display = "block";
+    }
+}
+
+function updateWebFbTypePill(radio) {
+    var pills = document.querySelectorAll(".web-fb-pill");
+    pills.forEach(function(p) { p.classList.remove("active"); });
+    if (radio && radio.parentElement) {
+        radio.parentElement.classList.add("active");
+    }
+}
+
+function handleFeedbackSubmit(event) {
+    event.preventDefault();
+    var msgInput = document.getElementById("webFbMessage");
+    var contactInput = document.getElementById("webFbContact");
+    var trapInput = document.getElementById("feedback_trap");
+    var statusBox = document.getElementById("webFeedbackStatus");
+    var submitBtn = document.getElementById("btnSubmitFeedbackWeb");
+
+    var message = (msgInput ? msgInput.value : "").trim();
+    var contact = (contactInput ? contactInput.value : "").trim();
+    var trap = (trapInput ? trapInput.value : "").trim();
+    var typeRadio = document.querySelector('input[name="webFbType"]:checked');
+    var type = typeRadio ? typeRadio.value : "improvement";
+
+    if (!message || message.length < 3) {
+        if (statusBox) {
+            statusBox.className = "suggest-status error";
+            statusBox.style.display = "block";
+            statusBox.textContent = "נא לכתוב פידבק או תיאור של לפחות מספר מילים";
+        }
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "<span>שולח פידבק...</span>";
+    }
+
+    var payload = {
+        type: type,
+        message: message,
+        contact: contact,
+        source: "website",
+        platform: (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "Web",
+        version: "1.0.5",
+        website_trap: trap
+    };
+
+    // Save to localStorage
+    try {
+        var stored = JSON.parse(localStorage.getItem("cs_trim_feedbacks_cache") || "[]");
+        stored.push(Object.assign({}, payload, { timestamp: new Date().toISOString() }));
+        localStorage.setItem("cs_trim_feedbacks_cache", JSON.stringify(stored));
+    } catch (e) {}
+
+    fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(async function(res) {
+        var data = await res.json().catch(function() { return {}; });
+        if (!res.ok) {
+            throw new Error(data.error || "אירעה שגיאה בשמירת הפידבק");
+        }
+        return data;
+    })
+    .then(function(data) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>שלח פידבק למפתחים</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+        }
+        if (statusBox) {
+            statusBox.className = "suggest-status success";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = `
+                <strong>תודה רבה! הפידבק שלך נשמר בהצלחה.</strong><br>
+                ההצעה נרשמה ונכנסת ישירות לפיתוח הגרסה הבאה של התוסף.<br>
+                ${data.whatsappUrl ? `
+                <div style="margin-top: 10px;">
+                    <a href="${data.whatsappUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; color: #38bdf8; font-weight: 600; text-decoration: underline;">
+                        <span>רוצה לעדכן אותנו גם ישירות בוואטסאפ? לחץ כאן לשליחה מהירה</span>
+                    </a>
+                </div>` : ""}
+            `;
+        }
+        if (msgInput) msgInput.value = "";
+        if (contactInput) contactInput.value = "";
+    })
+    .catch(function(err) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>שלח פידבק למפתחים</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+        }
+        if (statusBox) {
+            statusBox.className = "suggest-status error";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = `<strong>שים לב:</strong> ${err.message || "אירעה שגיאה בעת שליחת הפידבק"}`;
+        }
+    });
+}
+
+// כלי עזר: הצגת כל הפידבקים שנשמרו בדפדפן
+window.getCSFeedbacks = function() {
+    try {
+        var items = JSON.parse(localStorage.getItem("cs_trim_feedbacks_cache") || "[]");
+        console.table(items);
+        return items;
+    } catch (e) {
+        return [];
+    }
+};
+
 // =============================================================================
 // 9. Lead Capture & Download Gate (איסוף לידים לפני הורדה)
 // =============================================================================
@@ -940,6 +1071,9 @@ if (typeof window !== "undefined") {
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;
     window.handleSuggestSubmit = handleSuggestSubmit;
+    window.handleFeedbackSubmit = handleFeedbackSubmit;
+    window.switchCommunityTab = switchCommunityTab;
+    window.updateWebFbTypePill = updateWebFbTypePill;
     window.initFaq = initFaq;
     window.initAll = initAll;
 }

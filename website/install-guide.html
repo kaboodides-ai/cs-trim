@@ -337,6 +337,9 @@
                 text-align: center;
             }
         }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -364,7 +367,7 @@
             </nav>
 
             <div class="header-actions">
-                <a href="index.html#download" class="btn btn-nav-cta">
+                <a href="javascript:void(0)" class="btn btn-nav-cta" onclick="handleNavDownloadClick(event); return false;">
                     <span>הורדה חינם</span>
                 </a>
             </div>
@@ -421,7 +424,7 @@
                                 <span>תואם מעבדי Apple Silicon (M1/M2/M3/M4) ואינטל</span>
                             </div>
                         </div>
-                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" class="btn btn-primary" download style="padding: 10px 22px; font-size: 0.92rem;">
+                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download style="padding: 10px 22px; font-size: 0.92rem;">
                             <span>הורדת קובץ ל-Mac</span>
                         </a>
                     </div>
@@ -517,7 +520,7 @@
                                 <span>תואם Windows 10 ו-Windows 11</span>
                             </div>
                         </div>
-                        <a href="download/CS-Trim-Setup.exe?v=1.0.5" class="btn btn-primary" download style="padding: 10px 22px; font-size: 0.92rem;">
+                        <a href="download/CS-Trim-Setup.exe?v=1.0.5" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe" style="padding: 10px 22px; font-size: 0.92rem;">
                             <span>הורדת קובץ ל-Windows</span>
                         </a>
                     </div>
@@ -674,6 +677,107 @@
         </div>
     </footer>
 
+    <!-- Lead Capture Modal (Email Gate Before Download) -->
+    <div id="leadModal" class="lead-modal-overlay" onclick="closeLeadModal(event)">
+        <div class="lead-modal-card" onclick="event.stopPropagation()">
+            <button type="button" class="lead-modal-close-btn" onclick="closeLeadModal()" title="סגור">&times;</button>
+            
+            <!-- Step 1: Form View -->
+            <div id="leadFormView">
+                <div class="lead-icon-bubble">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+
+                <h3 class="lead-modal-title">עוד רגע והתוסף אצלך בפרמייר!</h3>
+                <p class="lead-modal-subtitle">
+                    ההורדה של <strong>CS Trim</strong> היא 100% חינם.<br>
+                    הזן את כתובת האימייל שלך לקבלת עדכוני גרסה וקישורי הורדה ישירים:
+                </p>
+
+                <div id="leadTargetBadge" class="lead-target-badge">
+                    <span id="leadTargetIcon">💻</span>
+                    <span id="leadTargetText">גרסה עבור המחשב שלך</span>
+                </div>
+
+                <form id="leadForm" onsubmit="handleLeadSubmit(event)">
+                    <div class="lead-form-group">
+                        <div class="lead-input-wrap">
+                            <input type="email" id="leadEmailInput" class="lead-input" placeholder="your.name@gmail.com" required autocomplete="email">
+                            <span class="lead-input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div id="leadErrorMsg" class="lead-error-msg">נא להזין כתובת אימייל תקינה</div>
+
+                        <label class="lead-consent-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-top: 10px; text-align: right; user-select: none;">
+                            <input type="checkbox" id="leadConsentCheckbox" checked style="width: 17px; height: 17px; accent-color: #2563eb; cursor: pointer;">
+                            <span>אני מאשר קבלת עדכונים על תכונות חדשות ושיפורים בתוכנה</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="btnLeadSubmit" class="lead-btn-submit">
+                        <span>המשך להורדה חינם</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="lead-footer-note">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>מתחייבים: לעולם לא נשלח ספאם. המידע נשמר באופן מאובטח.</span>
+                </div>
+            </div>
+
+            <!-- Step 2: Confirmation / Success View -->
+            <div id="leadSuccessView" style="display: none;">
+                <div class="lead-icon-bubble" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #10b981;">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3 class="lead-modal-title" style="color: #34d399;">האימייל נקלט בהצלחה! 🎉</h3>
+                <p class="lead-modal-subtitle" style="margin-bottom: 16px;">
+                    האימייל <strong id="leadConfirmedEmail" style="color: #38bdf8; direction: ltr; display: inline-block;"></strong> נרשם במערכת.<br>
+                    קובץ ההתקנה מתחיל לרדת כעת למחשב שלך!
+                </p>
+
+                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; margin-bottom: 18px; font-size: 0.88rem; color: #94a3b8;">
+                    <span>ההורדה לא התחילה אוטומטית?</span><br>
+                    <a href="javascript:void(0)" id="btnManualDownload" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-top: 4px; display: inline-block;">
+                        לחץ כאן להורדה ידנית ישירה
+                    </a>
+                </div>
+
+                <button type="button" class="lead-btn-submit" onclick="closeLeadModal()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; box-shadow: none;">
+                    <span>מעולה, תודה! (סגור חלון)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="downloadToast" class="download-toast">
+        <span class="download-toast-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        </span>
+        <span id="downloadToastText">תודה! קובץ ההתקנה מתחיל לרדת כעת...</span>
+    </div>
+
     <!-- Guide Screenshot Lightbox Modal -->
     <div id="guideModal" class="guide-modal-overlay" onclick="closeGuideModal()">
         <div class="guide-modal-box" onclick="event.stopPropagation()">
@@ -766,8 +870,254 @@
             }
         }
 
+        // ================= Lead Capture & Download Flow =================
+        var GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzwu0SYpzKo7R8PLspujaNAyqjG_jnKgmXOU2scPQgr14aUuP5EUzPz9Xd0yK8zIGZ7/exec"; 
+
+        var pendingDownload = {
+            url: "",
+            filename: "",
+            platform: ""
+        };
+
+        function showToast(message, duration) {
+            duration = duration || 4500;
+            var toast = document.getElementById("downloadToast");
+            var toastText = document.getElementById("downloadToastText");
+            if (!toast) return;
+            if (toastText) toastText.textContent = message;
+            toast.classList.add("show");
+            setTimeout(function() {
+                toast.classList.remove("show");
+            }, duration);
+        }
+
+        window.openLeadModal = function(targetUrl, filename, platformName) {
+            pendingDownload = {
+                url: targetUrl || "",
+                filename: filename || "",
+                platform: platformName || "Windows"
+            };
+
+            var modal = document.getElementById("leadModal");
+            var badgeText = document.getElementById("leadTargetText");
+            var badgeIcon = document.getElementById("leadTargetIcon");
+            var emailInput = document.getElementById("leadEmailInput");
+            var errorMsg = document.getElementById("leadErrorMsg");
+            var submitBtn = document.getElementById("btnLeadSubmit");
+
+            if (errorMsg) errorMsg.style.display = "none";
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+            }
+
+            if (badgeText) {
+                if ((platformName && platformName.includes("Mac")) || (targetUrl && (targetUrl.includes("Mac") || targetUrl.includes(".pkg")))) {
+                    badgeText.textContent = "עבור Mac (קובץ התקנה PKG)";
+                    if (badgeIcon) badgeIcon.textContent = "🍏";
+                } else if (targetUrl && targetUrl.includes(".zip")) {
+                    badgeText.textContent = "עבור Windows (חבילת ZIP מלאה)";
+                    if (badgeIcon) badgeIcon.textContent = "📦";
+                } else {
+                    badgeText.textContent = "עבור Windows (קובץ התקנה Setup.exe)";
+                    if (badgeIcon) badgeIcon.textContent = "🪟";
+                }
+            }
+
+            var formView = document.getElementById("leadFormView");
+            var successView = document.getElementById("leadSuccessView");
+            if (formView) formView.style.display = "block";
+            if (successView) successView.style.display = "none";
+
+            // אם המשתמש כבר הזין אימייל בעבר, נמלא אותו מראש כדי להקל עליו
+            try {
+                var prevEmail = localStorage.getItem("cs_trim_lead_email");
+                if (emailInput && prevEmail) {
+                    emailInput.value = prevEmail;
+                }
+            } catch (e) {}
+
+            if (modal) {
+                modal.style.display = "flex";
+                modal.classList.add("active");
+                document.body.style.overflow = "hidden";
+            }
+
+            setTimeout(function() {
+                if (emailInput) {
+                    emailInput.focus();
+                    if (emailInput.select) emailInput.select();
+                }
+            }, 150);
+        };
+
+        window.closeLeadModal = function(e) {
+            if (e && e.target && e.target !== e.currentTarget && !e.target.classList.contains("lead-modal-close-btn")) {
+                return;
+            }
+            var modal = document.getElementById("leadModal");
+            if (modal) {
+                modal.classList.remove("active");
+                modal.style.display = "none";
+                document.body.style.overflow = "";
+            }
+        };
+
+        function triggerFileDownload(url, filename) {
+            if (!url) return;
+            try {
+                var a = document.createElement("a");
+                a.href = url;
+                if (filename) a.download = filename;
+                a.setAttribute("target", "_self");
+                a.setAttribute("data-direct-download", "true");
+                a.style.display = "none";
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() {
+                    if (a.parentNode) a.parentNode.removeChild(a);
+                }, 1000);
+            } catch (e) {
+                window.location.assign(url);
+            }
+        }
+
+        function recordLeadLocally(leadData) {
+            try {
+                var stored = JSON.parse(localStorage.getItem("cs_trim_leads_cache") || "[]");
+                stored.push(leadData);
+                localStorage.setItem("cs_trim_leads_cache", JSON.stringify(stored));
+            } catch (e) {}
+        }
+
+        window.handleLeadSubmit = function(e) {
+            if (e) e.preventDefault();
+            var emailInput = document.getElementById("leadEmailInput");
+            var errorMsg = document.getElementById("leadErrorMsg");
+            var submitBtn = document.getElementById("btnLeadSubmit");
+            var consent = document.getElementById("leadConsentCheckbox");
+
+            var email = (emailInput ? emailInput.value : "").trim().toLowerCase();
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!email || !emailRegex.test(email)) {
+                if (errorMsg) {
+                    errorMsg.textContent = "נא להזין כתובת אימייל תקינה";
+                    errorMsg.style.display = "block";
+                }
+                if (emailInput) emailInput.focus();
+                return false;
+            }
+
+            if (consent && !consent.checked) {
+                if (errorMsg) {
+                    errorMsg.textContent = "נא לסמן את תיבת האישור כדי להמשיך";
+                    errorMsg.style.display = "block";
+                }
+                return false;
+            }
+
+            if (errorMsg) errorMsg.style.display = "none";
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>מאמת ומכין הורדה...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
+            }
+
+            var leadData = {
+                email: email,
+                platform: pendingDownload.platform || "Windows",
+                fileName: pendingDownload.filename || pendingDownload.url,
+                timestamp: new Date().toISOString(),
+                dateFormatted: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+                referrer: document.referrer || "direct"
+            };
+
+            try {
+                localStorage.setItem("cs_trim_lead_email", email);
+            } catch (err) {}
+            recordLeadLocally(leadData);
+
+            if (GOOGLE_SHEETS_WEBHOOK_URL && GOOGLE_SHEETS_WEBHOOK_URL.trim() !== "") {
+                try {
+                    fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(leadData)
+                    }).catch(function(err){});
+                } catch (err) {}
+            }
+
+            setTimeout(function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                }
+
+                var confirmedEmailEl = document.getElementById("leadConfirmedEmail");
+                if (confirmedEmailEl) confirmedEmailEl.textContent = email;
+
+                var manualBtn = document.getElementById("btnManualDownload");
+                if (manualBtn) {
+                    manualBtn.href = pendingDownload.url;
+                    if (pendingDownload.filename) manualBtn.download = pendingDownload.filename;
+                    manualBtn.setAttribute("data-direct-download", "true");
+                    manualBtn.onclick = function() {
+                        showToast("מוריד את קובץ ההתקנה...");
+                    };
+                }
+
+                var formView = document.getElementById("leadFormView");
+                var successView = document.getElementById("leadSuccessView");
+                if (formView) formView.style.display = "none";
+                if (successView) successView.style.display = "block";
+
+                if (pendingDownload.url) {
+                    triggerFileDownload(pendingDownload.url, pendingDownload.filename);
+                    showToast("תודה! האימייל אושר והקובץ מתחיל לרדת כעת 🚀");
+                }
+            }, 400);
+
+            return false;
+        };
+
+        window.handleDownloadLinkClick = function(e, element) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
+
+            if (!element) return false;
+            var url = element.getAttribute("href") || "";
+            var filename = element.getAttribute("download") || "";
+            var platformName = "Windows";
+            if (url.includes("Mac") || url.includes(".pkg")) {
+                platformName = "Mac";
+            } else if (url.includes(".zip")) {
+                platformName = "Windows ZIP";
+            }
+
+            window.openLeadModal(url, filename, platformName);
+            return false;
+        };
+
+        window.handleNavDownloadClick = function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
+
+            var isMac = /macintosh|mac os x/i.test(navigator.userAgent);
+            var url = isMac 
+                ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" 
+                : "download/CS-Trim-Setup.exe?v=1.0.5";
+            var filename = isMac ? "CS-Trim-v1.0.0-Mac.pkg" : "CS-Trim-Setup.exe";
+            window.openLeadModal(url, filename, isMac ? "Mac" : "Windows");
+            return false;
+        };
+
         document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape") closeGuideModal();
+            if (e.key === "Escape") {
+                closeGuideModal();
+                closeLeadModal();
+            }
         });
     </script>
 </body>

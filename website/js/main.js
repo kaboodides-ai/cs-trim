@@ -614,6 +614,11 @@ function openLeadModal(targetUrl, filename, platformName) {
         }
     }
 
+    const formView = document.getElementById("leadFormView");
+    const successView = document.getElementById("leadSuccessView");
+    if (formView) formView.style.display = "block";
+    if (successView) successView.style.display = "none";
+
     if (modal) {
         modal.style.display = "flex";
         modal.classList.add("active");
@@ -684,6 +689,8 @@ async function handleLeadSubmit(e) {
     const errorMsg = document.getElementById("leadErrorMsg");
     const submitBtn = document.getElementById("btnLeadSubmit");
 
+    const consent = document.getElementById("leadConsentCheckbox");
+
     const email = (emailInput ? emailInput.value : "").trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -696,12 +703,20 @@ async function handleLeadSubmit(e) {
         return;
     }
 
+    if (consent && !consent.checked) {
+        if (errorMsg) {
+            errorMsg.textContent = "נא לסמן את תיבת האישור כדי להמשיך";
+            errorMsg.style.display = "block";
+        }
+        return;
+    }
+
     if (errorMsg) errorMsg.style.display = "none";
 
     // כפתור למצב טעינה
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span>מכין את ההורדה...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>`;
+        submitBtn.innerHTML = `<span>מאמת ושומר אימייל...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>`;
     }
 
     const leadData = {
@@ -733,20 +748,33 @@ async function handleLeadSubmit(e) {
         }
     }
 
-    // מעבר חלק: סגירת מודל והורדת הקובץ
+    // מעבר למסך אישור
     setTimeout(() => {
-        closeLeadModal();
-
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = `<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
         }
 
+        const confirmedEmailEl = document.getElementById("leadConfirmedEmail");
+        if (confirmedEmailEl) confirmedEmailEl.textContent = email;
+
+        const manualBtn = document.getElementById("btnManualDownload");
+        if (manualBtn) {
+            manualBtn.onclick = function() {
+                triggerFileDownload(pendingDownload.url, pendingDownload.filename);
+            };
+        }
+
+        const formView = document.getElementById("leadFormView");
+        const successView = document.getElementById("leadSuccessView");
+        if (formView) formView.style.display = "none";
+        if (successView) successView.style.display = "block";
+
         if (pendingDownload.url) {
             triggerFileDownload(pendingDownload.url, pendingDownload.filename);
-            showToast("תודה שנרשמת! קובץ ההתקנה מתחיל לרדת כעת 🚀");
+            showToast("תודה! האימייל אושר והקובץ מתחיל לרדת כעת 🚀");
         }
-    }, 600);
+    }, 500);
 }
 
 // יירוט כל כפתורי ההורדה באתר

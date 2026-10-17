@@ -998,54 +998,87 @@
         <div class="lead-modal-card" onclick="event.stopPropagation()">
             <button type="button" class="lead-modal-close-btn" onclick="closeLeadModal()" title="סגור">&times;</button>
             
-            <div class="lead-icon-bubble">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-            </div>
-
-            <h3 class="lead-modal-title">עוד רגע והתוסף אצלך בפרמייר!</h3>
-            <p class="lead-modal-subtitle">
-                ההורדה של <strong>CS Trim</strong> היא 100% חינם.<br>
-                הזן את כתובת האימייל שלך לקבלת עדכוני גרסה וקישורי הורדה ישירים:
-            </p>
-
-            <div id="leadTargetBadge" class="lead-target-badge">
-                <span id="leadTargetIcon">💻</span>
-                <span id="leadTargetText">גרסה עבור המחשב שלך</span>
-            </div>
-
-            <form id="leadForm" onsubmit="handleLeadSubmit(event)">
-                <div class="lead-form-group">
-                    <div class="lead-input-wrap">
-                        <input type="email" id="leadEmailInput" class="lead-input" placeholder="your.name@gmail.com" required autocomplete="email">
-                        <span class="lead-input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                            </svg>
-                        </span>
-                    </div>
-                    <div id="leadErrorMsg" class="lead-error-msg">נא להזין כתובת אימייל תקינה</div>
+            <!-- Step 1: Form View -->
+            <div id="leadFormView">
+                <div class="lead-icon-bubble">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
                 </div>
 
-                <button type="submit" id="btnLeadSubmit" class="lead-btn-submit">
-                    <span>המשך להורדה חינם</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </button>
-            </form>
+                <h3 class="lead-modal-title">עוד רגע והתוסף אצלך בפרמייר!</h3>
+                <p class="lead-modal-subtitle">
+                    ההורדה של <strong>CS Trim</strong> היא 100% חינם.<br>
+                    הזן את כתובת האימייל שלך לקבלת עדכוני גרסה וקישורי הורדה ישירים:
+                </p>
 
-            <div class="lead-footer-note">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span>מתחייבים: לעולם לא נשלח ספאם. המידע נשמר באופן מאובטח.</span>
+                <div id="leadTargetBadge" class="lead-target-badge">
+                    <span id="leadTargetIcon">💻</span>
+                    <span id="leadTargetText">גרסה עבור המחשב שלך</span>
+                </div>
+
+                <form id="leadForm" onsubmit="handleLeadSubmit(event)">
+                    <div class="lead-form-group">
+                        <div class="lead-input-wrap">
+                            <input type="email" id="leadEmailInput" class="lead-input" placeholder="your.name@gmail.com" required autocomplete="email">
+                            <span class="lead-input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div id="leadErrorMsg" class="lead-error-msg">נא להזין כתובת אימייל תקינה</div>
+
+                        <label class="lead-consent-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-top: 10px; text-align: right; user-select: none;">
+                            <input type="checkbox" id="leadConsentCheckbox" checked style="width: 17px; height: 17px; accent-color: #2563eb; cursor: pointer;">
+                            <span>אני מאשר קבלת עדכוני גרסה וטיפים לעריכה בפרמייר (ללא ספאם)</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="btnLeadSubmit" class="lead-btn-submit">
+                        <span>המשך להורדה חינם</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="lead-footer-note">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>מתחייבים: לעולם לא נשלח ספאם. המידע נשמר באופן מאובטח.</span>
+                </div>
+            </div>
+
+            <!-- Step 2: Confirmation / Success View -->
+            <div id="leadSuccessView" style="display: none;">
+                <div class="lead-icon-bubble" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #10b981;">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3 class="lead-modal-title" style="color: #34d399;">האימייל נקלט בהצלחה! 🎉</h3>
+                <p class="lead-modal-subtitle" style="margin-bottom: 16px;">
+                    האימייל <strong id="leadConfirmedEmail" style="color: #38bdf8; direction: ltr; display: inline-block;"></strong> נרשם במערכת.<br>
+                    קובץ ההתקנה מתחיל לרדת כעת למחשב שלך!
+                </p>
+
+                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; margin-bottom: 18px; font-size: 0.88rem; color: #94a3b8;">
+                    <span>ההורדה לא התחילה אוטומטית?</span><br>
+                    <a href="javascript:void(0)" id="btnManualDownload" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-top: 4px; display: inline-block;">
+                        לחץ כאן להורדה ידנית ישירה
+                    </a>
+                </div>
+
+                <button type="button" class="lead-btn-submit" onclick="closeLeadModal()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; box-shadow: none;">
+                    <span>מעולה, תודה! (סגור חלון)</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1118,6 +1151,11 @@
             }
         }
 
+        var formView = document.getElementById("leadFormView");
+        var successView = document.getElementById("leadSuccessView");
+        if (formView) formView.style.display = "block";
+        if (successView) successView.style.display = "none";
+
         if (modal) {
             modal.style.display = "flex";
             modal.classList.add("active");
@@ -1181,6 +1219,7 @@
         var emailInput = document.getElementById("leadEmailInput");
         var errorMsg = document.getElementById("leadErrorMsg");
         var submitBtn = document.getElementById("btnLeadSubmit");
+        var consent = document.getElementById("leadConsentCheckbox");
 
         var email = (emailInput ? emailInput.value : "").trim().toLowerCase();
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1194,11 +1233,19 @@
             return false;
         }
 
+        if (consent && !consent.checked) {
+            if (errorMsg) {
+                errorMsg.textContent = "נא לסמן את תיבת האישור כדי להמשיך";
+                errorMsg.style.display = "block";
+            }
+            return false;
+        }
+
         if (errorMsg) errorMsg.style.display = "none";
 
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>מכין את ההורדה...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
+            submitBtn.innerHTML = '<span>מאמת ושומר אימייל...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
         }
 
         var leadData = {
@@ -1227,16 +1274,32 @@
         }
 
         setTimeout(function() {
-            window.closeLeadModal();
-
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
             }
 
+            // עדכון תצוגת אישור
+            var confirmedEmailEl = document.getElementById("leadConfirmedEmail");
+            if (confirmedEmailEl) confirmedEmailEl.textContent = email;
+
+            var manualBtn = document.getElementById("btnManualDownload");
+            if (manualBtn) {
+                manualBtn.onclick = function() {
+                    triggerFileDownload(pendingDownload.url, pendingDownload.filename);
+                };
+            }
+
+            // מעבר למסך אישור בתוך הפופ-אפ
+            var formView = document.getElementById("leadFormView");
+            var successView = document.getElementById("leadSuccessView");
+            if (formView) formView.style.display = "none";
+            if (successView) successView.style.display = "block";
+
+            // התחלת ההורדה
             if (pendingDownload.url) {
                 triggerFileDownload(pendingDownload.url, pendingDownload.filename);
-                showToast("תודה שנרשמת! קובץ ההתקנה מתחיל לרדת כעת 🚀");
+                showToast("תודה! האימייל אושר והקובץ מתחיל לרדת כעת 🚀");
             }
         }, 500);
 

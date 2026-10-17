@@ -1,0 +1,19 @@
+{
+  "leads": [
+    {
+      "email": "oz.cohen4455@gmail.com",
+      "platform": "Windows",
+      "fileName": "CS-Trim-Setup.exe",
+      "dateFormatted": "17.10.2026, 20:30:00",
+      "timestamp": "2026-10-17T17:30:00.000Z"
+    },
+    {
+      "email": "kaboodides@gmail.com",
+      "platform": "Mac",
+      "fileName": "download/CS-Trim-v1.0.0-Mac.pkg",
+      "dateFormatted": "17.10.2026, 13:30:00",
+      "timestamp": "2026-10-17T10:30:00.000Z"
+    }
+  ],
+  "lastUpdated": "2026-10-17"
+}

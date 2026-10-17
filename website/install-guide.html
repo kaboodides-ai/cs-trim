@@ -1599,6 +1599,15 @@
                 } catch (err) {}
             }
 
+            // Also record to private Admin backend
+            try {
+                fetch("/api/admin?action=record-lead", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(leadData)
+                }).catch(function(){});
+            } catch (eAdm) {}
+
             setTimeout(function() {
                 if (submitBtn) {
                     submitBtn.disabled = false;

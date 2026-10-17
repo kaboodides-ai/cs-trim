@@ -478,6 +478,46 @@ function updateCaptionScopeUI(scope) {
 
 
 
+function initAdminHeartbeat(isConnected) {
+    try {
+        var installId = localStorage.getItem("cstrim_install_id");
+        if (!installId) {
+            installId = "id_" + Math.random().toString(36).substring(2, 9) + "_" + Math.floor(Date.now() / 1000).toString(36);
+            localStorage.setItem("cstrim_install_id", installId);
+        }
+
+        var osName = "Unknown";
+        if (typeof navigator !== "undefined") {
+            var isWin = ((navigator.platform && navigator.platform.indexOf("Win") !== -1) || (navigator.userAgent && navigator.userAgent.indexOf("Windows") !== -1));
+            var isMac = ((navigator.platform && navigator.platform.indexOf("Mac") !== -1) || (navigator.userAgent && navigator.userAgent.indexOf("Mac") !== -1));
+            if (isWin) osName = "Windows";
+            else if (isMac) osName = "macOS";
+        }
+
+        var curVer = (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.8";
+
+        function sendPing() {
+            try {
+                fetch("https://cstrim.site/api/admin?action=heartbeat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        installId: installId,
+                        platform: osName,
+                        version: curVer,
+                        isConnected: Boolean(isConnected)
+                    })
+                }).catch(function() {});
+            } catch (e) {}
+        }
+
+        sendPing();
+        if (!window._cstrimHeartbeatTimer) {
+            window._cstrimHeartbeatTimer = setInterval(sendPing, 3 * 60 * 1000);
+        }
+    } catch (err) {}
+}
+
 function initApp() {
     try {
         initTabs();
@@ -523,10 +563,12 @@ function initApp() {
                     txt.innerText = "מחובר";
                     log("מחובר ל-Premiere Pro", "success");
                     refreshSequenceInfo();
+                    initAdminHeartbeat(true);
                 } else {
                     dot.classList.add("offline");
                     txt.innerText = "לא מחובר";
                     log("פרמייר לא החזיר תשובה. נסה Reload.", "error");
+                    initAdminHeartbeat(false);
                 }
             });
         });

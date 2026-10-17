@@ -397,6 +397,10 @@ function initOSDetection() {
 
     highlightButton(cardWin, isWin);
     highlightButton(cardMac, !isWin);
+
+    if (!isWin && typeof switchGuideTab === "function") {
+        switchGuideTab("mac");
+    }
 }
 
 // -----------------------------------------------------------------------------

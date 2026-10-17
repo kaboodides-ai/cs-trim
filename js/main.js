@@ -354,6 +354,10 @@ function initTabs() {
                     topLogBtn.classList.remove("active");
                 }
 
+                if (typeof window.checkUpdatesThrottled === "function") {
+                    window.checkUpdatesThrottled();
+                }
+
                 for (var j = 0; j < tabButtons.length; j++) {
                     tabButtons[j].classList.remove("active");
                 }
@@ -1645,98 +1649,338 @@ function initApp() {
             });
         }
 
-        // AutoUpdater In-App UI Controller
+        // -----------------------------------------------------------------------------
+        // AutoUpdater In-App UI Controller & Real-Time Alert System
+        // -----------------------------------------------------------------------------
         var currentUpdateData = null;
+        var hasPendingUpdate = false;
+        var isCheckingUpdate = false;
+        var lastUpdateCheckTimestamp = 0;
+
         var updateBanner = document.getElementById("updateBanner");
-        var btnRunUpdate = document.getElementById("btnRunUpdate");
-        var btnDismissUpdate = document.getElementById("btnDismissUpdate");
+        var topUpdateBadge = document.getElementById("topUpdateBadge");
+        var pluginUpdateModal = document.getElementById("pluginUpdateModal");
         var footerVerText = document.getElementById("footerVersionText");
         var footerSpin = document.getElementById("footerCheckSpin");
+        var footerUpdatePing = document.getElementById("footerUpdatePing");
+        var btnManualUpdateCheck = document.getElementById("btnManualUpdateCheck");
 
         if (typeof AutoUpdater !== "undefined" && footerVerText) {
             footerVerText.textContent = "v" + AutoUpdater.CURRENT_VERSION;
         }
 
-        function showUpdateBanner(updateInfo) {
-            if (!updateBanner) return;
-            currentUpdateData = updateInfo;
-            var badge = document.getElementById("updateVersionBadge");
-            var notes = document.getElementById("updateNotesPreview");
-            if (badge) badge.textContent = "v" + updateInfo.latestVersion;
-            if (notes) {
-                var changelogSummary = (updateInfo.changelog && updateInfo.changelog.length > 0)
-                    ? updateInfo.changelog[0]
-                    : (updateInfo.title || "עדכון תכונות ותיקוני באגים");
-                notes.textContent = changelogSummary;
-            }
-            updateBanner.style.display = "flex";
+        function playUpdateChime() {
+            try {
+                var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                var ctx = new AudioContextClass();
+                if (ctx.state === "suspended") {
+                    ctx.resume().catch(function () {});
+                }
+                var now = ctx.currentTime;
+
+                // Subtle pleasant tone 1 (D5)
+                var osc1 = ctx.createOscillator();
+                var gain1 = ctx.createGain();
+                osc1.type = "sine";
+                osc1.frequency.setValueAtTime(587.33, now);
+                gain1.gain.setValueAtTime(0.08, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.16);
+
+                // Subtle pleasant tone 2 (A5)
+                var osc2 = ctx.createOscillator();
+                var gain2 = ctx.createGain();
+                osc2.type = "sine";
+                osc2.frequency.setValueAtTime(880, now + 0.12);
+                gain2.gain.setValueAtTime(0.09, now + 0.12);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.12);
+                osc2.stop(now + 0.38);
+            } catch (e) {}
         }
 
+        function applyUpdateUI(updateInfo, isNewAlert) {
+            currentUpdateData = updateInfo;
+            hasPendingUpdate = Boolean(updateInfo && updateInfo.hasUpdate);
+
+            if (hasPendingUpdate) {
+                var newVer = updateInfo.latestVersion || "חדשה";
+                var curVer = updateInfo.currentVersion || (typeof AutoUpdater !== "undefined" ? AutoUpdater.CURRENT_VERSION : "");
+
+                // 1. Top Bar Badge
+                if (topUpdateBadge) {
+                    topUpdateBadge.style.display = "inline-flex";
+                    var badgeText = topUpdateBadge.querySelector(".top-update-text");
+                    if (badgeText) badgeText.textContent = "עדכון v" + newVer;
+                    topUpdateBadge.title = "גרסה חדשה v" + newVer + " זמינה! לחץ לעדכון";
+                }
+
+                // 2. In-App Banner
+                if (updateBanner) {
+                    var bBadge = document.getElementById("updateVersionBadge");
+                    var bNotes = document.getElementById("updateNotesPreview");
+                    if (bBadge) bBadge.textContent = "v" + newVer;
+                    if (bNotes) {
+                        var summary = (updateInfo.changelog && updateInfo.changelog.length > 0)
+                            ? updateInfo.changelog[0]
+                            : (updateInfo.title || "עדכון תכונות ותיקוני באגים");
+                        bNotes.textContent = summary;
+                    }
+                    updateBanner.style.display = "flex";
+                }
+
+                // 3. Footer Version Pill
+                if (btnManualUpdateCheck) {
+                    btnManualUpdateCheck.classList.add("has-update");
+                    btnManualUpdateCheck.title = "נמצא עדכון חדש v" + newVer + "! לחץ כאן להתקנה מיידית";
+                }
+                if (footerUpdatePing) {
+                    footerUpdatePing.style.display = "inline-block";
+                }
+                if (footerVerText) {
+                    footerVerText.textContent = "עדכון זמין: v" + newVer + "!";
+                }
+
+                // 4. Update Modal Info
+                var mNewBadge = document.getElementById("modalNewVersionBadge");
+                var mCurBadge = document.getElementById("modalCurVersionBadge");
+                var mChangelogList = document.getElementById("modalChangelogList");
+
+                if (mNewBadge) mNewBadge.textContent = "v" + newVer + " זמינה עכשיו";
+                if (mCurBadge) mCurBadge.textContent = "גרסה נוכחית: v" + curVer;
+
+                if (mChangelogList) {
+                    mChangelogList.innerHTML = "";
+                    var notesList = (updateInfo.changelog && updateInfo.changelog.length > 0)
+                        ? updateInfo.changelog
+                        : [updateInfo.title || "שיפורי ביצועים, יציבות ותאימות לפרמייר"];
+
+                    notesList.forEach(function (item) {
+                        var li = document.createElement("li");
+                        li.textContent = item;
+                        mChangelogList.appendChild(li);
+                    });
+                }
+
+                // 5. Sound & Pop-Up on First Discovery
+                if (isNewAlert) {
+                    playUpdateChime();
+                    window.openUpdateModal();
+                    log("🚀 זוהה עדכון חדש ל-CS Trim (v" + newVer + ")! לחץ 'עדכן עכשיו' להתקנה מהירה.", "success");
+                }
+            } else {
+                // No update
+                if (topUpdateBadge) topUpdateBadge.style.display = "none";
+                if (updateBanner) updateBanner.style.display = "none";
+                if (btnManualUpdateCheck) {
+                    btnManualUpdateCheck.classList.remove("has-update");
+                    btnManualUpdateCheck.title = "לחץ לבדיקת עדכונים";
+                }
+                if (footerUpdatePing) footerUpdatePing.style.display = "none";
+                if (footerVerText && typeof AutoUpdater !== "undefined") {
+                    footerVerText.textContent = "v" + AutoUpdater.CURRENT_VERSION;
+                }
+            }
+        }
+
+        function checkUpdates(isManual) {
+            if (typeof AutoUpdater === "undefined") {
+                if (isManual) log("מערכת העדכונים אינה זמינה כרגע.", "error");
+                return Promise.resolve();
+            }
+            if (isCheckingUpdate) return Promise.resolve();
+
+            isCheckingUpdate = true;
+            lastUpdateCheckTimestamp = Date.now();
+
+            if (isManual && footerSpin) {
+                footerSpin.classList.add("spinning");
+                log("בודק עדכונים מול השרת...", "info");
+            }
+
+            return AutoUpdater.checkForUpdates()
+                .then(function (res) {
+                    isCheckingUpdate = false;
+                    if (footerSpin) footerSpin.classList.remove("spinning");
+
+                    var lastAlertedVer = "";
+                    try { lastAlertedVer = sessionStorage.getItem("cs_trim_alerted_version") || ""; } catch (e) {}
+
+                    var isNewAlert = Boolean(res.hasUpdate && res.latestVersion !== lastAlertedVer);
+
+                    if (res.hasUpdate) {
+                        try { sessionStorage.setItem("cs_trim_alerted_version", res.latestVersion); } catch (e) {}
+                        applyUpdateUI(res, isNewAlert);
+                        if (isManual) {
+                            window.openUpdateModal();
+                        }
+                    } else {
+                        applyUpdateUI(res, false);
+                        if (isManual) {
+                            log("התוסף מעודכן לגרסה האחרונה (v" + AutoUpdater.CURRENT_VERSION + ") ✔️", "success");
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    isCheckingUpdate = false;
+                    if (footerSpin) footerSpin.classList.remove("spinning");
+                    if (isManual) {
+                        log("בדיקת עדכונים נכשלה: " + err.message, "error");
+                    }
+                });
+        }
+
+        window.checkUpdatesThrottled = function () {
+            if (Date.now() - lastUpdateCheckTimestamp > 3 * 60 * 1000) {
+                checkUpdates(false).catch(function () {});
+            }
+        };
+
+        function executeUpdate(triggerSource) {
+            if (!currentUpdateData || typeof AutoUpdater === "undefined") {
+                log("נתוני העדכון אינם זמינים. נסה שוב.", "error");
+                return;
+            }
+
+            var modalProgWrap = document.getElementById("modalUpdateProgressWrap");
+            var modalProgMsg = document.getElementById("modalUpdateProgressMsg");
+            var modalProgPct = document.getElementById("modalUpdateProgressPct");
+            var modalProgFill = document.getElementById("modalUpdateProgressBar");
+            var modalActions = document.getElementById("modalUpdateActions");
+
+            var bannerActions = document.querySelector(".update-banner-actions");
+            var bannerProgWrap = document.getElementById("updateProgressWrap");
+            var bannerProgMsg = document.getElementById("updateProgressMsg");
+            var bannerProgPct = document.getElementById("updateProgressPct");
+            var bannerProgFill = document.getElementById("updateProgressBar");
+
+            if (modalActions) modalActions.style.display = "none";
+            if (modalProgWrap) modalProgWrap.style.display = "flex";
+
+            if (bannerActions) bannerActions.style.display = "none";
+            if (bannerProgWrap) bannerProgWrap.style.display = "flex";
+
+            var onProg = function (pct, msg) {
+                if (modalProgMsg) modalProgMsg.textContent = msg;
+                if (modalProgPct) modalProgPct.textContent = pct + "%";
+                if (modalProgFill) modalProgFill.style.width = pct + "%";
+
+                if (bannerProgMsg) bannerProgMsg.textContent = msg;
+                if (bannerProgPct) bannerProgPct.textContent = pct + "%";
+                if (bannerProgFill) bannerProgFill.style.width = pct + "%";
+            };
+
+            log("מתקין עדכון גרסה v" + currentUpdateData.latestVersion + "...", "info");
+
+            AutoUpdater.applyUpdate(currentUpdateData, onProg)
+                .then(function () {
+                    log("התוסף עודכן בהצלחה לגרסה v" + currentUpdateData.latestVersion + "! טוען מחדש...", "success");
+                })
+                .catch(function (err) {
+                    if (modalActions) modalActions.style.display = "flex";
+                    if (modalProgWrap) modalProgWrap.style.display = "none";
+                    if (bannerActions) bannerActions.style.display = "flex";
+                    if (bannerProgWrap) bannerProgWrap.style.display = "none";
+                    log("שגיאה בעדכון אוטומטי: " + err.message, "error");
+                });
+        }
+
+        // Global Handlers for HTML elements
+        window.openUpdateModal = function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (pluginUpdateModal) pluginUpdateModal.style.display = "flex";
+        };
+
+        window.closeUpdateModal = function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (pluginUpdateModal) pluginUpdateModal.style.display = "none";
+        };
+
+        window.handleUpdateModalOverlayClick = function (e) {
+            if (e && e.target && e.target.id === "pluginUpdateModal") {
+                window.closeUpdateModal(e);
+            }
+        };
+
+        window.runModalUpdate = function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            executeUpdate("modal");
+        };
+
+        window.runBannerUpdate = function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            executeUpdate("banner");
+        };
+
+        window.handleFooterVersionClick = function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (hasPendingUpdate) {
+                window.openUpdateModal(e);
+            } else {
+                checkUpdates(true);
+            }
+        };
+
+        window.checkUpdateManual = function (e) {
+            window.handleFooterVersionClick(e);
+        };
+
+        var btnDismissUpdate = document.getElementById("btnDismissUpdate");
         if (btnDismissUpdate) {
-            btnDismissUpdate.addEventListener("click", function () {
+            btnDismissUpdate.addEventListener("click", function (e) {
+                if (e && e.preventDefault) e.preventDefault();
                 if (updateBanner) updateBanner.style.display = "none";
             });
         }
 
+        var btnRunUpdate = document.getElementById("btnRunUpdate");
         if (btnRunUpdate) {
-            btnRunUpdate.addEventListener("click", function () {
-                if (!currentUpdateData || typeof AutoUpdater === "undefined") return;
-                var actionsWrap = document.querySelector(".update-banner-actions");
-                var progWrap = document.getElementById("updateProgressWrap");
-                var progMsg = document.getElementById("updateProgressMsg");
-                var progPct = document.getElementById("updateProgressPct");
-                var progFill = document.getElementById("updateProgressBar");
-
-                if (actionsWrap) actionsWrap.style.display = "none";
-                if (progWrap) progWrap.style.display = "flex";
-
-                AutoUpdater.applyUpdate(currentUpdateData, function (pct, msg) {
-                    if (progMsg) progMsg.textContent = msg;
-                    if (progPct) progPct.textContent = pct + "%";
-                    if (progFill) progFill.style.width = pct + "%";
-                }).then(function () {
-                    log("התוסף עודכן בהצלחה לגרסה v" + currentUpdateData.latestVersion + "!", "success");
-                }).catch(function (err) {
-                    if (actionsWrap) actionsWrap.style.display = "flex";
-                    if (progWrap) progWrap.style.display = "none";
-                    log("שגיאה בעדכון אוטומטי: " + err.message, "error");
-                });
+            btnRunUpdate.addEventListener("click", function (e) {
+                if (e && e.preventDefault) e.preventDefault();
+                executeUpdate("banner");
             });
         }
 
-        window.checkUpdateManual = function (ev) {
-            if (ev) ev.preventDefault();
-            if (typeof AutoUpdater === "undefined") {
-                log("מערכת העדכונים אינה זמינה כרגע.", "error");
-                return;
-            }
-            if (footerSpin) footerSpin.classList.add("spinning");
-            log("בודק עדכונים מול השרת...", "info");
-
-            AutoUpdater.checkForUpdates().then(function (res) {
-                if (footerSpin) footerSpin.classList.remove("spinning");
-                if (res.hasUpdate) {
-                    showUpdateBanner(res);
-                    log("נמצאה גרסה חדשה זמינה: v" + res.latestVersion + "! לחץ 'עדכן עכשיו' בראש הפאנל.", "success");
-                } else {
-                    log("התוסף מעודכן לגרסה האחרונה (v" + AutoUpdater.CURRENT_VERSION + ") ✔️", "success");
-                }
-            }).catch(function (err) {
-                if (footerSpin) footerSpin.classList.remove("spinning");
-                log("בדיקת עדכונים נכשלה: " + err.message, "error");
-            });
-        };
-
-        // Quiet background check after initial startup
+        // -----------------------------------------------------------------------------
+        // Automatic Periodic Checking Schedule & Reactive Triggers
+        // -----------------------------------------------------------------------------
+        // Initial check 1.5s after launch
         setTimeout(function () {
-            if (typeof AutoUpdater !== "undefined") {
-                AutoUpdater.checkForUpdates().then(function (res) {
-                    if (res.hasUpdate) {
-                        showUpdateBanner(res);
-                    }
-                }).catch(function () {});
+            checkUpdates(false).catch(function () {});
+        }, 1500);
+
+        // Fallback retry checks in case of slow internet connection on boot
+        setTimeout(function () {
+            if (!hasPendingUpdate) checkUpdates(false).catch(function () {});
+        }, 8000);
+        setTimeout(function () {
+            if (!hasPendingUpdate) checkUpdates(false).catch(function () {});
+        }, 25000);
+
+        // Background check every 5 minutes
+        setInterval(function () {
+            checkUpdates(false).catch(function () {});
+        }, 5 * 60 * 1000);
+
+        // Check on window focus (throttled to once every 2 minutes)
+        window.addEventListener("focus", function () {
+            if (Date.now() - lastUpdateCheckTimestamp > 2 * 60 * 1000) {
+                checkUpdates(false).catch(function () {});
             }
-        }, 2500);
+        });
+
+        // Check on tab visibility change (throttled to once every 2 minutes)
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden && Date.now() - lastUpdateCheckTimestamp > 2 * 60 * 1000) {
+                checkUpdates(false).catch(function () {});
+            }
+        });
     } catch (e) {
         log("שגיאה באתחול הפאנל: " + e.message, "error");
     }

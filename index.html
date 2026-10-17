@@ -17,6 +17,11 @@
             <span id="seqName">טוען...</span>
         </div>
         <div class="top-actions">
+            <button type="button" id="topUpdateBadge" class="btn-top-update" onclick="openUpdateModal(event)" title="גרסה חדשה זמינה לעדכון!" style="display:none;">
+                <span class="top-update-icon">🚀</span>
+                <span class="top-update-text">עדכון חדש!</span>
+                <span class="top-update-ping"></span>
+            </button>
             <button type="button" id="btnOpenFeedback" class="btn-top-feedback" onclick="openFeedbackModal(event)" title="שלח פידבק או הצעת שיפור לפלאגין">
                 <span class="icon-bulb">💡</span>
                 <span>פידבק</span>
@@ -39,16 +44,17 @@
     <!-- In-App Auto Update Banner -->
     <div id="updateBanner" class="update-banner" style="display:none;">
         <div class="update-banner-main">
-            <div class="update-sparkle-icon">✨</div>
+            <div class="update-sparkle-icon">🚀</div>
             <div class="update-banner-info">
                 <div class="update-title-line">
                     <span class="update-main-title">גרסה חדשה זמינה!</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.10</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.11</span>
                 </div>
                 <div id="updateNotesPreview" class="update-notes-preview">לחץ לעדכון מהיר בלחיצה אחת</div>
             </div>
             <div class="update-banner-actions">
-                <button type="button" id="btnRunUpdate" class="btn-update-apply">עדכן עכשיו</button>
+                <button type="button" id="btnRunUpdate" class="btn-update-apply" onclick="runBannerUpdate(event)">עדכן עכשיו</button>
+                <button type="button" id="btnViewUpdateDetails" class="btn-update-details" onclick="openUpdateModal(event)" title="פירוט השינויים">פרטים</button>
                 <button type="button" id="btnDismissUpdate" class="btn-update-close" title="סגור">✕</button>
             </div>
         </div>
@@ -431,8 +437,9 @@
         <span class="footer-dot">•</span>
         <button type="button" class="btn-feedback-pill" onclick="openFeedbackModal(event)" title="שלח פידבק או הצעת שיפור לפלאגין">💬 פידבק והצעות</button>
         <span class="footer-dot">•</span>
-        <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="checkUpdateManual(event)" title="לחץ לבדיקת עדכונים">
-            <span id="footerVersionText">v1.0.10</span>
+        <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="handleFooterVersionClick(event)" title="לחץ לבדיקת עדכונים">
+            <span id="footerUpdatePing" class="version-update-ping" style="display:none;"></span>
+            <span id="footerVersionText">v1.0.11</span>
             <span id="footerCheckSpin" class="spin-icon">🔄</span>
         </button>
     </div>
@@ -440,6 +447,52 @@
     <!-- Plugin Logo -->
     <div class="plugin-logo-wrap">
         <img src="img/logo.png" alt="CS Trim - Auto Cut & Captions" class="plugin-logo">
+    </div>
+
+    <!-- Plugin Update Modal Overlay -->
+    <div id="pluginUpdateModal" class="feedback-modal-overlay" style="display:none;" onclick="handleUpdateModalOverlayClick(event)">
+        <div class="feedback-modal-card update-modal-card">
+            <div class="feedback-modal-header">
+                <div class="feedback-modal-title">
+                    <span class="feedback-icon">🚀</span>
+                    <span>גרסה חדשה זמינה ל-CS Trim!</span>
+                </div>
+                <button type="button" class="btn-feedback-close" onclick="closeUpdateModal(event)" title="סגור">✕</button>
+            </div>
+            
+            <div class="update-modal-ver-row">
+                <div class="update-vtag-new" id="modalNewVersionBadge">v1.0.10 זמינה עכשיו</div>
+                <div class="update-vtag-cur" id="modalCurVersionBadge">גרסה נוכחית: v1.0.10</div>
+            </div>
+
+            <p class="update-modal-intro">עדכון חדש מוכן להתקנה בלחיצה אחת, ישירות מתוך התוסף ללא הורדה ידנית:</p>
+
+            <div class="update-changelog-box">
+                <div class="update-changelog-header">מה חדש בעדכון זה:</div>
+                <ul class="update-changelog-list" id="modalChangelogList">
+                    <!-- Populated dynamically -->
+                </ul>
+            </div>
+
+            <div id="modalUpdateProgressWrap" class="update-progress-wrap" style="display:none; margin: 12px 0 6px;">
+                <div class="update-progress-head">
+                    <span id="modalUpdateProgressMsg" class="update-progress-msg">מוריד קבצי עדכון...</span>
+                    <span id="modalUpdateProgressPct" class="update-progress-pct">0%</span>
+                </div>
+                <div class="update-progress-track">
+                    <div id="modalUpdateProgressBar" class="update-progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="update-modal-actions" id="modalUpdateActions">
+                <button type="button" id="btnModalApplyUpdate" class="btn btn-primary btn-modal-apply" onclick="runModalUpdate(event)">
+                    <span>⚡ עדכן עכשיו בלחיצה אחת</span>
+                </button>
+                <button type="button" class="btn-modal-snooze" onclick="closeUpdateModal(event)">
+                    <span>הזכר לי מאוחר יותר</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Plugin Feedback Modal -->

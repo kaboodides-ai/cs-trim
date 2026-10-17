@@ -3,7 +3,7 @@
  * Cross-platform (macOS & Windows)
  */
 var AutoUpdater = {
-    CURRENT_VERSION: "1.0.10",
+    CURRENT_VERSION: "1.0.11",
     PRIMARY_URL: "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/version.json",
     FALLBACK_URL: "https://cstrim.vercel.app/version.json",
 
@@ -65,26 +65,72 @@ var AutoUpdater = {
     },
 
     /**
-     * Fetch remote version metadata with fallback
+     * Fetch remote version metadata with multi-source fallback (Vercel, custom domain, GitHub raw)
+     * Supports both browser fetch and Node.js HTTPS fallback for guaranteed reliability in CEP.
      */
     fetchVersionMetadata: function () {
         var self = this;
         var urls = [
+            "https://cstrim.vercel.app/version.json?t=" + Date.now(),
+            "https://cstrim.site/version.json?t=" + Date.now(),
             self.PRIMARY_URL + "?t=" + Date.now(),
             self.FALLBACK_URL + "?t=" + Date.now()
         ];
+
+        var fetchWithNode = function (url) {
+            return new Promise(function (resolve, reject) {
+                try {
+                    var nodeReq = self.getNodeRequire();
+                    if (!nodeReq) return reject(new Error("Node require not available"));
+                    var https = nodeReq("https");
+                    var req = https.get(url, {
+                        headers: {
+                            "User-Agent": "CSTrim-AutoUpdater",
+                            "Cache-Control": "no-cache, no-store, must-revalidate",
+                            "Pragma": "no-cache"
+                        }
+                    }, function (res) {
+                        if (res.statusCode < 200 || res.statusCode >= 300) {
+                            return reject(new Error("HTTP " + res.statusCode));
+                        }
+                        var body = "";
+                        res.setEncoding("utf8");
+                        res.on("data", function (chunk) { body += chunk; });
+                        res.on("end", function () {
+                            try {
+                                var parsed = JSON.parse(body);
+                                resolve(parsed);
+                            } catch (e) {
+                                reject(e);
+                            }
+                        });
+                    });
+                    req.on("error", reject);
+                    req.setTimeout(5000, function () {
+                        req.abort();
+                        reject(new Error("Timeout"));
+                    });
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        };
 
         var tryFetch = function (idx) {
             if (idx >= urls.length) {
                 return Promise.reject(new Error("לא ניתן היה להתחבר לשרת לבדיקת עדכונים"));
             }
-            return fetch(urls[idx], { cache: "no-store" })
+            var targetUrl = urls[idx];
+            return fetch(targetUrl, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
                 .then(function (res) {
                     if (!res.ok) throw new Error("HTTP " + res.status);
                     return res.json();
                 })
                 .catch(function () {
-                    return tryFetch(idx + 1);
+                    // Try Node.js HTTPS fallback for this URL before giving up
+                    return fetchWithNode(targetUrl).catch(function () {
+                        return tryFetch(idx + 1);
+                    });
                 });
         };
 
@@ -135,33 +181,80 @@ var AutoUpdater = {
                 var path = nodeReq("path");
                 var os = nodeReq("os");
                 var cp = nodeReq("child_process");
+                var https = nodeReq("https");
 
                 var extDir = self.getExtensionDir();
                 if (!extDir || !fs.existsSync(extDir)) {
                     return reject(new Error("תיקיית התוסף לא נמצאה: " + (extDir || "ריק")));
                 }
 
-                var bundleUrl = updateInfo.bundleUrl;
-                if (!bundleUrl) {
+                var bundleCandidateUrls = [
+                    updateInfo.bundleUrl,
+                    "https://cstrim.vercel.app/download/cs-trim-update.zip",
+                    "https://cstrim.site/download/cs-trim-update.zip",
+                    "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip"
+                ].filter(Boolean);
+
+                if (bundleCandidateUrls.length === 0) {
                     return reject(new Error("כתובת קובץ העדכון אינה תקינה"));
                 }
 
                 if (onProgress) onProgress(15, "מוריד קבצי עדכון...");
 
-                // Download the update zip bundle using fetch
-                fetch(bundleUrl + "?t=" + Date.now(), { cache: "no-store" })
-                    .then(function (res) {
-                        if (!res.ok) {
-                            throw new Error("שגיאה בהורדת העדכון (HTTP " + res.status + ")");
-                        }
-                        return res.arrayBuffer();
-                    })
-                    .then(function (arrayBuffer) {
-                        if (onProgress) onProgress(50, "שומר קובץ עדכון זמני...");
-                        var tmpZipPath = path.join(os.tmpdir(), "cstrim_bundle_" + Date.now() + ".zip");
-                        fs.writeFileSync(tmpZipPath, Buffer.from(arrayBuffer));
+                var tmpZipPath = path.join(os.tmpdir(), "cstrim_bundle_" + Date.now() + ".zip");
 
-                        if (onProgress) onProgress(70, "מחלץ ומעדכן את קבצי התוסף...");
+                // Resilient download with URL failover and Node.js fallback
+                var downloadBundle = function (idx) {
+                    if (idx >= bundleCandidateUrls.length) {
+                        return Promise.reject(new Error("נכשלה הורדת קובץ העדכון מכל המקורות"));
+                    }
+                    var currentUrl = bundleCandidateUrls[idx] + "?t=" + Date.now();
+
+                    return fetch(currentUrl, { cache: "no-store" })
+                        .then(function (res) {
+                            if (!res.ok) throw new Error("HTTP " + res.status);
+                            return res.arrayBuffer();
+                        })
+                        .then(function (ab) {
+                            fs.writeFileSync(tmpZipPath, Buffer.from(ab));
+                            return true;
+                        })
+                        .catch(function () {
+                            // Try downloading with Node.js https
+                            return new Promise(function (resNode, rejNode) {
+                                try {
+                                    var fileStream = fs.createWriteStream(tmpZipPath);
+                                    var req = https.get(currentUrl, {
+                                        headers: { "User-Agent": "CSTrim-AutoUpdater" }
+                                    }, function (res) {
+                                        if (res.statusCode < 200 || res.statusCode >= 300) {
+                                            fileStream.close();
+                                            try { fs.unlinkSync(tmpZipPath); } catch (e) {}
+                                            return rejNode(new Error("HTTP " + res.statusCode));
+                                        }
+                                        res.pipe(fileStream);
+                                        fileStream.on("finish", function () {
+                                            fileStream.close();
+                                            resNode(true);
+                                        });
+                                    });
+                                    req.on("error", function (err) {
+                                        fileStream.close();
+                                        try { fs.unlinkSync(tmpZipPath); } catch (e) {}
+                                        rejNode(err);
+                                    });
+                                } catch (e) {
+                                    rejNode(e);
+                                }
+                            }).catch(function () {
+                                return downloadBundle(idx + 1);
+                            });
+                        });
+                };
+
+                downloadBundle(0)
+                    .then(function () {
+                        if (onProgress) onProgress(65, "מחלץ ומעדכן את קבצי התוסף...");
 
                         var isWin = (os.platform() === "win32");
 

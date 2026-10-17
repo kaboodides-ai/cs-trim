@@ -1146,8 +1146,14 @@
         var badgeIcon = document.getElementById("leadTargetIcon");
         var emailInput = document.getElementById("leadEmailInput");
         var errorMsg = document.getElementById("leadErrorMsg");
+        var submitBtn = document.getElementById("btnLeadSubmit");
 
         if (errorMsg) errorMsg.style.display = "none";
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+        }
+
         if (badgeText) {
             if ((platformName && platformName.includes("Mac")) || (targetUrl && (targetUrl.includes("Mac") || targetUrl.includes(".pkg")))) {
                 badgeText.textContent = "עבור Mac (קובץ התקנה PKG)";
@@ -1166,6 +1172,14 @@
         if (formView) formView.style.display = "block";
         if (successView) successView.style.display = "none";
 
+        // אם המשתמש כבר הזין אימייל בעבר, נמלא אותו מראש כדי להקל עליו
+        try {
+            var prevEmail = localStorage.getItem("cs_trim_lead_email");
+            if (emailInput && prevEmail) {
+                emailInput.value = prevEmail;
+            }
+        } catch (e) {}
+
         if (modal) {
             modal.style.display = "flex";
             modal.classList.add("active");
@@ -1173,7 +1187,10 @@
         }
 
         setTimeout(function() {
-            if (emailInput) emailInput.focus();
+            if (emailInput) {
+                emailInput.focus();
+                if (emailInput.select) emailInput.select();
+            }
         }, 150);
     };
 
@@ -1191,14 +1208,21 @@
 
     function triggerFileDownload(url, filename) {
         if (!url) return;
-        var a = document.createElement("a");
-        a.href = url;
-        if (filename) a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-            if (a.parentNode) a.parentNode.removeChild(a);
-        }, 100);
+        try {
+            var a = document.createElement("a");
+            a.href = url;
+            if (filename) a.download = filename;
+            a.setAttribute("target", "_self");
+            a.setAttribute("data-direct-download", "true");
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+                if (a.parentNode) a.parentNode.removeChild(a);
+            }, 1000);
+        } catch (e) {
+            window.location.assign(url);
+        }
     }
 
     function recordLeadLocally(leadData) {
@@ -1255,7 +1279,7 @@
 
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>מאמת ושומר אימייל...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
+            submitBtn.innerHTML = '<span>מאמת ומכין הורדה...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
         }
 
         var leadData = {
@@ -1293,10 +1317,14 @@
             var confirmedEmailEl = document.getElementById("leadConfirmedEmail");
             if (confirmedEmailEl) confirmedEmailEl.textContent = email;
 
+            // עדכון כפתור הורדה ידנית לקישור ישיר וודאי
             var manualBtn = document.getElementById("btnManualDownload");
             if (manualBtn) {
+                manualBtn.href = pendingDownload.url;
+                if (pendingDownload.filename) manualBtn.download = pendingDownload.filename;
+                manualBtn.setAttribute("data-direct-download", "true");
                 manualBtn.onclick = function() {
-                    triggerFileDownload(pendingDownload.url, pendingDownload.filename);
+                    showToast("מוריד את קובץ ההתקנה...");
                 };
             }
 
@@ -1306,17 +1334,20 @@
             if (formView) formView.style.display = "none";
             if (successView) successView.style.display = "block";
 
-            // התחלת ההורדה
+            // הפעלת ההורדה
             if (pendingDownload.url) {
                 triggerFileDownload(pendingDownload.url, pendingDownload.filename);
                 showToast("תודה! האימייל אושר והקובץ מתחיל לרדת כעת 🚀");
             }
-        }, 500);
+        }, 400);
 
         return false;
     };
 
     window.handleDownloadLinkClick = function(e, element) {
+        if (e && e.preventDefault) e.preventDefault();
+        if (e && e.stopPropagation) e.stopPropagation();
+
         if (!element) return false;
         var url = element.getAttribute("href") || "";
         var filename = element.getAttribute("download") || "";
@@ -1327,24 +1358,15 @@
             platformName = "Windows ZIP";
         }
 
-        if (hasUserRegistered()) {
-            triggerFileDownload(url, filename);
-            showToast("מוריד את CS Trim... תהנה מהעריכה!");
-            return false;
-        }
-
-        if (e && e.preventDefault) e.preventDefault();
+        // תמיד פותחים את הפופאפ של האימייל לפני ההורדה
         window.openLeadModal(url, filename, platformName);
         return false;
     };
 
     window.handleNavDownloadClick = function(e) {
         if (e && e.preventDefault) e.preventDefault();
-        if (hasUserRegistered()) {
-            var dl = document.getElementById("download");
-            if (dl) dl.scrollIntoView({ behavior: "smooth" });
-            return false;
-        }
+        if (e && e.stopPropagation) e.stopPropagation();
+
         var isMac = /macintosh|mac os x/i.test(navigator.userAgent);
         var url = isMac 
             ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" 
@@ -1418,6 +1440,6 @@
     </script>
 
     <!-- Scripts -->
-    <script src="js/main.js?v=1.4.2"></script>
+    <script src="js/main.js?v=1.4.3"></script>
 </body>
 </html>

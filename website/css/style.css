@@ -1444,6 +1444,13 @@ a {
 .ss-step-box:hover .ss-img-wrap img {
     transform: scale(1.03);
 }
+.ss-img-wrap.mac-img-wrap {
+    background: #111420;
+}
+.ss-img-wrap.mac-img-wrap img {
+    object-fit: contain;
+    padding: 10px;
+}
 .ss-zoom-pill {
     position: absolute;
     bottom: 6px;
@@ -1516,7 +1523,7 @@ a {
 }
 .guide-modal-box {
     position: relative;
-    max-width: 580px;
+    max-width: 680px;
     width: 100%;
     background: #0f1422;
     border: 1px solid rgba(59, 130, 246, 0.45);
@@ -1566,9 +1573,9 @@ a {
     width: 100%;
     height: auto;
     display: block;
-    max-height: 72vh;
+    max-height: 78vh;
     object-fit: contain;
-    background: #0078d7;
+    background: #090d16;
 }
 
 /* ==========================================================================

@@ -216,6 +216,12 @@ var TextAnimator = {
                 btns[i].classList.remove("active");
             }
         }
+
+        var grid = document.getElementById("animPresetsGrid");
+        if (grid) {
+            var cycle = dur <= 0.25 ? "1.9s" : (dur >= 0.5 ? "3.2s" : "2.6s");
+            grid.style.setProperty("--anim-cycle-duration", cycle);
+        }
     },
 
     applyStateToUI: function () {

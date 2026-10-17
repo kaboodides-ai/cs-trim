@@ -1028,16 +1028,28 @@ var AutoCutHost = {
     /**
      * Find Directional Blur or Gaussian Blur component on a clip
      */
+    /**
+     * Find Directional Blur or Gaussian Blur component on a clip
+     */
     findBlurComponent: function(clip) {
         if (!clip || !clip.components) return null;
         for (var i = 0; i < clip.components.numItems; i++) {
             var comp = clip.components[i];
             if (!comp || !comp.properties) continue;
             var mn = (comp.matchName || "").toLowerCase();
-            var dn = (comp.displayName || "").toLowerCase();
-            if (mn.indexOf("directional blur") !== -1 || mn.indexOf("adbe directional blur") !== -1 ||
-                dn.indexOf("directional blur") !== -1 || dn.indexOf("כיווני") !== -1 ||
-                mn.indexOf("gaussian blur") !== -1 || dn.indexOf("gaussian blur") !== -1) {
+            var dn = (comp.displayName || comp.name || "").toLowerCase();
+
+            var isDirectional = (mn.indexOf("direction") !== -1 && mn.indexOf("blur") !== -1) ||
+                                (dn.indexOf("direction") !== -1 && dn.indexOf("blur") !== -1) ||
+                                dn.indexOf("כיווני") !== -1 || mn.indexOf("כיווני") !== -1;
+
+            var isGaussian = (mn.indexOf("gaussian") !== -1 && mn.indexOf("blur") !== -1) ||
+                             (dn.indexOf("gaussian") !== -1 && dn.indexOf("blur") !== -1) ||
+                             dn.indexOf("גאוסיאני") !== -1;
+
+            var isFastBlur = (mn.indexOf("fast blur") !== -1 || dn.indexOf("fast blur") !== -1);
+
+            if (isDirectional || isGaussian || isFastBlur) {
                 return comp;
             }
         }
@@ -1045,70 +1057,157 @@ var AutoCutHost = {
     },
 
     /**
-     * Extract amount and direction properties from a blur component
+     * Extract amount (Blur Length) and direction properties from a blur component
      */
     getBlurProperties: function(comp) {
         if (!comp || !comp.properties) return { amount: null, direction: null };
         var amountProp = null;
         var dirProp = null;
+
         for (var p = 0; p < comp.properties.numItems; p++) {
             var prop = comp.properties[p];
             if (!prop) continue;
             var pName = (prop.displayName || prop.name || "").toLowerCase();
             var pMatch = (prop.matchName || "").toLowerCase();
 
-            if (!dirProp && (pMatch.indexOf("direction") !== -1 || pName.indexOf("direction") !== -1 || pName.indexOf("כיוון") !== -1)) {
-                dirProp = prop;
+            // Match Direction (Angle) - strictly exclude length/amount keywords
+            var isDir = (pName.indexOf("direction") !== -1 || pName.indexOf("כיוון") !== -1) &&
+                        (pName.indexOf("length") === -1 && pName.indexOf("אורך") === -1);
+            if (!isDir && pMatch.indexOf("direction") !== -1 && pMatch.indexOf("length") === -1) {
+                isDir = true;
             }
-            if (!amountProp && (pMatch.indexOf("length") !== -1 || pMatch.indexOf("blur") !== -1 || pName.indexOf("length") !== -1 || pName.indexOf("אורך") !== -1 || pName.indexOf("blur") !== -1 || pName.indexOf("טשטוש") !== -1)) {
+            if (!dirProp && isDir) {
+                dirProp = prop;
+                continue; // Do not allow direction property to also match amount
+            }
+
+            // Match Blur Length / Amount / Blurriness (Notice: matchName like "ADBE Directional Blur-0001" has blur, so don't match pure "blur" in matchName)
+            var isAmount = (pName.indexOf("length") !== -1 || pName.indexOf("אורך") !== -1 || pMatch.indexOf("length") !== -1 ||
+                            pName.indexOf("blurriness") !== -1 || pName.indexOf("כמות") !== -1 || pName.indexOf("amount") !== -1);
+            if (!isAmount && (pName === "blur" || pName === "טשטוש")) {
+                isAmount = true;
+            }
+            if (!amountProp && isAmount) {
                 amountProp = prop;
             }
         }
-        if (!amountProp && comp.properties.numItems > 1) {
-            amountProp = comp.properties[1];
-        } else if (!amountProp && comp.properties.numItems > 0) {
+
+        // Positional fallbacks for Directional Blur: prop 0 = Direction, prop 1 = Blur Length
+        if (comp.properties.numItems >= 2) {
+            if (!dirProp && !amountProp) {
+                dirProp = comp.properties[0];
+                amountProp = comp.properties[1];
+            } else if (dirProp && !amountProp) {
+                for (var p2 = 0; p2 < comp.properties.numItems; p2++) {
+                    if (comp.properties[p2] !== dirProp) {
+                        amountProp = comp.properties[p2];
+                        break;
+                    }
+                }
+            } else if (!dirProp && amountProp) {
+                for (var p3 = 0; p3 < comp.properties.numItems; p3++) {
+                    if (comp.properties[p3] !== amountProp) {
+                        dirProp = comp.properties[p3];
+                        break;
+                    }
+                }
+            }
+        } else if (comp.properties.numItems === 1 && !amountProp) {
             amountProp = comp.properties[0];
         }
-        if (!dirProp && comp.properties.numItems > 1 && amountProp !== comp.properties[0]) {
-            dirProp = comp.properties[0];
-        }
+
         return { amount: amountProp, direction: dirProp };
     },
 
     /**
      * Find and cache QE video effect object for Directional or Gaussian Blur
      */
-    getQeBlurEffect: function() {
+    getQeBlurEffect: function(preferredType) {
         if (typeof qe === "undefined" || !qe.project) return null;
-        var candidateNames = [
-            "AE.ADBE Directional Blur",
-            "Directional Blur",
-            "AE.ADBE Gaussian Blur 2",
-            "Gaussian Blur"
-        ];
-        for (var n = 0; n < candidateNames.length; n++) {
+
+        var tryGetByName = function(name) {
+            if (!name) return null;
             try {
-                var eff = qe.project.getVideoEffectByName(candidateNames[n], true);
-                if (eff) return eff;
-            } catch (eEff) {}
+                var res1 = qe.project.getVideoEffectByName(name);
+                if (res1) return res1;
+            } catch (e1) {}
+            try {
+                var res2 = qe.project.getVideoEffectByName(name, true);
+                if (res2) return res2;
+            } catch (e2) {}
+            return null;
+        };
+
+        var directionalCandidates = [
+            "Directional Blur",
+            "טשטוש כיווני",
+            "Directional",
+            "AE.ADBE Directional Blur",
+            "AE.ADBE Direction Blur"
+        ];
+
+        var gaussianCandidates = [
+            "Gaussian Blur",
+            "Gaussian Blur 2",
+            "טשטוש גאוסיאני",
+            "AE.ADBE Gaussian Blur 2",
+            "Fast Blur",
+            "Fast Blur 2"
+        ];
+
+        var candidateNames = [];
+        if (preferredType === "gaussian") {
+            for (var g = 0; g < gaussianCandidates.length; g++) candidateNames.push(gaussianCandidates[g]);
+            for (var d = 0; d < directionalCandidates.length; d++) candidateNames.push(directionalCandidates[d]);
+        } else {
+            for (var d2 = 0; d2 < directionalCandidates.length; d2++) candidateNames.push(directionalCandidates[d2]);
+            for (var g2 = 0; g2 < gaussianCandidates.length; g2++) candidateNames.push(gaussianCandidates[g2]);
         }
+
+        for (var n = 0; n < candidateNames.length; n++) {
+            var eff = tryGetByName(candidateNames[n]);
+            if (eff) return eff;
+        }
+
+        // 2. Search installed QE video effects list if available
         try {
-            var allEffects = qe.project.getVideoEffectList();
-            if (allEffects && allEffects.length) {
-                for (var e = 0; e < allEffects.length; e++) {
-                    if (/directional.*blur/i.test(allEffects[e])) {
-                        var eff2 = qe.project.getVideoEffectByName(allEffects[e], true);
-                        if (eff2) return eff2;
+            var count = 0;
+            if (typeof qe.project.numVideoEffects === "number") count = qe.project.numVideoEffects;
+            else if (typeof qe.project.numVideoEffects === "function") count = qe.project.numVideoEffects();
+            else if (typeof qe.project.getVideoEffectCount === "function") count = qe.project.getVideoEffectCount();
+
+            if (count > 0 && typeof qe.project.getVideoEffectAt === "function") {
+                var checkGaussian = function(nameStr) {
+                    return (nameStr.indexOf("gaussian") !== -1 && nameStr.indexOf("blur") !== -1) ||
+                           nameStr.indexOf("גאוסיאני") !== -1 || nameStr.indexOf("fast blur") !== -1;
+                };
+                var checkDirectional = function(nameStr) {
+                    return (nameStr.indexOf("direction") !== -1 && nameStr.indexOf("blur") !== -1) ||
+                           nameStr.indexOf("כיווני") !== -1;
+                };
+
+                // Pass 1: Try preferred match
+                for (var i = 0; i < count; i++) {
+                    var item = qe.project.getVideoEffectAt(i);
+                    if (!item) continue;
+                    var nameStr = (item.name || item.displayName || item.toString() || "").toLowerCase();
+                    if (preferredType === "gaussian" ? checkGaussian(nameStr) : checkDirectional(nameStr)) {
+                        return item;
                     }
                 }
-                for (var g = 0; g < allEffects.length; g++) {
-                    if (/gaussian.*blur/i.test(allEffects[g])) {
-                        var eff3 = qe.project.getVideoEffectByName(allEffects[g], true);
-                        if (eff3) return eff3;
+
+                // Pass 2: Try alternate blur match
+                for (var j = 0; j < count; j++) {
+                    var item2 = qe.project.getVideoEffectAt(j);
+                    if (!item2) continue;
+                    var nameStr2 = (item2.name || item2.displayName || item2.toString() || "").toLowerCase();
+                    if (preferredType === "gaussian" ? checkDirectional(nameStr2) : checkGaussian(nameStr2)) {
+                        return item2;
                     }
                 }
             }
-        } catch (eList) {}
+        } catch (eSearchList) {}
+
         return null;
     },
 
@@ -1116,32 +1215,82 @@ var AutoCutHost = {
      * Match a TrackItem to its corresponding QE clip item
      */
     findQEClip: function(qeSeq, clip, preferredTrackIdx) {
-        if (!qeSeq) return null;
+        if (!qeSeq || !clip) return null;
         try {
             var cs = (clip.start && typeof clip.start.seconds === "number") ? clip.start.seconds : (Number(clip.start) / TICKS_PER_SECOND);
-            var numTracks = (typeof qeSeq.numVideoTracks === "number") ? qeSeq.numVideoTracks : (qeSeq.videoTracks ? qeSeq.videoTracks.length : 0);
-            
+            var clipName = clip.name || "";
+
+            var numTracks = 0;
+            if (typeof qeSeq.numVideoTracks === "number") {
+                numTracks = qeSeq.numVideoTracks;
+            } else if (typeof qeSeq.numVideoTracks === "function") {
+                numTracks = qeSeq.numVideoTracks();
+            } else if (app.project && app.project.activeSequence && app.project.activeSequence.videoTracks) {
+                numTracks = app.project.activeSequence.videoTracks.numTracks;
+            }
+
+            var getTrackClipCount = function(trk) {
+                if (!trk) return 0;
+                if (typeof trk.numClips === "number") return trk.numClips;
+                if (typeof trk.numClips === "function") return trk.numClips();
+                if (typeof trk.numItems === "number") return trk.numItems;
+                return 0;
+            };
+
+            var getTrackClip = function(trk, idx) {
+                if (!trk) return null;
+                if (typeof trk.getClipAt === "function") return trk.getClipAt(idx);
+                if (typeof trk.getItemAt === "function") return trk.getItemAt(idx);
+                return null;
+            };
+
+            var isMatchingClip = function(qeItem) {
+                if (!qeItem) return false;
+                var qStart = -999999;
+                if (qeItem.start) {
+                    if (typeof qeItem.start.secs === "number") qStart = qeItem.start.secs;
+                    else if (typeof qeItem.start.seconds === "number") qStart = qeItem.start.seconds;
+                    else if (qeItem.start.ticks) qStart = Number(qeItem.start.ticks) / TICKS_PER_SECOND;
+                    else if (typeof qeItem.start === "number") qStart = qeItem.start;
+                }
+
+                // Match by start time within 0.1s
+                if (qStart > -999000 && Math.abs(qStart - cs) < 0.1) {
+                    return true;
+                }
+
+                // Match by clip name if start time is close
+                if (clipName && qeItem.name && qeItem.name === clipName) {
+                    if (qStart > -999000) {
+                        if (Math.abs(qStart - cs) < 1.0) return true;
+                    } else {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            // 1. Check preferred track first
             if (preferredTrackIdx >= 0 && preferredTrackIdx < numTracks) {
                 var trk = qeSeq.getVideoTrackAt(preferredTrackIdx);
                 if (trk) {
-                    var nItems = (typeof trk.numItems === "number") ? trk.numItems : 0;
-                    for (var q = 0; q < nItems; q++) {
-                        var item = trk.getItemAt(q);
-                        if (item && item.start && Math.abs(item.start.seconds - cs) < 0.05) {
-                            return item;
-                        }
+                    var nClips = getTrackClipCount(trk);
+                    for (var q = 0; q < nClips; q++) {
+                        var itm = getTrackClip(trk, q);
+                        if (isMatchingClip(itm)) return itm;
                     }
                 }
             }
+
+            // 2. Fallback scan across all video tracks
             for (var v = 0; v < numTracks; v++) {
+                if (v === preferredTrackIdx) continue;
                 var trk2 = qeSeq.getVideoTrackAt(v);
                 if (!trk2) continue;
-                var nItems2 = (typeof trk2.numItems === "number") ? trk2.numItems : 0;
-                for (var q2 = 0; q2 < nItems2; q2++) {
-                    var it = trk2.getItemAt(q2);
-                    if (it && it.start && Math.abs(it.start.seconds - cs) < 0.05) {
-                        return it;
-                    }
+                var nClips2 = getTrackClipCount(trk2);
+                for (var q2 = 0; q2 < nClips2; q2++) {
+                    var itm2 = getTrackClip(trk2, q2);
+                    if (isMatchingClip(itm2)) return itm2;
                 }
             }
         } catch (eFindQe) {}
@@ -1349,7 +1498,12 @@ var AutoCutHost = {
                         app.enableQE();
                     }
                     if (typeof qe !== "undefined" && qe.project) {
-                        qeSeq = qe.project.getActiveSequence();
+                        try {
+                            qeSeq = qe.project.getActiveSequence();
+                        } catch (eQeAct) {}
+                        if (!qeSeq && typeof qe.project.getSequenceAt === "function") {
+                            try { qeSeq = qe.project.getSequenceAt(0); } catch (eQeSeq0) {}
+                        }
                     }
                 } catch (eQeInit) {}
             }
@@ -1399,11 +1553,24 @@ var AutoCutHost = {
             };
 
             var tryInterpolation = function(prop, timeObj, type) {
+                if (!prop || typeof prop.setInterpolationTypeAtKey !== "function") return;
+                var interp = (typeof type === "number" ? type : 5);
                 try {
-                    if (prop && typeof prop.setInterpolationTypeAtKey === "function") {
-                        prop.setInterpolationTypeAtKey(timeObj, (typeof type === "number" ? type : 5), 1);
-                    }
-                } catch (e) {}
+                    prop.setInterpolationTypeAtKey(timeObj, interp, 1);
+                } catch (e1) {
+                    try {
+                        if (timeObj && typeof timeObj.seconds === "number") {
+                            prop.setInterpolationTypeAtKey(timeObj.seconds, interp, 1);
+                        }
+                    } catch (e2) {}
+                }
+            };
+
+            var setKeyframe = function(prop, sec, val, interpType) {
+                var t = addAndSetKey(prop, sec, val);
+                var interp = (typeof interpType === "number") ? interpType : 5;
+                tryInterpolation(prop, t, interp);
+                return t;
             };
 
             var animatedCount = 0;
@@ -1445,10 +1612,10 @@ var AutoCutHost = {
 
                 var didAnimate = false;
 
-                // 1. POP / BOUNCE ANIMATION
+                // 1. POP / BOUNCE ANIMATION - Pure organic Bezier spring
                 if (preset === "pop" && scaleProp) {
-                    var overshoot = (intensity === "soft" ? 1.09 : (intensity === "punchy" ? 1.26 : 1.18));
-                    var settle = (intensity === "soft" ? 0.98 : (intensity === "punchy" ? 0.94 : 0.96));
+                    var overshoot = (intensity === "soft" ? 1.08 : (intensity === "punchy" ? 1.20 : 1.13));
+                    var settle = (intensity === "soft" ? 0.99 : (intensity === "punchy" ? 0.96 : 0.98));
 
                     try {
                         scaleProp.setTimeVarying(false);
@@ -1457,26 +1624,38 @@ var AutoCutHost = {
                     } catch (ePopScale) {}
 
                     if (isScopeIn) {
-                        addAndSetKey(scaleProp, inSec, 0);
-                        var tPop = addAndSetKey(scaleProp, inSec + safeDur * 0.55, 100 * overshoot);
-                        tryInterpolation(scaleProp, tPop, 5);
-                        addAndSetKey(scaleProp, inSec + safeDur * 0.80, 100 * settle);
-                        var tInEnd = addAndSetKey(scaleProp, inSec + safeDur, 100);
-                        tryInterpolation(scaleProp, tInEnd, 5);
+                        setKeyframe(scaleProp, inSec, 0, 5);
+                        setKeyframe(scaleProp, inSec + safeDur * 0.55, 100 * overshoot, 5);
+                        setKeyframe(scaleProp, inSec + safeDur * 0.80, 100 * settle, 5);
+                        setKeyframe(scaleProp, inSec + safeDur, 100, 5);
                     }
 
                     if (isScopeOut) {
-                        var tOutStart = addAndSetKey(scaleProp, outSec - safeDur, 100);
-                        tryInterpolation(scaleProp, tOutStart, 5);
-                        var tAntic = addAndSetKey(scaleProp, outSec - safeDur * 0.25, 100 * 1.06);
-                        tryInterpolation(scaleProp, tAntic, 5);
-                        addAndSetKey(scaleProp, outSec, 0);
+                        setKeyframe(scaleProp, outSec - safeDur, 100, 5);
+                        setKeyframe(scaleProp, outSec - safeDur * 0.25, 100 * 1.04, 5);
+                        setKeyframe(scaleProp, outSec, 0, 5);
+                    }
+
+                    if (opacityProp) {
+                        try {
+                            opacityProp.setTimeVarying(false);
+                            opacityProp.setValue(100, 1);
+                            opacityProp.setTimeVarying(true);
+                            if (isScopeIn) {
+                                setKeyframe(opacityProp, inSec, 0, 5);
+                                setKeyframe(opacityProp, inSec + safeDur * 0.30, 100, 5);
+                            }
+                            if (isScopeOut) {
+                                setKeyframe(opacityProp, outSec - safeDur * 0.30, 100, 5);
+                                setKeyframe(opacityProp, outSec, 0, 5);
+                            }
+                        } catch (ePopOp) {}
                     }
 
                     didAnimate = true;
                 }
 
-                // 2. SLIDE ANIMATIONS (Up, Down, Side)
+                // 2. SLIDE ANIMATIONS (Up, Down, Side) - Deceleration glide paired with smooth opacity
                 else if ((preset === "slide_up" || preset === "slide_down" || preset === "slide_side") && posProp) {
                     var curPos = posProp.getValue();
                     var baseX = 0.5;
@@ -1503,13 +1682,17 @@ var AutoCutHost = {
                     }
 
                     var isPixel = (baseY > 10);
-                    var offY = isPixel ? 140 : 0.12;
+                    var offY = isPixel ? 110 : 0.09;
+                    var offX = isPixel ? 150 : 0.12;
                     var startPos = [baseX, baseY + offY];
-                    var endPos = [baseX, baseY - offY * 0.6];
+                    var endPos = [baseX, baseY - offY * 0.5];
 
                     if (preset === "slide_down") {
                         startPos = [baseX, baseY - offY];
-                        endPos = [baseX, baseY + offY * 0.6];
+                        endPos = [baseX, baseY + offY * 0.5];
+                    } else if (preset === "slide_side") {
+                        startPos = [baseX + offX, baseY];
+                        endPos = [baseX - offX * 0.5, baseY];
                     }
 
                     try {
@@ -1519,24 +1702,38 @@ var AutoCutHost = {
                     } catch (eSlidePos) {}
 
                     if (isScopeIn) {
-                        addAndSetKey(posProp, inSec, startPos);
-                        var tInPos = addAndSetKey(posProp, inSec + safeDur, [baseX, baseY]);
-                        tryInterpolation(posProp, tInPos, 5);
+                        setKeyframe(posProp, inSec, startPos, 5);
+                        setKeyframe(posProp, inSec + safeDur, [baseX, baseY], 5);
                     }
                     if (isScopeOut) {
-                        var tOutPosStart = addAndSetKey(posProp, outSec - safeDur, [baseX, baseY]);
-                        tryInterpolation(posProp, tOutPosStart, 5);
-                        addAndSetKey(posProp, outSec, endPos);
+                        setKeyframe(posProp, outSec - safeDur, [baseX, baseY], 5);
+                        setKeyframe(posProp, outSec, endPos, 5);
+                    }
+
+                    if (opacityProp) {
+                        try {
+                            opacityProp.setTimeVarying(false);
+                            opacityProp.setValue(100, 1);
+                            opacityProp.setTimeVarying(true);
+                            if (isScopeIn) {
+                                setKeyframe(opacityProp, inSec, 0, 5);
+                                setKeyframe(opacityProp, inSec + safeDur * 0.50, 100, 5);
+                            }
+                            if (isScopeOut) {
+                                setKeyframe(opacityProp, outSec - safeDur * 0.50, 100, 5);
+                                setKeyframe(opacityProp, outSec, 0, 5);
+                            }
+                        } catch (eSlideOp) {}
                     }
 
                     didAnimate = true;
                 }
 
-                // 3. ZOOM IN / ZOOM OUT ANIMATION
+                // 3. ZOOM IN / ZOOM OUT ANIMATION - Refined scale ratio + Bezier curves
                 else if ((preset === "zoom_in" || preset === "zoom_out") && scaleProp) {
                     var isZoomIn = (preset === "zoom_in");
-                    var startScale = isZoomIn ? 35 : 175;
-                    var outScale = isZoomIn ? 145 : 35;
+                    var startScale = isZoomIn ? 60 : 140;
+                    var outScale = isZoomIn ? 125 : 60;
 
                     try {
                         scaleProp.setTimeVarying(false);
@@ -1545,14 +1742,28 @@ var AutoCutHost = {
                     } catch (eZoomScale) {}
 
                     if (isScopeIn) {
-                        addAndSetKey(scaleProp, inSec, startScale);
-                        var tInZoom = addAndSetKey(scaleProp, inSec + safeDur, 100);
-                        tryInterpolation(scaleProp, tInZoom, 5);
+                        setKeyframe(scaleProp, inSec, startScale, 5);
+                        setKeyframe(scaleProp, inSec + safeDur, 100, 5);
                     }
                     if (isScopeOut) {
-                        var tOutZoom = addAndSetKey(scaleProp, outSec - safeDur, 100);
-                        tryInterpolation(scaleProp, tOutZoom, 5);
-                        addAndSetKey(scaleProp, outSec, outScale);
+                        setKeyframe(scaleProp, outSec - safeDur, 100, 5);
+                        setKeyframe(scaleProp, outSec, outScale, 5);
+                    }
+
+                    if (opacityProp) {
+                        try {
+                            opacityProp.setTimeVarying(false);
+                            opacityProp.setValue(100, 1);
+                            opacityProp.setTimeVarying(true);
+                            if (isScopeIn) {
+                                setKeyframe(opacityProp, inSec, 0, 5);
+                                setKeyframe(opacityProp, inSec + safeDur * 0.60, 100, 5);
+                            }
+                            if (isScopeOut) {
+                                setKeyframe(opacityProp, outSec - safeDur * 0.60, 100, 5);
+                                setKeyframe(opacityProp, outSec, 0, 5);
+                            }
+                        } catch (eZoomOp) {}
                     }
 
                     didAnimate = true;
@@ -1567,29 +1778,58 @@ var AutoCutHost = {
                     } catch (eFadeOp) {}
 
                     if (isScopeIn) {
-                        addAndSetKey(opacityProp, inSec, 0);
-                        var tInFade = addAndSetKey(opacityProp, inSec + safeDur, 100);
-                        tryInterpolation(opacityProp, tInFade, 5);
+                        setKeyframe(opacityProp, inSec, 0, 5);
+                        setKeyframe(opacityProp, inSec + safeDur, 100, 5);
                     }
                     if (isScopeOut) {
-                        var tOutFade = addAndSetKey(opacityProp, outSec - safeDur, 100);
-                        tryInterpolation(opacityProp, tOutFade, 5);
-                        addAndSetKey(opacityProp, outSec, 0);
+                        setKeyframe(opacityProp, outSec - safeDur, 100, 5);
+                        setKeyframe(opacityProp, outSec, 0, 5);
                     }
                     didAnimate = true;
                 }
 
-                // 5. DYNAMIC MOTION BLUR KEYFRAMING
+                // 5. DYNAMIC MOTION BLUR KEYFRAMING - Clean cinematic blur, snaps crisp at rest
                 var blurComp = this.findBlurComponent(clip);
                 if (!blurComp && motionBlur && qeSeq) {
                     var qeClip = this.findQEClip(qeSeq, clip, trackIdx);
                     if (qeClip) {
-                        var eff = this.getQeBlurEffect();
+                        var isScalePreset = (preset === "pop" || preset === "zoom_in" || preset === "zoom_out");
+                        var preferredBlur = isScalePreset ? "gaussian" : "directional";
+                        var eff = this.getQeBlurEffect(preferredBlur);
                         if (eff) {
                             try {
                                 qeClip.addVideoEffect(eff);
-                            } catch (eAddFx) {}
+                            } catch (eAddFx1) {
+                                try {
+                                    qeClip.addVideoEffect(eff, true);
+                                } catch (eAddFx2) {
+                                    try {
+                                        var dEff = qe.project.getVideoEffectByName("Directional Blur");
+                                        if (dEff) qeClip.addVideoEffect(dEff);
+                                    } catch (eAddFx3) {}
+                                }
+                            }
+
+                            // Re-query component on clip
                             blurComp = this.findBlurComponent(clip);
+
+                            // If not updated on existing reference, re-fetch clip from track to bypass cache
+                            if (!blurComp && trackIdx >= 0 && trackIdx < seq.videoTracks.numTracks) {
+                                var vTrk = seq.videoTracks[trackIdx];
+                                if (vTrk && vTrk.clips) {
+                                    for (var vc = 0; vc < vTrk.clips.numItems; vc++) {
+                                        var cClip = vTrk.clips[vc];
+                                        if (cClip && (cClip === clip || cClip.name === clip.name)) {
+                                            var foundComp = this.findBlurComponent(cClip);
+                                            if (foundComp) {
+                                                blurComp = foundComp;
+                                                clip = cClip;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1598,10 +1838,16 @@ var AutoCutHost = {
                     var bp = this.getBlurProperties(blurComp);
                     if (bp.amount) {
                         if (motionBlur) {
+                            var isDirectional = (bp.direction !== null);
                             if (bp.direction) {
                                 var blurAngle = 0.0;
                                 if (preset === "slide_side") {
                                     blurAngle = 90.0;
+                                } else if (preset === "slide_up" || preset === "slide_down") {
+                                    blurAngle = 0.0;
+                                } else {
+                                    // For pop or zoom with directional blur, keep angle diagonal (45 deg)
+                                    blurAngle = 45.0;
                                 }
                                 try {
                                     bp.direction.setTimeVarying(false);
@@ -1615,22 +1861,28 @@ var AutoCutHost = {
                                 bp.amount.setTimeVarying(true);
                             } catch (eBAmtTv) {}
 
-                            var peakBlur = (intensity === "punchy" ? 30 : (intensity === "soft" ? 16 : 24));
+                            // Tuned, high-quality cinematic blur amount
+                            var peakBlur = 13;
+                            if (isDirectional) {
+                                if (preset === "pop" || preset === "zoom_in" || preset === "zoom_out") {
+                                    peakBlur = (intensity === "punchy" ? 10 : (intensity === "soft" ? 5 : 7));
+                                } else {
+                                    peakBlur = (intensity === "punchy" ? 18 : (intensity === "soft" ? 9 : 13));
+                                }
+                            } else {
+                                peakBlur = (intensity === "punchy" ? 13 : (intensity === "soft" ? 6 : 9));
+                            }
 
                             if (isScopeIn) {
-                                addAndSetKey(bp.amount, inSec, peakBlur);
-                                var tMidBlur = addAndSetKey(bp.amount, inSec + safeDur * 0.50, peakBlur * 0.35);
-                                tryInterpolation(bp.amount, tMidBlur, 5);
-                                var tEndBlur = addAndSetKey(bp.amount, inSec + safeDur, 0);
-                                tryInterpolation(bp.amount, tEndBlur, 5);
+                                setKeyframe(bp.amount, inSec, peakBlur, 5);
+                                setKeyframe(bp.amount, inSec + safeDur * 0.45, peakBlur * 0.25, 5);
+                                setKeyframe(bp.amount, inSec + safeDur * 0.80, 0, 5);
                             }
 
                             if (isScopeOut) {
-                                var tOutBlurStart = addAndSetKey(bp.amount, outSec - safeDur, 0);
-                                tryInterpolation(bp.amount, tOutBlurStart, 5);
-                                var tOutBlurMid = addAndSetKey(bp.amount, outSec - safeDur * 0.40, peakBlur * 0.45);
-                                tryInterpolation(bp.amount, tOutBlurMid, 5);
-                                addAndSetKey(bp.amount, outSec, peakBlur);
+                                setKeyframe(bp.amount, outSec - safeDur * 0.80, 0, 5);
+                                setKeyframe(bp.amount, outSec - safeDur * 0.40, peakBlur * 0.35, 5);
+                                setKeyframe(bp.amount, outSec, peakBlur, 5);
                             }
                         } else {
                             try {

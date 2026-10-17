@@ -577,6 +577,25 @@ function handleSuggestSubmit(event) {
     const trapValue = (trapInput ? trapInput.value : "").trim();
     const whatsappUrl = `https://api.whatsapp.com/send?text=${reportText}`;
 
+    // Send typo suggestion to Google Sheets as well
+    var sheetsDirectUrl = "https://script.google.com/macros/s/AKfycbxKrwUzhMHd4k9sztgsB3zn6GCW5hgNa39R1P8Dj7Vic-pmlVc2kcDuCxTqzilraTSNeQ/exec";
+    try {
+        fetch(sheetsDirectUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "typo",
+                typeLabel: "✍️ שגיאת כתוביות",
+                message: "מילה שגויה: " + wrongWord + " ➔ תיקון רצוי: " + correctWord + (example ? " (הקשר: " + example + ")" : ""),
+                contact: "משתמש באתר",
+                source: "website",
+                platform: (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "Web",
+                version: "1.0.5"
+            })
+        }).catch(function() {});
+    } catch (eSheets) {}
+
     fetch("/api/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -703,6 +722,17 @@ function handleFeedbackSubmit(event) {
         stored.push(Object.assign({}, payload, { timestamp: new Date().toISOString() }));
         localStorage.setItem("cs_trim_feedbacks_cache", JSON.stringify(stored));
     } catch (e) {}
+
+    // Direct Google Sheets Webhook dispatch
+    var sheetsDirectUrl = "https://script.google.com/macros/s/AKfycbxKrwUzhMHd4k9sztgsB3zn6GCW5hgNa39R1P8Dj7Vic-pmlVc2kcDuCxTqzilraTSNeQ/exec";
+    try {
+        fetch(sheetsDirectUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).catch(function() {});
+    } catch (eSheets) {}
 
     fetch("/api/feedback", {
         method: "POST",

@@ -179,15 +179,23 @@ export default async function handler(req, res) {
         }
 
         // 2. Dispatch to Webhook / Google Sheets if configured
-        const webhookUrl = (process.env.FEEDBACK_WEBHOOK_URL || process.env.GOOGLE_SHEETS_WEBHOOK_URL || "").trim();
+        const webhookUrl = (
+            process.env.FEEDBACK_WEBHOOK_URL ||
+            process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+            "https://script.google.com/macros/s/AKfycbxKrwUzhMHd4k9sztgsB3zn6GCW5hgNa39R1P8Dj7Vic-pmlVc2kcDuCxTqzilraTSNeQ/exec"
+        ).trim();
+
         if (webhookUrl) {
             try {
-                fetch(webhookUrl, {
+                await fetch(webhookUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newFeedback)
-                }).catch(e => console.warn("Webhook dispatch error:", e));
-            } catch (wErr) {}
+                    body: JSON.stringify(newFeedback),
+                    redirect: "follow"
+                });
+            } catch (wErr) {
+                console.warn("Google Sheets Webhook dispatch error:", wErr.message);
+            }
         }
 
         // 3. Pre-formatted WhatsApp link for direct fast contact

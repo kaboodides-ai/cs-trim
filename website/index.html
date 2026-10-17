@@ -748,16 +748,69 @@
                     <div class="guide-pane" id="paneMac" style="display:none;">
                         <ol class="guide-steps">
                             <li>
-                                <strong>הפעילו את הקובץ:</strong> הורידו ולחצו פעמיים על קובץ ה-PKG.
-                                <div class="tip-box">
-                                    <em>הודעת אבטחה של Mac?</em> קליק ימני על הקובץ &gt; <strong>פתח (Open)</strong>.
+                                <strong>הורידו והפעילו את קובץ ההתקנה:</strong>
+                                הורידו את חבילת ההתקנה ל-Mac, חלצו את הקובץ (אם הורדתם ZIP) ולחצו פעמיים על <code>Install_Mac.command</code> (או קובץ ה-PKG).
+                            </li>
+                            <li>
+                                <div class="ss-header-row">
+                                    <strong>הודעת אבטחה של Mac ("לא נפתח" / Apple לא הצליחה לוודא)?</strong>
+                                    <span class="ss-badge-safe">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                        בטוח לחלוטין
+                                    </span>
+                                </div>
+                                <p class="ss-subtext">
+                                    בשל מנגנון האבטחה המובנה של macOS (Gatekeeper) עבור סקריפטים והרחבות חדשות מהאינטרנט, המערכת מציגה חסימה ראשונית.<br>
+                                    <strong>הקובץ נקי ובטוח ב-100%!</strong> מאשרים את ההפעלה בקלות ב-2 צעדים מהירים:
+                                </p>
+
+                                <div class="ss-steps-grid">
+                                    <!-- Step 1 Card -->
+                                    <div class="ss-step-box" onclick="openGuideModal('assets/mac-security-step1.png', 'שלב 1: בחלון ההתרעה לחצו על ״סיום״ (Done)')" title="לחצו לצפייה בתמונה מוגדלת">
+                                        <div class="ss-step-top">
+                                            <span class="ss-step-num">1</span>
+                                            <span>לחיצה על ״סיום״ בהתרעה</span>
+                                        </div>
+                                        <div class="ss-img-wrap mac-img-wrap">
+                                            <img src="assets/mac-security-step1.png" alt="שלב 1: הודעת חסימת אבטחה ב-Mac ולחיצה על סיום" loading="lazy">
+                                            <div class="ss-zoom-pill">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                                <span>הגדלה</span>
+                                            </div>
+                                        </div>
+                                        <div class="ss-step-bottom">
+                                            כשמופיעה ההודעה <em>"Install_Mac.command לא נפתח"</em>, לחצו על כפתור <strong class="link-glow">״סיום״ (Done)</strong> (לא ללחוץ על 'העברה לפח').
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 2 Card -->
+                                    <div class="ss-step-box" onclick="openGuideModal('assets/mac-security-step2.png', 'שלב 2: בהגדרות המערכת לחצו על ״פתיחה בכל זאת״ (Open Anyway)')" title="לחצו לצפייה בתמונה מוגדלת">
+                                        <div class="ss-step-top">
+                                            <span class="ss-step-num">2</span>
+                                            <span>לחיצה על ״פתיחה בכל זאת״</span>
+                                        </div>
+                                        <div class="ss-img-wrap mac-img-wrap">
+                                            <img src="assets/mac-security-step2.png" alt="שלב 2: הגדרות פרטיות ואבטחה ולחיצה על פתיחה בכל זאת" loading="lazy">
+                                            <div class="ss-zoom-pill">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                                <span>הגדלה</span>
+                                            </div>
+                                        </div>
+                                        <div class="ss-step-bottom">
+                                            היכנסו אל <strong>הגדרות המערכת ❯ פרטיות ואבטחה</strong>, גללו למטה למקטע "אבטחה", לחצו על <strong class="highlight-btn">״פתיחה בכל זאת״ (Open Anyway)</strong> ואשרו (Open).
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tip-box" style="margin-top: 10px;">
+                                    💡 <em>טיפ מהיר נוסף:</em> בחלק מגרסאות Mac ניתן גם ללחוץ קליק ימני (או Control + לחיצה) על הקובץ &gt; <strong>פתח (Open)</strong> &gt; וללחוץ שוב <strong>פתח</strong>.
                                 </div>
                             </li>
                             <li>
-                                <strong>התקנה מהירה:</strong> לחצו על <strong>Continue</strong> ואז <strong>Install</strong> — הכל מוגדר אוטומטית.
+                                <strong>התקנה מהירה ואוטומטית:</strong> חלון הטרמינל (Terminal) ייפתח ויגדיר תוך שניות את כל הרשאות ה-PlayerDebugMode של פרמייר עד להודעה "ההתקנה הושלמה בהצלחה"!
                             </li>
                             <li>
-                                <strong>פותחים בפרמייר:</strong> פתחו את Premiere Pro ובתפריט העליון היכנסו אל: <code>Window &gt; Extensions &gt; CS Trim</code>.
+                                <strong>פותחים ונהנים בפרמייר:</strong> פתחו מחדש את Premiere Pro ובתפריט העליון בחרו: <code>Window &gt; Extensions &gt; CS Trim</code> (חלון &gt; הרחבות &gt; CS Trim).
                             </li>
                         </ol>
                     </div>

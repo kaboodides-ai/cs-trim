@@ -1459,6 +1459,17 @@ function submitPluginFeedback(e) {
         ? "/api/feedback"
         : "https://cstrim.vercel.app/api/feedback";
 
+    // Direct Google Sheets Webhook backup
+    var sheetsDirectUrl = "https://script.google.com/macros/s/AKfycbxKrwUzhMHd4k9sztgsB3zn6GCW5hgNa39R1P8Dj7Vic-pmlVc2kcDuCxTqzilraTSNeQ/exec";
+    try {
+        fetch(sheetsDirectUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).catch(function () {});
+    } catch (eSheets) {}
+
     fetch(targetUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

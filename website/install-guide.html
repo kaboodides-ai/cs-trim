@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מדריך התקנה מהיר - CS Trim לפרמייר פרו</title>
+    <meta name="description" content="מדריך התקנה פשוט ומהיר צעד-אחר-צעד לתוסף CS Trim עבור משתמשי Mac ו-Windows.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css?v=1.4.2">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <style>
+        .guide-page {
+            padding: 40px 0 90px;
+            min-height: 80vh;
+        }
+        .guide-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 44px;
+            max-width: 920px;
+            margin: 0 auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+        .guide-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .guide-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .guide-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .btn-back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #93c5fd;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        .btn-back-home:hover {
+            color: white;
+            transform: translateX(4px);
+        }
+
+        /* OS Tab Switcher */
+        .guide-os-switcher {
+            display: flex;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 32px;
+            justify-content: center;
+        }
+        .guide-os-btn {
+            flex: 1;
+            max-width: 270px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.98rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .guide-os-btn svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .guide-os-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+        }
+        .guide-os-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        /* Step Items */
+        .guide-step-card {
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 22px;
+            position: relative;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .step-badge-num {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+        }
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+        }
+        .step-body {
+            font-size: 0.98rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+        .step-body p {
+            margin-bottom: 12px;
+        }
+        .step-body strong {
+            color: #f1f5f9;
+        }
+        .step-body code {
+            background: rgba(255, 255, 255, 0.08);
+            color: #38bdf8;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            direction: ltr;
+            display: inline-block;
+        }
+
+        /* Callout Box */
+        .guide-callout {
+            background: rgba(59, 130, 246, 0.09);
+            border-right: 4px solid var(--primary);
+            border-radius: 0 10px 10px 0;
+            padding: 16px 20px;
+            margin: 16px 0;
+            color: #e2e8f0;
+            font-size: 0.94rem;
+            line-height: 1.6;
+        }
+        .guide-callout-warning {
+            background: rgba(245, 158, 11, 0.09);
+            border-right-color: #f59e0b;
+            color: #fef3c7;
+        }
+
+        /* Visual Screenshot Grid */
+        .guide-shots-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
+        .guide-shot-card {
+            background: #090c15;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .guide-shot-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.7);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .guide-shot-header {
+            padding: 9px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+        .guide-shot-header .mini-num {
+            background: #2563eb;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        .guide-shot-preview {
+            position: relative;
+            background: #111420;
+            aspect-ratio: 16 / 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 10px;
+        }
+        .guide-shot-preview.win-bg {
+            background: #0078d7;
+            padding: 0;
+        }
+        .guide-shot-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+            transition: transform 0.25s ease;
+        }
+        .guide-shot-preview.win-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .guide-shot-card:hover .guide-shot-preview img {
+            transform: scale(1.03);
+        }
+        .guide-zoom-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #e2e8f0;
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .guide-shot-desc {
+            padding: 11px 14px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .highlight-action {
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        /* Quick Download Bar */
+        .guide-dl-bar {
+            background: rgba(37, 99, 235, 0.08);
+            border: 1px dashed rgba(59, 130, 246, 0.35);
+            border-radius: 12px;
+            padding: 18px 24px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .guide-dl-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .guide-dl-text strong {
+            display: block;
+            color: #ffffff;
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+        .guide-dl-text span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .guide-card {
+                padding: 24px 18px;
+            }
+            .guide-title {
+                font-size: 1.7rem;
+            }
+            .guide-shots-grid {
+                grid-template-columns: 1fr;
+            }
+            .guide-os-switcher {
+                flex-direction: column;
+            }
+            .guide-os-btn {
+                max-width: 100%;
+            }
+            .guide-dl-bar {
+                flex-direction: column;
+                text-align: center;
+                align-items: stretch;
+            }
+            .guide-dl-info {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Glowing Ambient Background -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Header / Navbar -->
+    <header class="site-header" id="navbar">
+        <div class="container header-container">
+            <a href="index.html" class="brand-logo">
+                <img src="assets/logo.png" alt="CS Trim Logo" style="width: 40px; height: 40px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);">
+                <div class="brand-text">
+                    <span class="brand-name">CS Trim</span>
+                    <span class="brand-badge">לפרמייר פרו</span>
+                </div>
+            </a>
+
+            <nav class="nav-links">
+                <a href="index.html#features">יתרונות</a>
+                <a href="index.html#how-it-works">איך זה עובד</a>
+                <a href="install-guide.html" style="color: white; font-weight: 700;">מדריך התקנה</a>
+                <a href="index.html#faq">שאלות נפוצות</a>
+                <a href="terms.html">תקנון</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="index.html#download" class="btn btn-nav-cta">
+                    <span>הורדה חינם</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="guide-page">
+        <div class="container">
+            <a href="index.html" class="btn-back-home">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>חזרה לדף הבית</span>
+            </a>
+
+            <div class="guide-card">
+                <div class="guide-header">
+                    <h1 class="guide-title">מדריך התקנה מהיר</h1>
+                    <p class="guide-subtitle">התקנה פשוטה של דקה אחת — ללא צורך בידע טכני. בחר את מערכת ההפעלה שלך:</p>
+                </div>
+
+                <!-- OS Switcher Tabs -->
+                <div class="guide-os-switcher">
+                    <button class="guide-os-btn" id="tabBtnMac" onclick="switchGuide('mac')">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/>
+                        </svg>
+                        <span>התקנה ב-Mac</span>
+                    </button>
+                    <button class="guide-os-btn" id="tabBtnWin" onclick="switchGuide('win')">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                        </svg>
+                        <span>התקנה ב-Windows</span>
+                    </button>
+                    <button class="guide-os-btn" id="tabBtnApi" onclick="switchGuide('api')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                        </svg>
+                        <span>מפתח כתוביות AI (חינם)</span>
+                    </button>
+                </div>
+
+                <!-- ================= MAC GUIDE ================= -->
+                <div id="guideMac" class="guide-content-section" style="display:none;">
+                    <div class="guide-dl-bar">
+                        <div class="guide-dl-info">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="color: #93c5fd;">
+                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/>
+                            </svg>
+                            <div class="guide-dl-text">
+                                <strong>קובץ ההתקנה ל-Mac</strong>
+                                <span>תואם מעבדי Apple Silicon (M1/M2/M3/M4) ואינטל</span>
+                            </div>
+                        </div>
+                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" class="btn btn-primary" download style="padding: 10px 22px; font-size: 0.92rem;">
+                            <span>הורדת קובץ ל-Mac</span>
+                        </a>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">1</span>
+                            <h3 class="step-title">הפעלת קובץ ההתקנה</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>הורידו את הקובץ ולחצו עליו פעמיים להפעלה (קובץ ה-PKG או קובץ <code>Install_Mac.command</code> מחבילת ה-ZIP).</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">2</span>
+                            <h3 class="step-title">הודעת אבטחה של Apple? אישור ב-2 לחיצות</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>מכיוון שהקובץ הורד ישירות מהאתר ולא מה-App Store, מערכת ההגנה של Mac (Gatekeeper) מציגה חסימה ראשונית.<br>
+                            <strong>הקובץ נקי ובטוח ב-100%!</strong> מאשרים אותו בשניות:</p>
+
+                            <div class="guide-shots-grid">
+                                <!-- Step 2a -->
+                                <div class="guide-shot-card" onclick="openGuideModal('assets/mac-security-step1.png', 'שלב 1: בהודעה שקופצת לוחצים על סיום')" title="לחץ להגדלה">
+                                    <div class="guide-shot-header">
+                                        <span class="mini-num">1</span>
+                                        <span>לחיצה על ״סיום״ בהתרעה</span>
+                                    </div>
+                                    <div class="guide-shot-preview">
+                                        <img src="assets/mac-security-step1.png" alt="הודעת אזהרה של Mac ולחיצה על סיום" loading="lazy">
+                                        <div class="guide-zoom-badge">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                            <span>הגדלה</span>
+                                        </div>
+                                    </div>
+                                    <div class="guide-shot-desc">
+                                        כאשר מופיע החלון שהקובץ לא נפתח, לחצו על <span class="highlight-action">״סיום״ (Done)</span> (בלי להעביר לפח).
+                                    </div>
+                                </div>
+
+                                <!-- Step 2b -->
+                                <div class="guide-shot-card" onclick="openGuideModal('assets/mac-security-step2.png', 'שלב 2: בהגדרות המערכת לוחצים על פתיחה בכל זאת')" title="לחץ להגדלה">
+                                    <div class="guide-shot-header">
+                                        <span class="mini-num">2</span>
+                                        <span>לחיצה על ״פתיחה בכל זאת״</span>
+                                    </div>
+                                    <div class="guide-shot-preview">
+                                        <img src="assets/mac-security-step2.png" alt="הגדרות אבטחה של Mac ולחיצה על פתיחה בכל זאת" loading="lazy">
+                                        <div class="guide-zoom-badge">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                            <span>הגדלה</span>
+                                        </div>
+                                    </div>
+                                    <div class="guide-shot-desc">
+                                        פתחו <strong>הגדרות המערכת ❯ פרטיות ואבטחה</strong>, גללו מטה למקטע "אבטחה", ולחצו על <span class="highlight-action">״פתיחה בכל זאת״ (Open Anyway)</span> ואשרו.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="guide-callout" style="margin-top: 14px;">
+                                💡 <strong>טיפ מהיר נוסף:</strong> בחלק מגרסאות Mac ניתן פשוט ללחוץ <strong>קליק ימני</strong> על הקובץ ❯ <strong>פתח (Open)</strong> ❯ וללחוץ שוב <strong>פתח</strong>.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">3</span>
+                            <h3 class="step-title">פותחים את פרמייר והתוסף מוכן!</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>ההתקנה מסתיימת אוטומטית תוך 2 שניות. כעת פתחו את Premiere Pro ובתפריט העליון בחרו:</p>
+                            <p><code>Window &gt; Extensions &gt; CS Trim</code> (חלון &gt; הרחבות &gt; CS Trim).</p>
+                            <p>הפלאגין ייפתח מיד בפרמייר ומוכן לשימוש!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= WINDOWS GUIDE ================= -->
+                <div id="guideWin" class="guide-content-section">
+                    <div class="guide-dl-bar">
+                        <div class="guide-dl-info">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="color: #60a5fa;">
+                                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                            </svg>
+                            <div class="guide-dl-text">
+                                <strong>קובץ התקנה אוטומטי ל-Windows</strong>
+                                <span>תואם Windows 10 ו-Windows 11</span>
+                            </div>
+                        </div>
+                        <a href="download/CS-Trim-Setup.exe?v=1.0.5" class="btn btn-primary" download style="padding: 10px 22px; font-size: 0.92rem;">
+                            <span>הורדת קובץ ל-Windows</span>
+                        </a>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">1</span>
+                            <h3 class="step-title">הפעלת אשף ההתקנה</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>הורידו ולחצו פעמיים על קובץ ההתקנה <code>CS-Trim-Setup.exe</code>.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">2</span>
+                            <h3 class="step-title">מסך כחול של SmartScreen? מאשרים ב-2 שניות</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>בשל העובדה שמדובר בקובץ התקנה חדש ברשת, ייתכן שיופיע חלון הגנה של Windows (<em>Windows protected your PC</em>).<br>
+                            <strong>הקובץ נקי ובטוח ב-100%!</strong> מאשרים את ההפעלה בקלות:</p>
+
+                            <div class="guide-shots-grid">
+                                <!-- Step 2a -->
+                                <div class="guide-shot-card" onclick="openGuideModal('assets/smartscreen-step1.png', 'שלב 1: לחצו על More info')" title="לחץ להגדלה">
+                                    <div class="guide-shot-header">
+                                        <span class="mini-num">1</span>
+                                        <span>לחיצה על More info</span>
+                                    </div>
+                                    <div class="guide-shot-preview win-bg">
+                                        <img src="assets/smartscreen-step1.png" alt="לחיצה על More info" loading="lazy">
+                                        <div class="guide-zoom-badge">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                            <span>הגדלה</span>
+                                        </div>
+                                    </div>
+                                    <div class="guide-shot-desc">
+                                        לחצו על הקישור <span class="highlight-action">More info</span> (מידע נוסף) מתחת לטקסט.
+                                    </div>
+                                </div>
+
+                                <!-- Step 2b -->
+                                <div class="guide-shot-card" onclick="openGuideModal('assets/smartscreen-step2.png', 'שלב 2: לחצו על Run anyway')" title="לחץ להגדלה">
+                                    <div class="guide-shot-header">
+                                        <span class="mini-num">2</span>
+                                        <span>לחיצה על Run anyway</span>
+                                    </div>
+                                    <div class="guide-shot-preview win-bg">
+                                        <img src="assets/smartscreen-step2.png" alt="לחיצה על Run anyway" loading="lazy">
+                                        <div class="guide-zoom-badge">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                            <span>הגדלה</span>
+                                        </div>
+                                    </div>
+                                    <div class="guide-shot-desc">
+                                        כעת מופיע כפתור חדש — לחצו על <span class="highlight-action">Run anyway</span> (הפעל בכל מקרה).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">3</span>
+                            <h3 class="step-title">התקנה בלחיצה אחת ופתיחה בפרמייר</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>באשף שנפתח לחצו על <strong>התקן (Install)</strong> — כל הקבצים וההרשאות מוגדרים אוטומטית תוך שניות.</p>
+                            <p>כעת פתחו את Premiere Pro ובחרו בתפריט העליון: <code>Window &gt; Extensions &gt; CS Trim</code>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= API GUIDE ================= -->
+                <div id="guideApi" class="guide-content-section" style="display:none;">
+                    <div class="guide-callout" style="margin-top: 0;">
+                        🔑 <strong>מפתח Groq חינמי לחלוטין:</strong> מאפשר לכם לתמלל כתוביות AI במהירות הבזק, ללא צורך בכרטיס אשראי, עם מסלול חינמי נדיב ביותר מדי יום!
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">1</span>
+                            <h3 class="step-title">כניסה לאתר Groq</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>היכנסו אל עמוד המפתחות בכתובת: <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">console.groq.com/keys</a> והתחברו בלחיצה עם חשבון Google שלכם.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">2</span>
+                            <h3 class="step-title">הפקת המפתח</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>לחצו על הכפתור <strong>Create API Key</strong>, תנו שם למפתח (למשל <code>CS-Trim</code>) והעתיקו את קוד המפתח שנוצר.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="guide-step-card">
+                        <div class="step-header">
+                            <span class="step-badge-num">3</span>
+                            <h3 class="step-title">הדבקה בפלאגין</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>בפלאגין בפרמייר, עברו ללשונית <strong>כתוביות AI</strong>, הדביקו את המפתח בשדה המיועד ולחצו שמירה — המפתח נשמר במחשב שלכם לתמיד!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Help Box -->
+                <div style="text-align: center; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+                    <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 12px;">נתקלתם בקושי או שאלה?</p>
+                    <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+                        <a href="index.html#faq" class="btn btn-secondary" style="padding: 10px 20px; font-size: 0.9rem;">
+                            <span>שאלות נפוצות (FAQ)</span>
+                        </a>
+                        <a href="index.html#suggest" class="btn btn-secondary" style="padding: 10px 20px; font-size: 0.9rem;">
+                            <span>שליחת פידבק או שאלה</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <img src="assets/logo.png" alt="CS Trim" style="width: 36px; height: 36px; border-radius: 8px; object-fit: contain;">
+                    <span class="brand-name">CS Trim</span>
+                    <span class="footer-desc">תוסף החיתוך והכתוביות החכם ל-Adobe Premiere Pro</span>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 CS Trim. כל הזכויות שמורות.</p>
+                <div class="footer-links">
+                    <a href="index.html" style="color: var(--cyan); margin-left: 14px;">דף הבית</a>
+                    <a href="install-guide.html" style="color: var(--cyan); margin-left: 14px;">מדריך התקנה</a>
+                    <a href="terms.html" style="color: var(--cyan);">תקנון ותנאי שימוש</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Guide Screenshot Lightbox Modal -->
+    <div id="guideModal" class="guide-modal-overlay" onclick="closeGuideModal()">
+        <div class="guide-modal-box" onclick="event.stopPropagation()">
+            <div class="guide-modal-header">
+                <span id="guideModalCaption" class="guide-modal-caption"></span>
+                <button class="guide-modal-close" onclick="closeGuideModal()" title="סגור">&times;</button>
+            </div>
+            <img id="guideModalImg" src="" alt="תמונת מדריך התקנה" class="guide-modal-img">
+        </div>
+    </div>
+
+    <script>
+        function switchGuide(target) {
+            var gMac = document.getElementById("guideMac");
+            var gWin = document.getElementById("guideWin");
+            var gApi = document.getElementById("guideApi");
+            var bMac = document.getElementById("tabBtnMac");
+            var bWin = document.getElementById("tabBtnWin");
+            var bApi = document.getElementById("tabBtnApi");
+
+            if (gMac) gMac.style.display = "none";
+            if (gWin) gWin.style.display = "none";
+            if (gApi) gApi.style.display = "none";
+            if (bMac) bMac.classList.remove("active");
+            if (bWin) bWin.classList.remove("active");
+            if (bApi) bApi.classList.remove("active");
+
+            if (target === "mac") {
+                if (gMac) gMac.style.display = "block";
+                if (bMac) bMac.classList.add("active");
+            } else if (target === "api") {
+                if (gApi) gApi.style.display = "block";
+                if (bApi) bApi.classList.add("active");
+            } else {
+                if (gWin) gWin.style.display = "block";
+                if (bWin) bWin.classList.add("active");
+            }
+        }
+
+        function detectOS() {
+            try {
+                if (navigator.userAgentData && navigator.userAgentData.platform) {
+                    var p = navigator.userAgentData.platform.toLowerCase();
+                    if (p.includes("mac")) return "mac";
+                    if (p.includes("win")) return "win";
+                }
+            } catch (e) {}
+            var ua = (navigator.userAgent || "").toLowerCase();
+            var pf = (navigator.platform || "").toLowerCase();
+            if (ua.includes("macintosh") || ua.includes("mac os") || pf.includes("mac")) {
+                var isIOS = /ipad|iphone|ipod/.test(ua) || (pf === "macintel" && navigator.maxTouchPoints > 1);
+                if (!isIOS) return "mac";
+            }
+            return "win";
+        }
+
+        // Initialize OS from URL hash or detection
+        (function() {
+            var hash = window.location.hash.replace("#", "").toLowerCase();
+            if (hash === "mac") {
+                switchGuide("mac");
+            } else if (hash === "api" || hash === "groq") {
+                switchGuide("api");
+            } else if (hash === "win" || hash === "windows") {
+                switchGuide("win");
+            } else {
+                var os = detectOS();
+                switchGuide(os === "mac" ? "mac" : "win");
+            }
+        })();
+
+        // Lightbox Logic
+        function openGuideModal(src, caption) {
+            var modal = document.getElementById("guideModal");
+            var img = document.getElementById("guideModalImg");
+            var cap = document.getElementById("guideModalCaption");
+            if (modal && img) {
+                img.src = src;
+                if (cap) cap.textContent = caption || "מדריך התקנה";
+                modal.classList.add("active");
+                document.body.style.overflow = "hidden";
+            }
+        }
+
+        function closeGuideModal() {
+            var modal = document.getElementById("guideModal");
+            if (modal) {
+                modal.classList.remove("active");
+                document.body.style.overflow = "";
+            }
+        }
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeGuideModal();
+        });
+    </script>
+</body>
+</html>

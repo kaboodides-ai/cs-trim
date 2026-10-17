@@ -512,7 +512,7 @@ function sendActivationPing(isConnected) {
             " | מערכת: " + osName + " (" + (navigator.platform || "") + ")" +
             " | מזהה: " + installId;
 
-        var curVer = (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.6";
+        var curVer = (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.7";
 
         var payload = {
             type: eventType,
@@ -1892,7 +1892,7 @@ function submitPluginFeedback(e) {
         contact: contact,
         source: "plugin",
         platform: (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "Premiere",
-        version: (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.6"
+        version: (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.7"
     };
 
     if (contact && contact.includes("@")) {

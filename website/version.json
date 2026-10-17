@@ -1,14 +1,13 @@
 {
-  "version": "1.0.6",
-  "versionCode": 106,
+  "version": "1.0.7",
+  "versionCode": 107,
   "releaseDate": "2026-10-17",
-  "title": "גרסה 1.0.6: פלטת צבעים מותאמת אישית, שדרוג אנימציות ומערכת משוב",
+  "title": "עדכון גרסה 1.0.7: שיפורי יציבות, איתות הפעלה מהיר וסנכרון מלא",
   "changelog": [
-    "פלטת צבעים מותאמת אישית (HSV) לבחירת כל צבע מרקר להייליט מילים, כולל דוגם צבע וקוד HEX",
-    "כפתור בחירת צבע מערכת מובנה ב-Windows",
-    "שיפורי תנועה וטשטוש תנועה (Motion Blur) מקצועי באנימציות טקסט",
-    "מערכת משוב והצעות מובנית המחוברת ישירות לענן",
-    "התאמה מלאה וביצועים מואצים ב-Windows וב-Mac"
+    "שדרוג מנגנון הסנכרון והחיבור המהיר בפרמייר פרו",
+    "פלטת צבעי מרקר (HSV) מתקדמת לבחירת כל גוון מותאם אישית",
+    "שיפורי אנימציות טקסט וטשטוש תנועה מקצועי (Motion Blur)",
+    "מערכת משוב והצעות מובנית לסיוע מהיר"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",

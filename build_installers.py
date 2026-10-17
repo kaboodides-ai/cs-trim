@@ -157,6 +157,7 @@ if exist "com.autocut.panel" (
     xcopy /e /i /y /q "js" "%TARGET%\\js\\" >nul
     copy /y "index.html" "%TARGET%\\" >nul
     copy /y ".debug" "%TARGET%\\" >nul
+    copy /y "corrections.json" "%TARGET%\\" >nul
 )
 
 if exist "%COMMONPROGRAMFILES(x86)%\\Adobe\\CEP\\extensions\\com.autocut.panel" (

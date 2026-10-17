@@ -593,15 +593,144 @@ function initApp() {
             updateStretchTitle();
         }
 
-        // Word Highlight (Marker) Toggle & Color Picker
+        // Word Highlight (Marker) Toggle & Color Picker (Cross-platform Mac & Windows)
         var highlightInput = document.getElementById("captionWordHighlight");
         var rowHighlight = document.getElementById("rowWordHighlight");
         var rowHighlightColor = document.getElementById("rowHighlightColor");
         var highlightPreviewPill = document.getElementById("highlightPreviewPill");
         var colorPickerInput = document.getElementById("captionHighlightColor");
         var colorSwatches = document.querySelectorAll(".color-swatch");
-        var customColorWrap = document.querySelector(".custom-color-picker-wrap");
-        var btnCaptionsEl = document.getElementById("btnCaptions");
+        var customColorWrap = document.getElementById("customColorWrap") || document.querySelector(".custom-color-picker-wrap");
+        var customColorBtn = document.getElementById("customColorBtn");
+        var highlightColorPopover = document.getElementById("highlightColorPopover");
+        var popoverCloseBtn = document.getElementById("popoverCloseBtn");
+        var btnApplyCustomColor = document.getElementById("btnApplyCustomColor");
+        var colorSvField = document.getElementById("colorSvField");
+        var colorSvCursor = document.getElementById("colorSvCursor");
+        var colorHueBar = document.getElementById("colorHueBar");
+        var colorHueCursor = document.getElementById("colorHueCursor");
+        var popoverHexInput = document.getElementById("popoverHexInput");
+        var popoverPreviewBox = document.getElementById("popoverPreviewBox");
+        var btnColorEyedropper = document.getElementById("btnColorEyedropper");
+        var btnSystemColor = document.getElementById("btnSystemColor");
+        var miniSwatches = document.querySelectorAll(".color-mini-swatch");
+
+        var curH = 48, curS = 92, curV = 98;
+        var isDraggingSV = false;
+        var isDraggingHue = false;
+
+        function hsvToRgb(h, s, v) {
+            s = Math.max(0, Math.min(100, s)) / 100;
+            v = Math.max(0, Math.min(100, v)) / 100;
+            var c = v * s;
+            var x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+            var m = v - c;
+            var r1 = 0, g1 = 0, b1 = 0;
+
+            if (h >= 0 && h < 60) {
+                r1 = c; g1 = x; b1 = 0;
+            } else if (h >= 60 && h < 120) {
+                r1 = x; g1 = c; b1 = 0;
+            } else if (h >= 120 && h < 180) {
+                r1 = 0; g1 = c; b1 = x;
+            } else if (h >= 180 && h < 240) {
+                r1 = 0; g1 = x; b1 = c;
+            } else if (h >= 240 && h < 300) {
+                r1 = x; g1 = 0; b1 = c;
+            } else if (h >= 300 && h <= 360) {
+                r1 = c; g1 = 0; b1 = x;
+            }
+
+            return {
+                r: Math.round((r1 + m) * 255),
+                g: Math.round((g1 + m) * 255),
+                b: Math.round((b1 + m) * 255)
+            };
+        }
+
+        function rgbToHex(r, g, b) {
+            var toHex = function (c) {
+                var h = Math.max(0, Math.min(255, Math.round(c))).toString(16);
+                return h.length === 1 ? "0" + h : h;
+            };
+            return ("#" + toHex(r) + toHex(g) + toHex(b)).toUpperCase();
+        }
+
+        function hexToRgb(hex) {
+            if (!hex) return null;
+            var clean = hex.replace("#", "").trim();
+            if (clean.length === 3) {
+                clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
+            }
+            if (clean.length !== 6) return null;
+            var num = parseInt(clean, 16);
+            if (isNaN(num)) return null;
+            return {
+                r: (num >> 16) & 255,
+                g: (num >> 8) & 255,
+                b: num & 255
+            };
+        }
+
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            var max = Math.max(r, g, b), min = Math.min(r, g, b);
+            var h = 0, s = 0, v = max;
+            var d = max - min;
+            s = max === 0 ? 0 : d / max;
+
+            if (max === min) {
+                h = 0;
+            } else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                v: Math.round(v * 100)
+            };
+        }
+
+        function syncHsvFromHex(hex) {
+            var rgb = hexToRgb(hex);
+            if (rgb) {
+                var hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+                curH = hsv.h;
+                curS = hsv.s;
+                curV = hsv.v;
+            }
+        }
+
+        function renderCustomPicker(applyLive) {
+            var rgb = hsvToRgb(curH, curS, curV);
+            var hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+
+            if (colorSvField) {
+                colorSvField.style.backgroundColor = "hsl(" + curH + ", 100%, 50%)";
+            }
+            if (colorSvCursor) {
+                colorSvCursor.style.left = curS + "%";
+                colorSvCursor.style.top = (100 - curV) + "%";
+            }
+            if (colorHueCursor) {
+                colorHueCursor.style.left = ((curH / 360) * 100) + "%";
+            }
+            if (popoverPreviewBox) {
+                popoverPreviewBox.style.backgroundColor = hex;
+            }
+            if (popoverHexInput && document.activeElement !== popoverHexInput) {
+                popoverHexInput.value = hex.replace("#", "").toUpperCase();
+            }
+
+            if (applyLive) {
+                applyHighlightColor(hex, true);
+            }
+        }
 
         var selectedHighlightColor = "#FACC15";
         try {
@@ -639,12 +768,38 @@ function initApp() {
                     sw.classList.remove("active");
                 }
             }
+
             if (customColorWrap) {
                 if (!matchedPreset) {
                     customColorWrap.classList.add("active");
                 } else {
                     customColorWrap.classList.remove("active");
                 }
+            }
+
+            if (customColorBtn) {
+                if (!matchedPreset) {
+                    customColorBtn.style.background = "radial-gradient(circle at center, " + colorHex + " 0%, " + colorHex + " 52%, transparent 54%), conic-gradient(#EF4444, #F59E0B, #10B981, #3B82F6, #8B5CF6, #EC4899, #EF4444)";
+                } else {
+                    customColorBtn.style.background = "";
+                }
+            }
+
+            for (var m = 0; m < miniSwatches.length; m++) {
+                var ms = miniSwatches[m];
+                var mColor = (ms.getAttribute("data-color") || "").toLowerCase();
+                if (mColor === colorHex.toLowerCase()) {
+                    ms.classList.add("active");
+                } else {
+                    ms.classList.remove("active");
+                }
+            }
+
+            if (popoverPreviewBox) {
+                popoverPreviewBox.style.backgroundColor = colorHex;
+            }
+            if (popoverHexInput && document.activeElement !== popoverHexInput) {
+                popoverHexInput.value = colorHex.replace("#", "").toUpperCase();
             }
 
             if (autoEnable && highlightInput && !highlightInput.checked) {
@@ -669,6 +824,29 @@ function initApp() {
             updateCaptionsButtonLabel();
         }
 
+        function openHighlightPopover() {
+            if (!highlightColorPopover) return;
+            highlightColorPopover.style.display = "block";
+            if (customColorBtn) customColorBtn.classList.add("popover-open");
+            syncHsvFromHex(selectedHighlightColor || "#FACC15");
+            renderCustomPicker(false);
+        }
+
+        function closeHighlightPopover() {
+            if (!highlightColorPopover) return;
+            highlightColorPopover.style.display = "none";
+            if (customColorBtn) customColorBtn.classList.remove("popover-open");
+        }
+
+        function toggleHighlightPopover() {
+            if (!highlightColorPopover) return;
+            if (highlightColorPopover.style.display === "none" || !highlightColorPopover.style.display) {
+                openHighlightPopover();
+            } else {
+                closeHighlightPopover();
+            }
+        }
+
         if (highlightInput) {
             highlightInput.addEventListener("change", updateHighlightToggleState);
         }
@@ -676,20 +854,200 @@ function initApp() {
         for (var cs = 0; cs < colorSwatches.length; cs++) {
             colorSwatches[cs].addEventListener("click", function () {
                 var c = this.getAttribute("data-color");
-                if (c) applyHighlightColor(c, true);
+                if (c) {
+                    syncHsvFromHex(c);
+                    applyHighlightColor(c, true);
+                    renderCustomPicker(false);
+                }
+            });
+        }
+
+        if (customColorBtn) {
+            customColorBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                toggleHighlightPopover();
+            });
+        }
+
+        if (customColorWrap) {
+            customColorWrap.addEventListener("click", function (e) {
+                if (e.target !== customColorBtn && !customColorBtn.contains(e.target)) {
+                    toggleHighlightPopover();
+                }
+            });
+        }
+
+        if (popoverCloseBtn) {
+            popoverCloseBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                closeHighlightPopover();
+            });
+        }
+
+        if (btnApplyCustomColor) {
+            btnApplyCustomColor.addEventListener("click", function (e) {
+                e.stopPropagation();
+                closeHighlightPopover();
+            });
+        }
+
+        document.addEventListener("click", function (e) {
+            if (!highlightColorPopover || highlightColorPopover.style.display === "none") return;
+            if (highlightColorPopover.contains(e.target)) return;
+            if (customColorBtn && (customColorBtn === e.target || customColorBtn.contains(e.target))) return;
+            if (customColorWrap && (customColorWrap === e.target || customColorWrap.contains(e.target))) return;
+            closeHighlightPopover();
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && highlightColorPopover && highlightColorPopover.style.display !== "none") {
+                closeHighlightPopover();
+            }
+        });
+
+        function handleSvEvent(e) {
+            if (!colorSvField) return;
+            var rect = colorSvField.getBoundingClientRect();
+            var clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            var clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+            var x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            var y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+
+            curS = Math.round((x / rect.width) * 100);
+            curV = Math.round((1 - (y / rect.height)) * 100);
+            renderCustomPicker(true);
+        }
+
+        if (colorSvField) {
+            colorSvField.addEventListener("mousedown", function (e) {
+                isDraggingSV = true;
+                handleSvEvent(e);
+            });
+            colorSvField.addEventListener("touchstart", function (e) {
+                isDraggingSV = true;
+                handleSvEvent(e);
+            }, { passive: true });
+        }
+
+        function handleHueEvent(e) {
+            if (!colorHueBar) return;
+            var rect = colorHueBar.getBoundingClientRect();
+            var clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            var x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            curH = Math.round((x / rect.width) * 360);
+            if (curH >= 360) curH = 0;
+            renderCustomPicker(true);
+        }
+
+        if (colorHueBar) {
+            colorHueBar.addEventListener("mousedown", function (e) {
+                isDraggingHue = true;
+                handleHueEvent(e);
+            });
+            colorHueBar.addEventListener("touchstart", function (e) {
+                isDraggingHue = true;
+                handleHueEvent(e);
+            }, { passive: true });
+        }
+
+        window.addEventListener("mousemove", function (e) {
+            if (isDraggingSV) {
+                e.preventDefault();
+                handleSvEvent(e);
+            } else if (isDraggingHue) {
+                e.preventDefault();
+                handleHueEvent(e);
+            }
+        });
+
+        window.addEventListener("touchmove", function (e) {
+            if (isDraggingSV) {
+                handleSvEvent(e);
+            } else if (isDraggingHue) {
+                handleHueEvent(e);
+            }
+        });
+
+        window.addEventListener("mouseup", function () {
+            isDraggingSV = false;
+            isDraggingHue = false;
+        });
+
+        window.addEventListener("touchend", function () {
+            isDraggingSV = false;
+            isDraggingHue = false;
+        });
+
+        if (popoverHexInput) {
+            popoverHexInput.addEventListener("input", function () {
+                var raw = this.value.replace(/[^0-9A-Fa-f]/g, "");
+                if (raw.length === 3 || raw.length === 6) {
+                    var fullHex = raw.length === 3
+                        ? "#" + raw[0] + raw[0] + raw[1] + raw[1] + raw[2] + raw[2]
+                        : "#" + raw;
+                    syncHsvFromHex(fullHex);
+                    renderCustomPicker(true);
+                }
+            });
+            popoverHexInput.addEventListener("blur", function () {
+                var rgb = hsvToRgb(curH, curS, curV);
+                this.value = rgbToHex(rgb.r, rgb.g, rgb.b).replace("#", "");
+            });
+        }
+
+        for (var mi = 0; mi < miniSwatches.length; mi++) {
+            miniSwatches[mi].addEventListener("click", function () {
+                var c = this.getAttribute("data-color");
+                if (c) {
+                    syncHsvFromHex(c);
+                    renderCustomPicker(false);
+                    applyHighlightColor(c, true);
+                }
+            });
+        }
+
+        if (window.EyeDropper && btnColorEyedropper) {
+            btnColorEyedropper.style.display = "inline-flex";
+            btnColorEyedropper.addEventListener("click", function () {
+                var eyeDropper = new window.EyeDropper();
+                eyeDropper.open().then(function (result) {
+                    if (result && result.sRGBHex) {
+                        syncHsvFromHex(result.sRGBHex);
+                        renderCustomPicker(false);
+                        applyHighlightColor(result.sRGBHex, true);
+                    }
+                }).catch(function () {});
+            });
+        }
+
+        var isWindowsOS = (typeof navigator !== "undefined") &&
+            ((navigator.platform && navigator.platform.indexOf("Win") !== -1) ||
+             (navigator.userAgent && navigator.userAgent.indexOf("Windows") !== -1));
+        if (btnSystemColor && isWindowsOS) {
+            btnSystemColor.style.display = "inline-flex";
+            btnSystemColor.addEventListener("click", function () {
+                if (colorPickerInput) {
+                    colorPickerInput.click();
+                }
             });
         }
 
         if (colorPickerInput) {
             colorPickerInput.addEventListener("input", function () {
+                syncHsvFromHex(this.value);
+                renderCustomPicker(false);
                 applyHighlightColor(this.value, true);
             });
             colorPickerInput.addEventListener("change", function () {
+                syncHsvFromHex(this.value);
+                renderCustomPicker(false);
                 applyHighlightColor(this.value, true);
             });
         }
 
         applyHighlightColor(selectedHighlightColor, false);
+        syncHsvFromHex(selectedHighlightColor);
+        renderCustomPicker(false);
         updateHighlightToggleState();
 
         // Word Count Slider (1-8 words, live badge, mousewheel support)

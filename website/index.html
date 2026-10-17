@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="css/style.css?v=1.4.2">
+    <link rel="stylesheet" href="css/style.css?v=1.4.4">
     <link rel="icon" type="image/png" href="assets/logo.png">
 
     <style id="leadModalStyles">
@@ -260,6 +260,7 @@
 
             <nav class="nav-links">
                 <a href="#features">יתרונות</a>
+                <a href="#simulator">סרטון הדגמה</a>
                 <a href="#how-it-works">איך זה עובד</a>
                 <a href="#download">הורדה</a>
                 <a href="install-guide.html">מדריך התקנה</a>
@@ -289,14 +290,14 @@
                 <span class="hero-tagline">תוסף <span class="highlight-free">חינמי</span> לחיתוך שקט, כתוביות AI ואנימציות טקסט לפרמייר פרו</span>
             </h1>
             <div class="hero-cta-group">
-                <a href="download/CS-Trim-Setup.exe?v=1.0.5" class="btn btn-primary" id="btnHeroDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" style="padding: 14px 28px; font-size: 1.05rem;" download="CS-Trim-Setup.exe">
+                <a href="download/CS-Trim-Setup.exe?v=1.0.6" class="btn btn-primary" id="btnHeroDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" style="padding: 14px 28px; font-size: 1.05rem;" download="CS-Trim-Setup.exe">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
                     </svg>
                     <span>הורדה ל-Windows</span>
                 </a>
 
-                <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" class="btn btn-secondary" id="btnHeroDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" style="padding: 14px 28px; font-size: 1.05rem;" download>
+                <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.6" class="btn btn-secondary" id="btnHeroDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" style="padding: 14px 28px; font-size: 1.05rem;" download>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/>
                     </svg>
@@ -515,135 +516,101 @@
         </div>
     </section>
 
-    <!-- Interactive Simulator Section -->
-    <section class="simulator-section" id="simulator">
+    <!-- Plugin Demo Video Showcase Section -->
+    <section class="simulator-section video-showcase-section" id="simulator">
         <div class="container">
             <div class="section-badge-wrap">
-                <span class="section-badge">התנסות אינטראקטיבית</span>
+                <span class="section-badge">הדגמה מתוך Premiere Pro</span>
             </div>
-            <h2 class="section-title">ראה את הקסם בעיניים שלך</h2>
-            <p class="section-desc">שחק עם הסימולטורים למטה כדי להרגיש איך CS Trim הופך חומרי גלם ארוכים לתוכן קצבי וממכר.</p>
+            <h2 class="section-title">ראה איך CS Trim עובד בזמן אמת</h2>
+            <p class="section-desc">צפה בסרטון ההדגמה וראה איך CS Trim חותך שתיקות אוטומטית, מייצר כתוביות AI בעברית עם מרקר מילים, ומוסיף אנימציות טקסט בלחיצת כפתור.</p>
 
-            <div class="sim-grid">
-                <!-- Sim 1: Silence Trimmer -->
-                <div class="sim-card">
-                    <div class="sim-card-header">
-                        <div class="sim-card-title">
-                            <span class="sim-pill">סימולטור 1</span>
-                            <h3>חיתוך שקט בטיימליין</h3>
-                        </div>
-                        <div class="sim-controls">
-                            <button class="sim-btn active" id="simModeBefore" onclick="setSimCutMode('before')">לפני חיתוך (גלם)</button>
-                            <button class="sim-btn" id="simModeAfter" onclick="setSimCutMode('after')">אחרי CS Trim (נקי)</button>
-                        </div>
-                    </div>
+            <!-- Interactive Chapter Switcher Pills -->
+            <div class="demo-chapters-bar" id="demoChaptersBar">
+                <button type="button" class="demo-chapter-btn active" data-chapter="0" onclick="seekDemoVideo(0, 0)">
+                    <span class="chapter-num">01</span>
+                    <span class="chapter-icon">✂️</span>
+                    <span class="chapter-label">חיתוך שקט אוטומטי</span>
+                </button>
+                <button type="button" class="demo-chapter-btn" data-chapter="1" onclick="seekDemoVideo(6.2, 1)">
+                    <span class="chapter-num">02</span>
+                    <span class="chapter-icon">✨</span>
+                    <span class="chapter-label">כתוביות AI + מרקר מילים</span>
+                </button>
+                <button type="button" class="demo-chapter-btn" data-chapter="2" onclick="seekDemoVideo(13.5, 2)">
+                    <span class="chapter-num">03</span>
+                    <span class="chapter-icon">🎬</span>
+                    <span class="chapter-label">אנימציות טקסט בקליק</span>
+                </button>
+                <button type="button" class="demo-chapter-btn" data-chapter="3" onclick="seekDemoVideo(19.5, 3)">
+                    <span class="chapter-num">04</span>
+                    <span class="chapter-icon">🚀</span>
+                    <span class="chapter-label">התוצאה הסופית</span>
+                </button>
+            </div>
 
-                    <div class="sim-stage">
-                        <div class="sim-stage-info">
-                            <div>
-                                <span class="sim-label">אורך הסרטון:</span>
-                                <strong id="simDurationText" class="sim-val">03:45 דקות</strong>
-                            </div>
-                            <div>
-                                <span class="sim-label">שתיקות שהוסרו:</span>
-                                <strong id="simSavedText" class="sim-val text-accent">0 שניות (ממתין לחיתוך)</strong>
-                            </div>
-                        </div>
+            <!-- Video Showcase Frame -->
+            <div class="demo-video-card">
+                <div class="demo-video-stage" onclick="toggleDemoVideoPlay()">
+                    <video
+                        id="csTrimDemoVideo"
+                        class="demo-video-element"
+                        src="assets/cs-trim-demo.mp4"
+                        poster="assets/cs-trim-demo-poster.png"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="auto">
+                        הדפדפן שלך אינו תומך בניגון וידאו.
+                    </video>
 
-                        <!-- Visual waveform & blocks -->
-                        <div class="sim-timeline-view" id="simTimelineTrack">
-                            <!-- Populated dynamically via JS -->
-                        </div>
-
-                        <div class="sim-legend">
-                            <span class="legend-item"><span class="legend-box speech"></span> קטעי דיבור (נשמרים)</span>
-                            <span class="legend-item"><span class="legend-box silence"></span> שקט מיותר (נחתך אוטומטית)</span>
-                        </div>
-
-                        <div class="sim-action-bar">
-                            <button class="btn btn-primary btn-sm" id="btnSimTrigger" onclick="toggleSimCut()">
-                                <span>הפעל חיתוך אוטומטי</span>
-                            </button>
-                            <span class="sim-hint">לחץ על הכפתור כדי לראות איך 40% מהזמן נחתך בשנייה!</span>
+                    <!-- Center Play Overlay Indicator (shown only when paused) -->
+                    <div class="demo-play-overlay" id="demoPlayOverlay" style="display: none;">
+                        <div class="demo-play-circle">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                            </svg>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sim 2: Caption Word Slider -->
-                <div class="sim-card">
-                    <div class="sim-card-header">
-                        <div class="sim-card-title">
-                            <span class="sim-pill">סימולטור 2</span>
-                            <h3>כתוביות AI לסרטוני טיקטוק ורילס</h3>
-                        </div>
-                        <div class="word-count-badge">
-                            <span id="simWordsLabel">3 מילים</span> במשפט
-                        </div>
-                    </div>
+                <!-- Custom Bottom Control Bar -->
+                <div class="demo-video-controls">
+                    <button type="button" class="demo-ctrl-btn" id="btnDemoPlayPause" onclick="toggleDemoVideoPlay()" title="נגן / השהה">
+                        <svg id="iconDemoPause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                            <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                        </svg>
+                        <svg id="iconDemoPlay" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
 
-                    <div class="sim-stage">
-                        <div class="slider-box">
-                            <label for="interactiveWordSlider" class="sim-label">הזז את הסליידר לשליטה בכמות המילים בכתובית:</label>
-                            <div class="slider-flex">
-                                <span>מילה אחת</span>
-                                <input type="range" id="interactiveWordSlider" min="1" max="8" value="3" oninput="updateWordSim(this.value)">
-                                <span>8 מילים</span>
-                            </div>
-                        </div>
-
-                        <!-- Highlight Marker Selector for Simulator -->
-                        <div class="sim-highlight-bar">
-                            <span class="sim-hl-label">✨ מרקר היילייט:</span>
-                            <button type="button" class="sim-hl-btn active" id="simHlYellow" onclick="setSimHighlightColor('#FACC15', this)" title="צהוב מרקר">
-                                <span class="sim-swatch" style="background:#FACC15;"></span>
-                                <span>צהוב</span>
-                            </button>
-                            <button type="button" class="sim-hl-btn" id="simHlGreen" onclick="setSimHighlightColor('#22C55E', this)" title="ירוק זוהר">
-                                <span class="sim-swatch" style="background:#22C55E;"></span>
-                                <span>ירוק</span>
-                            </button>
-                            <button type="button" class="sim-hl-btn" id="simHlPink" onclick="setSimHighlightColor('#EC4899', this)" title="ורוד מרקר">
-                                <span class="sim-swatch" style="background:#EC4899;"></span>
-                                <span>ורוד</span>
-                            </button>
-                            <button type="button" class="sim-hl-btn" id="simHlCyan" onclick="setSimHighlightColor('#38BDF8', this)" title="כחול טורקיז">
-                                <span class="sim-swatch" style="background:#38BDF8;"></span>
-                                <span>כחול</span>
-                            </button>
-                            <button type="button" class="sim-hl-btn sim-hl-off" id="simHlOff" onclick="setSimHighlightColor('none', this)" title="ללא מרקר">
-                                <span>ללא</span>
-                            </button>
-                        </div>
-
-                        <!-- Live Phone Video Mockup with Animated Captions -->
-                        <div class="phone-mockup">
-                            <div class="phone-speaker"></div>
-                            <div class="phone-screen">
-                                <div class="reel-creator-badge">
-                                    <div class="creator-avatar"></div>
-                                    <span>@video_creator</span>
-                                </div>
-
-                                <div class="reel-video-placeholder">
-                                    <div class="caption-display-box" id="simCaptionBox">
-                                        <!-- Subtitle words rendered here -->
-                                    </div>
-                                </div>
-
-                                <div class="reel-actions">
-                                    <span>❤️ 14.2K</span>
-                                    <span>💬 482</span>
-                                    <span>↗️ 2.1K</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="caption-presets">
-                            <button class="preset-pill" data-words="1" onclick="setWordSimPreset(1)">מילה אחת (MrBeast)</button>
-                            <button class="preset-pill active" data-words="3" onclick="setWordSimPreset(3)">3 מילים (Hormozi Style)</button>
-                            <button class="preset-pill" data-words="6" onclick="setWordSimPreset(6)">6 מילים (פודקאסט קלאסי)</button>
+                    <div class="demo-progress-wrap" id="demoProgressWrap" onclick="scrubDemoVideo(event)" title="לחץ לדילוג בווידאו">
+                        <div class="demo-progress-track">
+                            <div class="demo-progress-fill" id="demoProgressFill"></div>
+                            <span class="demo-chapter-tick" style="left: 25.8%;" title="שלב 2: כתוביות AI"></span>
+                            <span class="demo-chapter-tick" style="left: 56.2%;" title="שלב 3: אנימציות טקסט"></span>
+                            <span class="demo-chapter-tick" style="left: 81.2%;" title="תוצאה סופית"></span>
                         </div>
                     </div>
+
+                    <span class="demo-time-badge" id="demoTimeDisplay">00:00 / 00:24</span>
+
+                    <button type="button" class="demo-ctrl-btn demo-ctrl-text" onclick="seekDemoVideo(0, 0)" title="הפעל מההתחלה">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                        </svg>
+                        <span>מההתחלה</span>
+                    </button>
+
+                    <button type="button" class="demo-ctrl-btn" onclick="openDemoFullscreen()" title="מסך מלא">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -694,19 +661,19 @@
         <div class="container">
             <div class="download-box-wrapper" id="download">
                 <div class="dl-content">
-                    <span class="dl-tag">הורדה חינם • גרסה 1.0.5 (כולל אנימציות טקסט והיילייט מילים)</span>
+                    <span class="dl-tag">הורדה חינם • גרסה 1.0.6 (כולל פלטת צבעי מרקר, אנימציות והיילייט מילים)</span>
                     <h2 class="dl-title">מוכן לקצר 80% מזמן העריכה שלך?</h2>
                     <p class="dl-subtitle">הורד את CS Trim עכשיו. חיתוך שקט אוטומטי, כתוביות AI מדויקות, אנימציות טקסט חיות, היילייט מילים דינמי, ו-100% חינם לתמיד.</p>
 
                     <div class="dl-buttons-row" style="display: flex; gap: 14px; flex-wrap: wrap;">
-                        <a href="download/CS-Trim-Setup.exe?v=1.0.5" class="btn btn-primary" id="btnCardDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download="CS-Trim-Setup.exe">
+                        <a href="download/CS-Trim-Setup.exe?v=1.0.6" class="btn btn-primary" id="btnCardDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download="CS-Trim-Setup.exe">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
                             </svg>
                             <span>הורדה ל-Windows</span>
                         </a>
 
-                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" class="btn btn-secondary" id="btnCardDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download>
+                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.6" class="btn btn-secondary" id="btnCardDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download>
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/>
                             </svg>
@@ -714,7 +681,7 @@
                         </a>
                     </div>
                     <div style="text-align: center; margin-top: 10px;">
-                        <a href="download/CS-Trim-v1.0.0-Windows.zip?v=1.0.5" onclick="handleDownloadLinkClick(event, this); return false;" style="color: #94a3b8; font-size: 0.88rem; text-decoration: underline;" download>
+                        <a href="download/CS-Trim-v1.0.0-Windows.zip?v=1.0.6" onclick="handleDownloadLinkClick(event, this); return false;" style="color: #94a3b8; font-size: 0.88rem; text-decoration: underline;" download>
                             הורדת חבילת ZIP מלאה ל-Windows (למי שמעדיף התקנה ללא Setup)
                         </a>
                     </div>
@@ -1369,8 +1336,8 @@
 
         var isMac = /macintosh|mac os x/i.test(navigator.userAgent);
         var url = isMac 
-            ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" 
-            : "download/CS-Trim-Setup.exe?v=1.0.5";
+            ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.6" 
+            : "download/CS-Trim-Setup.exe?v=1.0.6";
         var filename = isMac ? "CS-Trim-v1.0.0-Mac.pkg" : "CS-Trim-Setup.exe";
         window.openLeadModal(url, filename, isMac ? "Mac" : "Windows");
         return false;
@@ -1440,6 +1407,6 @@
     </script>
 
     <!-- Scripts -->
-    <script src="js/main.js?v=1.4.3"></script>
+    <script src="js/main.js?v=1.4.4"></script>
 </body>
 </html>

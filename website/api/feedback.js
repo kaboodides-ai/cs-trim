@@ -72,7 +72,7 @@ export default async function handler(req, res) {
         const cleanContact = (contact || "").trim().slice(0, 150);
         const cleanSource = (source || "website").trim().slice(0, 50); // "plugin" or "website"
         const cleanPlatform = (platform || "Unknown").trim().slice(0, 80);
-        const cleanVersion = (version || "1.0.5").trim().slice(0, 30);
+        const cleanVersion = (version || "1.0.6").trim().slice(0, 30);
 
         const typeLabels = {
             improvement: "💡 הצעת שיפור / פיצ'ר",

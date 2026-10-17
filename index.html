@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=5">
+    <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
     <!-- Top Status Bar (Integrated Sequence & Connection, no redundant double title) -->
@@ -43,7 +43,7 @@
             <div class="update-banner-info">
                 <div class="update-title-line">
                     <span class="update-main-title">גרסה חדשה זמינה!</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.5</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.6</span>
                 </div>
                 <div id="updateNotesPreview" class="update-notes-preview">לחץ לעדכון מהיר בלחיצה אחת</div>
             </div>
@@ -166,10 +166,71 @@
                 <button type="button" class="color-swatch" data-color="#EC4899" style="--swatch-color: #EC4899;" title="ורוד מרקר" aria-label="ורוד מרקר"></button>
                 <button type="button" class="color-swatch" data-color="#F97316" style="--swatch-color: #F97316;" title="כתום" aria-label="כתום"></button>
                 <button type="button" class="color-swatch" data-color="#A855F7" style="--swatch-color: #A855F7;" title="סגול" aria-label="סגול"></button>
-                <label class="custom-color-picker-wrap" title="בחירת צבע מותאם אישית">
-                    <input type="color" id="captionHighlightColor" value="#FACC15" aria-label="בחירת צבע ההייליט">
-                    <span class="custom-color-picker-btn" id="customColorBtn">+</span>
-                </label>
+                <div class="custom-color-picker-wrap" id="customColorWrap" title="בחירת צבע מותאם אישית מהפלטה">
+                    <button type="button" class="custom-color-picker-btn" id="customColorBtn" aria-label="בחירת צבע מותאם אישית מהפלטה">+</button>
+                    <input type="color" id="captionHighlightColor" value="#FACC15" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden;" aria-label="בחירת צבע ההייליט">
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Color Palette Popover (macOS & Windows) -->
+        <div id="highlightColorPopover" class="highlight-color-popover" style="display:none;">
+            <div class="popover-header">
+                <div class="popover-title">
+                    <span class="popover-title-icon">🎨</span>
+                    <span>פלטת צבעים מותאמת אישית</span>
+                </div>
+                <button type="button" class="popover-close-btn" id="popoverCloseBtn" title="סגור פלטה">✕</button>
+            </div>
+
+            <div class="color-sv-field" id="colorSvField" title="גרור לבחירת גוון ובהירות">
+                <div class="color-sv-cursor" id="colorSvCursor"></div>
+            </div>
+
+            <div class="color-hue-bar" id="colorHueBar" title="פס צבעי הקשת (Hue)">
+                <div class="color-hue-cursor" id="colorHueCursor"></div>
+            </div>
+
+            <div class="color-inputs-row">
+                <div class="color-preview-box" id="popoverPreviewBox" title="צבע נבחר"></div>
+                <div class="color-hex-wrap">
+                    <span class="color-hex-prefix">#</span>
+                    <input type="text" id="popoverHexInput" class="color-hex-input" maxlength="6" value="FACC15" placeholder="HEX" spellcheck="false" aria-label="קוד צבע HEX">
+                </div>
+                <button type="button" class="btn-color-eyedropper" id="btnColorEyedropper" title="דוגם צבע מהמסך" style="display:none;">
+                    <span>💧</span>
+                </button>
+                <button type="button" class="btn-color-system" id="btnSystemColor" title="פתיחת חלון הצבע של מערכת ההפעלה" style="display:none;">
+                    <span>🪟 מערכת</span>
+                </button>
+            </div>
+
+            <div class="color-presets-section">
+                <div class="color-presets-title">גווני מרקר פופולריים:</div>
+                <div class="color-presets-grid" id="colorPresetsGrid">
+                    <button type="button" class="color-mini-swatch" data-color="#FACC15" style="--swatch-c: #FACC15;" title="צהוב מרקר"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#FEF08A" style="--swatch-c: #FEF08A;" title="צהוב בהיר"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#F59E0B" style="--swatch-c: #F59E0B;" title="ענבר"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#FB923C" style="--swatch-c: #FB923C;" title="כתום פסטל"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#F97316" style="--swatch-c: #F97316;" title="כתום זוהר"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#EF4444" style="--swatch-c: #EF4444;" title="אדום"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#F43F5E" style="--swatch-c: #F43F5E;" title="רוז"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#EC4899" style="--swatch-c: #EC4899;" title="ורוד מרקר"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#D946EF" style="--swatch-c: #D946EF;" title="פוקסיה"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#A855F7" style="--swatch-c: #A855F7;" title="סגול"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#8B5CF6" style="--swatch-c: #8B5CF6;" title="סגול חשמלי"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#6366F1" style="--swatch-c: #6366F1;" title="אינדיגו"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#3B82F6" style="--swatch-c: #3B82F6;" title="כחול"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#0EA5E9" style="--swatch-c: #0EA5E9;" title="ציאן"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#06B6D4" style="--swatch-c: #06B6D4;" title="טורקיז"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#10B981" style="--swatch-c: #10B981;" title="מנטה"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#22C55E" style="--swatch-c: #22C55E;" title="ירוק זוהר"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#84CC16" style="--swatch-c: #84CC16;" title="ליים"></button>
+                </div>
+            </div>
+
+            <div class="popover-actions">
+                <button type="button" id="btnApplyCustomColor" class="btn-apply-color">אישור ובחירה</button>
             </div>
         </div>
 
@@ -371,7 +432,7 @@
         <button type="button" class="btn-feedback-pill" onclick="openFeedbackModal(event)" title="שלח פידבק או הצעת שיפור לפלאגין">💬 פידבק והצעות</button>
         <span class="footer-dot">•</span>
         <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="checkUpdateManual(event)" title="לחץ לבדיקת עדכונים">
-            <span id="footerVersionText">v1.0.5</span>
+            <span id="footerVersionText">v1.0.6</span>
             <span id="footerCheckSpin" class="spin-icon">🔄</span>
         </button>
     </div>
@@ -438,6 +499,6 @@
     <script src="js/audioAnalyzer.js?v=5"></script>
     <script src="js/captionGenerator.js?v=5"></script>
     <script src="js/textAnimator.js?v=5"></script>
-    <script src="js/main.js?v=5"></script>
+    <script src="js/main.js?v=6"></script>
 </body>
 </html>

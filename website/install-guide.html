@@ -646,7 +646,7 @@
                                 <span>תואם מעבדי Apple Silicon (M1/M2/M3/M4) ואינטל</span>
                             </div>
                         </div>
-                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download style="padding: 10px 22px; font-size: 0.92rem;">
+                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.6" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download style="padding: 10px 22px; font-size: 0.92rem;">
                             <span>הורדת קובץ ל-Mac</span>
                         </a>
                     </div>
@@ -742,7 +742,7 @@
                                 <span>תואם Windows 10 ו-Windows 11</span>
                             </div>
                         </div>
-                        <a href="download/CS-Trim-Setup.exe?v=1.0.5" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe" style="padding: 10px 22px; font-size: 0.92rem;">
+                        <a href="download/CS-Trim-Setup.exe?v=1.0.6" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe" style="padding: 10px 22px; font-size: 0.92rem;">
                             <span>הורדת קובץ ל-Windows</span>
                         </a>
                     </div>
@@ -1328,8 +1328,8 @@
 
             var isMac = /macintosh|mac os x/i.test(navigator.userAgent);
             var url = isMac 
-                ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.5" 
-                : "download/CS-Trim-Setup.exe?v=1.0.5";
+                ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.6" 
+                : "download/CS-Trim-Setup.exe?v=1.0.6";
             var filename = isMac ? "CS-Trim-v1.0.0-Mac.pkg" : "CS-Trim-Setup.exe";
             window.openLeadModal(url, filename, isMac ? "Mac" : "Windows");
             return false;

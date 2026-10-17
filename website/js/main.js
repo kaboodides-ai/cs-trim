@@ -404,10 +404,124 @@ function initOSDetection() {
 }
 
 // -----------------------------------------------------------------------------
+// 6b. Interactive Demo Video Player & Chapter Sync
+// -----------------------------------------------------------------------------
+function formatDemoTime(sec) {
+    const s = Math.max(0, Math.floor(sec || 0));
+    const mins = String(Math.floor(s / 60)).padStart(2, "0");
+    const secs = String(s % 60).padStart(2, "0");
+    return `${mins}:${secs}`;
+}
+
+function updateDemoChapterUI(currentTime) {
+    let activeChapter = 0;
+    if (currentTime >= 19.5) {
+        activeChapter = 3;
+    } else if (currentTime >= 13.5) {
+        activeChapter = 2;
+    } else if (currentTime >= 6.2) {
+        activeChapter = 1;
+    } else {
+        activeChapter = 0;
+    }
+
+    const btns = document.querySelectorAll(".demo-chapter-btn");
+    btns.forEach((btn, idx) => {
+        if (idx === activeChapter) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
+}
+
+function syncDemoPlayIcons(isPaused) {
+    const overlay = document.getElementById("demoPlayOverlay");
+    const iconPause = document.getElementById("iconDemoPause");
+    const iconPlay = document.getElementById("iconDemoPlay");
+    if (overlay) overlay.style.display = isPaused ? "flex" : "none";
+    if (iconPause) iconPause.style.display = isPaused ? "none" : "block";
+    if (iconPlay) iconPlay.style.display = isPaused ? "block" : "none";
+}
+
+function toggleDemoVideoPlay() {
+    const video = document.getElementById("csTrimDemoVideo");
+    if (!video) return;
+    if (video.paused) {
+        video.play().catch(() => {});
+        syncDemoPlayIcons(false);
+    } else {
+        video.pause();
+        syncDemoPlayIcons(true);
+    }
+}
+
+function seekDemoVideo(seconds, chapterIdx) {
+    const video = document.getElementById("csTrimDemoVideo");
+    if (!video) return;
+    try {
+        video.currentTime = seconds;
+    } catch (e) {}
+    video.play().catch(() => {});
+    syncDemoPlayIcons(false);
+    if (typeof chapterIdx === "number") {
+        const btns = document.querySelectorAll(".demo-chapter-btn");
+        btns.forEach((btn, idx) => {
+            btn.classList.toggle("active", idx === chapterIdx);
+        });
+    }
+}
+
+function scrubDemoVideo(event) {
+    const video = document.getElementById("csTrimDemoVideo");
+    const wrap = document.getElementById("demoProgressWrap");
+    if (!video || !wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const dur = video.duration || 24;
+    video.currentTime = ratio * dur;
+    updateDemoChapterUI(video.currentTime);
+}
+
+function openDemoFullscreen() {
+    const video = document.getElementById("csTrimDemoVideo");
+    if (!video) return;
+    if (video.requestFullscreen) {
+        video.requestFullscreen();
+    } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+    } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+    }
+}
+
+function initDemoVideoPlayer() {
+    const video = document.getElementById("csTrimDemoVideo");
+    if (!video) return;
+
+    const fill = document.getElementById("demoProgressFill");
+    const timeBadge = document.getElementById("demoTimeDisplay");
+
+    video.addEventListener("timeupdate", () => {
+        const dur = video.duration || 24;
+        const pct = Math.min(100, Math.max(0, (video.currentTime / dur) * 100));
+        if (fill) fill.style.width = `${pct}%`;
+        if (timeBadge) {
+            timeBadge.textContent = `${formatDemoTime(video.currentTime)} / ${formatDemoTime(dur)}`;
+        }
+        updateDemoChapterUI(video.currentTime);
+    });
+
+    video.addEventListener("play", () => syncDemoPlayIcons(false));
+    video.addEventListener("pause", () => syncDemoPlayIcons(true));
+}
+
+// -----------------------------------------------------------------------------
 // 7. Smooth Navbar Scroll & Init
 // -----------------------------------------------------------------------------
 function initAll() {
     if (typeof initOSDetection === "function") initOSDetection();
+    initDemoVideoPlayer();
     renderTimeline(false);
     updateWordSim(3);
     initFaq();
@@ -594,7 +708,7 @@ function handleSuggestSubmit(event) {
                 contact: "משתמש באתר",
                 source: "website",
                 platform: (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "Web",
-                version: "1.0.5"
+                version: "1.0.6"
             })
         }).catch(function() {});
     } catch (eSheets) {}
@@ -811,6 +925,10 @@ if (typeof window !== "undefined") {
     window.setWordSimPreset = setWordSimPreset;
     window.setSimHighlightColor = setSimHighlightColor;
     window.startCaptionLoop = startCaptionLoop;
+    window.seekDemoVideo = seekDemoVideo;
+    window.toggleDemoVideoPlay = toggleDemoVideoPlay;
+    window.scrubDemoVideo = scrubDemoVideo;
+    window.openDemoFullscreen = openDemoFullscreen;
     window.switchGuideTab = switchGuideTab;
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;

@@ -476,6 +476,93 @@ function updateCaptionScopeUI(scope) {
     }
 }
 
+function sendActivationPing(isConnected) {
+    try {
+        var now = Date.now();
+        var isFirstLaunch = !localStorage.getItem("cstrim_first_launch_done");
+        var lastPing = parseInt(localStorage.getItem("cstrim_last_ping") || "0", 10);
+
+        // Don't send multiple times on quick reloads within 2 hours, unless it's the first launch
+        if (!isFirstLaunch && (now - lastPing < 2 * 60 * 60 * 1000)) {
+            return;
+        }
+
+        var installId = localStorage.getItem("cstrim_install_id");
+        if (!installId) {
+            installId = "id_" + Math.random().toString(36).substring(2, 9) + "_" + Math.floor(now / 1000).toString(36);
+            localStorage.setItem("cstrim_install_id", installId);
+        }
+
+        var osName = "Unknown";
+        var isWin = (typeof navigator !== "undefined" && ((navigator.platform && navigator.platform.indexOf("Win") !== -1) || (navigator.userAgent && navigator.userAgent.indexOf("Windows") !== -1)));
+        var isMac = (typeof navigator !== "undefined" && ((navigator.platform && navigator.platform.indexOf("Mac") !== -1) || (navigator.userAgent && navigator.userAgent.indexOf("Mac") !== -1)));
+        if (isWin) osName = "Windows";
+        else if (isMac) osName = "macOS";
+
+        var savedEmail = "";
+        try { savedEmail = localStorage.getItem("cs_trim_lead_email") || ""; } catch (eEm) {}
+
+        var eventType = isFirstLaunch ? "first_install" : "session_launch";
+        var eventTitle = isFirstLaunch 
+            ? "🎉 התקנה חדשה! הפלאגין הופעל לראשונה בפרמייר"
+            : "⚡ הפעלת תוסף בפרמייר פרו";
+
+        var messageDetail = (isFirstLaunch ? "התקנה חדשה הופעלה בהצלחה בפרמייר! " : "סשן עריכה פעיל: ") +
+            (isConnected ? "מחובר לפרמייר Pro בהצלחה ✔️" : "נפתח בפאנל אך טרם חובר לסיקוונס") +
+            " | מערכת: " + osName + " (" + (navigator.platform || "") + ")" +
+            " | מזהה: " + installId;
+
+        var curVer = (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.6";
+
+        var payload = {
+            type: eventType,
+            typeLabel: eventTitle,
+            message: messageDetail,
+            contact: savedEmail ? ("משתמש: " + savedEmail) : ("משתמש " + osName + " (" + installId + ")"),
+            email: savedEmail || ("משתמש " + osName),
+            installId: installId,
+            source: "plugin_activation",
+            platform: osName + " (" + (navigator.platform || "") + ")",
+            version: curVer,
+            isConnected: Boolean(isConnected),
+            timestamp: new Date().toISOString(),
+            dateFormatted: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })
+        };
+
+        // 1. Direct Google Sheets Webhook (Events & Feedback Sheet)
+        var sheetsEventsUrl = "https://script.google.com/macros/s/AKfycbxKrwUzhMHd4k9sztgsB3zn6GCW5hgNa39R1P8Dj7Vic-pmlVc2kcDuCxTqzilraTSNeQ/exec";
+        try {
+            fetch(sheetsEventsUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).catch(function () {});
+        } catch (e1) {}
+
+        // 2. Direct Google Sheets Webhook (Leads Sheet)
+        var sheetsLeadsUrl = "https://script.google.com/macros/s/AKfycbzwu0SYpzKo7R8PLspujaNAyqjG_jnKgmXOU2scPQgr14aUuP5EUzPz9Xd0yK8zIGZ7/exec";
+        try {
+            fetch(sheetsLeadsUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: savedEmail || ("משתמש פעיל (" + osName + ")"),
+                    platform: osName,
+                    fileName: isFirstLaunch ? "הפלאגין נפתח בהצלחה בפרמייר (התקנה חדשה! 🎉)" : "סשן עריכה פעיל בפרמייר",
+                    timestamp: payload.timestamp,
+                    dateFormatted: payload.dateFormatted,
+                    referrer: "Premiere Pro Plugin v" + curVer
+                })
+            }).catch(function () {});
+        } catch (e2) {}
+
+        localStorage.setItem("cstrim_first_launch_done", "true");
+        localStorage.setItem("cstrim_last_ping", String(now));
+    } catch (err) {}
+}
+
 function initApp() {
     try {
         initTabs();
@@ -521,10 +608,12 @@ function initApp() {
                     txt.innerText = "מחובר";
                     log("מחובר ל-Premiere Pro", "success");
                     refreshSequenceInfo();
+                    sendActivationPing(true);
                 } else {
                     dot.classList.add("offline");
                     txt.innerText = "לא מחובר";
                     log("פרמייר לא החזיר תשובה. נסה Reload.", "error");
+                    sendActivationPing(false);
                 }
             });
         });
@@ -1803,8 +1892,12 @@ function submitPluginFeedback(e) {
         contact: contact,
         source: "plugin",
         platform: (typeof navigator !== "undefined" && navigator.platform) ? navigator.platform : "Premiere",
-        version: (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.5"
+        version: (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.6"
     };
+
+    if (contact && contact.includes("@")) {
+        try { localStorage.setItem("cs_trim_lead_email", contact); } catch (eEm) {}
+    }
 
     // Cache locally
     try {

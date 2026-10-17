@@ -767,7 +767,7 @@ window.getCSFeedbacks = function() {
 // =============================================================================
 
 // הדבק כאן את כתובת ה-Web App של Google Apps Script כשתרצה לסנכרן אוטומטית לגוגל שיטס
-var GOOGLE_SHEETS_WEBHOOK_URL = (typeof window !== "undefined" && window.GOOGLE_SHEETS_WEBHOOK_URL) || ""; 
+var GOOGLE_SHEETS_WEBHOOK_URL = (typeof window !== "undefined" && window.GOOGLE_SHEETS_WEBHOOK_URL) || "https://script.google.com/macros/s/AKfycbzwu0SYpzKo7R8PLspujaNAyqjG_jnKgmXOU2scPQgr14aUuP5EUzPz9Xd0yK8zIGZ7/exec"; 
 
 var pendingDownload = (typeof window !== "undefined" && window.pendingDownload) || {
     url: "",

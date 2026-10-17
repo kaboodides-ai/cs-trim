@@ -12,8 +12,230 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="css/style.css?v=1.4.2">
+    <link rel="stylesheet" href="css/style.css?v=1.4.3">
     <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <style id="leadModalStyles">
+    .lead-modal-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(4, 7, 15, 0.88) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        z-index: 9999999 !important;
+        display: none;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
+    }
+    .lead-modal-overlay.active {
+        display: flex !important;
+    }
+    .lead-modal-card {
+        position: relative !important;
+        max-width: 480px !important;
+        width: 100% !important;
+        background: linear-gradient(180deg, #131826 0%, #0c0f18 100%) !important;
+        border: 1px solid rgba(59, 130, 246, 0.35) !important;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(37, 99, 235, 0.22) !important;
+        border-radius: 22px !important;
+        padding: 34px 28px 28px !important;
+        text-align: center !important;
+        direction: rtl !important;
+        box-sizing: border-box !important;
+        animation: leadModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    @keyframes leadModalIn {
+        from { opacity: 0; transform: scale(0.92) translateY(12px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .lead-modal-close-btn {
+        position: absolute !important;
+        top: 16px !important;
+        left: 16px !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        font-size: 1.35rem !important;
+        line-height: 1 !important;
+        transition: all 0.2s ease !important;
+    }
+    .lead-modal-close-btn:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
+        color: #f87171 !important;
+        transform: rotate(90deg) !important;
+    }
+    .lead-icon-bubble {
+        width: 68px !important;
+        height: 68px !important;
+        margin: 0 auto 18px !important;
+        border-radius: 20px !important;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(56, 189, 248, 0.25)) !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #38bdf8 !important;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.28) !important;
+    }
+    .lead-modal-title {
+        font-size: 1.55rem !important;
+        font-weight: 800 !important;
+        color: #f8fafc !important;
+        margin-bottom: 8px !important;
+        letter-spacing: -0.02em !important;
+    }
+    .lead-modal-subtitle {
+        font-size: 0.95rem !important;
+        color: #94a3b8 !important;
+        line-height: 1.55 !important;
+        margin-bottom: 18px !important;
+    }
+    .lead-target-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 6px 14px !important;
+        background: rgba(37, 99, 235, 0.12) !important;
+        border: 1px solid rgba(59, 130, 246, 0.28) !important;
+        border-radius: 9999px !important;
+        color: #93c5fd !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 22px !important;
+    }
+    .lead-form-group {
+        margin-bottom: 16px !important;
+        text-align: right !important;
+    }
+    .lead-input-wrap {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .lead-input-icon {
+        position: absolute !important;
+        right: 14px !important;
+        color: #64748b !important;
+        pointer-events: none !important;
+        display: flex !important;
+        align-items: center !important;
+        transition: color 0.2s ease !important;
+    }
+    .lead-input {
+        width: 100% !important;
+        padding: 14px 44px 14px 16px !important;
+        background: rgba(10, 14, 24, 0.85) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 12px !important;
+        color: #ffffff !important;
+        font-size: 1.02rem !important;
+        font-family: inherit !important;
+        direction: ltr !important;
+        text-align: right !important;
+        transition: all 0.2s ease !important;
+        outline: none !important;
+        box-sizing: border-box !important;
+    }
+    .lead-input:focus {
+        border-color: #3b82f6 !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
+    }
+    .lead-btn-submit {
+        width: 100% !important;
+        padding: 15px 24px !important;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        font-family: inherit !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 10px !important;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4) !important;
+        transition: all 0.22s ease !important;
+        box-sizing: border-box !important;
+    }
+    .lead-btn-submit:hover:not(:disabled) {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.55) !important;
+        transform: translateY(-2px) !important;
+    }
+    .lead-btn-submit:disabled {
+        opacity: 0.65 !important;
+        cursor: not-allowed !important;
+    }
+    .lead-footer-note {
+        margin-top: 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        color: #64748b !important;
+        font-size: 0.8rem !important;
+    }
+    .lead-error-msg {
+        color: #f87171 !important;
+        font-size: 0.85rem !important;
+        margin-top: 8px !important;
+        text-align: right !important;
+        display: none;
+    }
+    .download-toast {
+        position: fixed !important;
+        bottom: 30px !important;
+        left: 50% !important;
+        transform: translateX(-50%) translateY(100px) !important;
+        background: #101524 !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(37, 99, 235, 0.25) !important;
+        color: #f8fafc !important;
+        padding: 14px 24px !important;
+        border-radius: 9999px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        z-index: 10000000 !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        direction: rtl !important;
+    }
+    .download-toast.show {
+        transform: translateX(-50%) translateY(0) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    .download-toast-icon {
+        width: 24px !important;
+        height: 24px !important;
+        color: #10b981 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    </style>
 
     <style>
         .guide-page {
@@ -678,7 +900,7 @@
     </footer>
 
     <!-- Lead Capture Modal (Email Gate Before Download) -->
-    <div id="leadModal" class="lead-modal-overlay" onclick="closeLeadModal(event)">
+    <div id="leadModal" class="lead-modal-overlay" style="display: none;" onclick="closeLeadModal(event)">
         <div class="lead-modal-card" onclick="event.stopPropagation()">
             <button type="button" class="lead-modal-close-btn" onclick="closeLeadModal()" title="סגור">&times;</button>
             

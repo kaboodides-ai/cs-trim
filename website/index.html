@@ -452,31 +452,31 @@
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                         </svg>
                     </div>
-                    <h3>אנימציות טקסט בלחיצת כפתור</h3>
-                    <p class="feature-lead">הנפשת כתוביות ושכבות טקסט בקיפריימים טבעיים ישירות בטיימליין.</p>
+                    <h3>אנימציות טקסט בקליק</h3>
+                    <p class="feature-lead">מעירים את הטקסט לחיים בלחיצת כפתור אחת — בלי אפטר אפקטס ובלי להסתבך.</p>
                     <ul class="feature-points">
                         <li class="feature-point-featured" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(37, 99, 235, 0.05) 100%) !important; border-color: rgba(56, 189, 248, 0.35) !important;">
                             <span class="icon-check" style="color: #38bdf8;">✨</span>
                             <div>
-                                <strong style="color: #93c5fd;">4 פריסטים פופולריים:</strong> תנועות Pop (Bounce), החלקה למעלה, זום דינמי ועמעום חלק.
+                                <strong style="color: #93c5fd;">תנועות מוכנות מראש:</strong> פופ קופצני, החלקה, זום ועמעום שתופסים את העין של הצופה.
                             </div>
                         </li>
                         <li>
                             <span class="icon-check">✓</span>
                             <div>
-                                <strong>טשטוש תנועה קולנועי (Motion Blur):</strong> מראה פרמיום סופר-חלק שמשדרג את רמת ההפקה של הסרטון.
+                                <strong>קליק אחד להחלה:</strong> בוחרים סגנון ולוחצים "החל" — התנועה נוצרת מיידית על שכבת הטקסט.
                             </div>
                         </li>
                         <li>
                             <span class="icon-check">✓</span>
                             <div>
-                                <strong>שליטה בכיוון ובמהירות:</strong> בחירה בין כניסה (In), יציאה (Out) או כניסה ויציאה, במהירויות של 0.2s עד 0.55s.
+                                <strong>טשטוש תנועה חלק:</strong> מראה מקצועי ודינמי כמו בסרטוני הטיקטוק והרילס המובילים.
                             </div>
                         </li>
                         <li>
                             <span class="icon-check">✓</span>
                             <div>
-                                <strong>תמיכה בשכבות V1–V4:</strong> החלה או איפוס מיידיים ישירות לקיפריימים של פרמייר ללא צורך באפטר אפקטס.
+                                <strong>חוסך שעות עבודה:</strong> שוכחים מיצירת קיפריימים ידנית ומסורבלת בכל פעם מחדש.
                             </div>
                         </li>
                     </ul>
@@ -495,10 +495,10 @@
                     <h4>עיצוב ומרקר בהתאמה אישית</h4>
                     <p>שליטה מלאה בצבעי המרקר, גופנים וסגנון ויזואלי שמתאים בדיוק למיתוג שלך.</p>
                 </div>
-                <div class="perk-box perk-highlight" style="border-color: rgba(59, 130, 246, 0.35); background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, rgba(20, 23, 33, 0.7) 100%);">
+                <div class="perk-box">
                     <div class="perk-icon">🎬</div>
-                    <h4>קיפריימים טבעיים ללא תוספים כבדים</h4>
-                    <p>אנימציות שנבנות ישירות בפרמייר ללא תלות באפטר אפקטס או פלאגינים כבדים.</p>
+                    <h4>אנימציות מוכנות בקליק</h4>
+                    <p>תנועות חלקות שמוחלות ישירות בפרמייר בלי לפתוח אפטר אפקטס ובלי פלאגינים כבדים.</p>
                 </div>
                 <div class="perk-box">
                     <div class="perk-icon">🎯</div>
@@ -646,108 +646,45 @@
                 </div>
 
                 <!-- Sim 3: Live Text Animations -->
-                <div class="sim-card sim-card-anim">
+                <div class="sim-card">
                     <div class="sim-card-header">
                         <div class="sim-card-title">
-                            <span class="sim-pill" style="color: #60a5fa;">סימולטור 3 • חדש!</span>
-                            <h3>אנימציות טקסט ותנועה חיה (Text Animator)</h3>
+                            <span class="sim-pill">סימולטור 3</span>
+                            <h3>אנימציות טקסט בקליק</h3>
                         </div>
-                        <div class="sim-anim-badge">
-                            <span>✨ 4 פריסטים קולנועיים + Motion Blur</span>
+                        <div class="sim-controls" id="simAnimControls">
+                            <button class="sim-btn active" data-anim="pop" onclick="setSimAnimPreset('pop', this)">פופ</button>
+                            <button class="sim-btn" data-anim="slide_up" onclick="setSimAnimPreset('slide_up', this)">החלקה</button>
+                            <button class="sim-btn" data-anim="zoom_in" onclick="setSimAnimPreset('zoom_in', this)">זום</button>
+                            <button class="sim-btn" data-anim="fade" onclick="setSimAnimPreset('fade', this)">עמעום</button>
                         </div>
                     </div>
 
                     <div class="sim-stage">
-                        <div class="sim-anim-two-col">
-                            <!-- Column 1: Controls -->
-                            <div class="sim-anim-controls-pane">
-                                <label class="sim-label">בחר פריסט אנימציה:</label>
-                                <div class="sim-anim-presets-grid">
-                                    <button type="button" class="sim-anim-btn active" data-anim="pop" onclick="setSimAnimPreset('pop', this)">
-                                        <span class="anim-btn-icon">💥</span>
-                                        <span>פופ (Bounce)</span>
-                                    </button>
-                                    <button type="button" class="sim-anim-btn" data-anim="slide_up" onclick="setSimAnimPreset('slide_up', this)">
-                                        <span class="anim-btn-icon">⬆️</span>
-                                        <span>החלקה למעלה</span>
-                                    </button>
-                                    <button type="button" class="sim-anim-btn" data-anim="zoom_in" onclick="setSimAnimPreset('zoom_in', this)">
-                                        <span class="anim-btn-icon">🔍</span>
-                                        <span>זום פנימה</span>
-                                    </button>
-                                    <button type="button" class="sim-anim-btn" data-anim="fade" onclick="setSimAnimPreset('fade', this)">
-                                        <span class="anim-btn-icon">✨</span>
-                                        <span>עמעום חלק</span>
-                                    </button>
-                                </div>
-
-                                <div class="sim-anim-settings-bar">
-                                    <div class="sim-anim-speed-ctrl">
-                                        <span class="sim-sublabel">מהירות מעבר:</span>
-                                        <div class="sim-speed-btn-group">
-                                            <button type="button" class="sim-speed-btn" data-speed="0.2" onclick="setSimAnimSpeed(0.2, this)">0.2s מהיר</button>
-                                            <button type="button" class="sim-speed-btn active" data-speed="0.35" onclick="setSimAnimSpeed(0.35, this)">0.35s רגיל</button>
-                                            <button type="button" class="sim-speed-btn" data-speed="0.55" onclick="setSimAnimSpeed(0.55, this)">0.55s חלק</button>
-                                        </div>
-                                    </div>
-
-                                    <label class="sim-blur-switch" title="הדלק/כבה טשטוש תנועה">
-                                        <input type="checkbox" id="simBlurToggle" checked onchange="toggleSimMotionBlur(this.checked)">
-                                        <span>Motion Blur</span>
-                                        <span class="anim-blur-pro-badge">PRO</span>
-                                    </label>
-                                </div>
-
-                                <div class="sim-anim-input-box">
-                                    <label for="simCustomTextInput" class="sim-sublabel">נסה עם טקסט משלך:</label>
-                                    <div class="sim-anim-input-row">
-                                        <input type="text" id="simCustomTextInput" value="טקסט מונפש בפרמייר ✨" placeholder="הקלד כאן טקסט לבדיקה..." oninput="updateSimCustomText(this.value)">
-                                        <button type="button" class="btn btn-primary btn-sm btn-replay-anim" onclick="replaySimAnim()" title="הפעל שוב">
-                                            <span>הפעל</span>
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="23 4 23 10 17 10"></polyline>
-                                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
+                        <div class="sim-stage-info">
+                            <div>
+                                <span class="sim-label">אפקט נבחר:</span>
+                                <strong id="simAnimPresetLabel" class="sim-val text-accent">פופ קופצני (Bounce)</strong>
                             </div>
-
-                            <!-- Column 2: Premiere Monitor Mockup -->
-                            <div class="sim-anim-monitor-pane">
-                                <div class="premiere-monitor">
-                                    <div class="monitor-top-bar">
-                                        <div class="monitor-traffic-lights">
-                                            <span class="dot red"></span>
-                                            <span class="dot yellow"></span>
-                                            <span class="dot green"></span>
-                                        </div>
-                                        <div class="monitor-title">Program: Sequence 01 (1080x1920)</div>
-                                        <div class="monitor-tag">V2 Text Track</div>
-                                    </div>
-
-                                    <div class="monitor-viewport" id="simMonitorViewport">
-                                        <div class="monitor-grid-overlay"></div>
-                                        <div class="monitor-text-wrapper" id="simMonitorTextWrap">
-                                            <span class="monitor-animated-text" id="simAnimTextTarget">טקסט מונפש בפרמייר ✨</span>
-                                        </div>
-                                        <div class="monitor-status-pill" id="simMonitorStatusPill">
-                                            <span class="status-indicator-dot"></span>
-                                            <span id="simMonitorStatusText">Preset: Pop (Bounce) • 0.35s • Blur ON</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="monitor-bottom-bar">
-                                        <div class="monitor-timecode">00:01:14:08</div>
-                                        <div class="monitor-mini-timeline">
-                                            <div class="monitor-keyframe-marker start" title="In Keyframe"></div>
-                                            <div class="monitor-playhead"></div>
-                                            <div class="monitor-keyframe-marker end" title="Out Keyframe"></div>
-                                        </div>
-                                        <div class="monitor-fps">60 FPS</div>
-                                    </div>
-                                </div>
+                            <div>
+                                <span class="sim-label">זמן החלה:</span>
+                                <strong class="sim-val">קליק אחד בשנייה</strong>
                             </div>
+                        </div>
+
+                        <!-- Clean minimal preview screen -->
+                        <div class="sim-simple-anim-screen" onclick="replaySimAnim()" title="לחץ להפעלה חוזרת">
+                            <div class="sim-simple-anim-text anim-pop" id="simAnimTextTarget">
+                                טקסט מונפש בקליק ✨
+                            </div>
+                            <span class="sim-screen-click-hint">לחץ להפעלה חוזרת 🔄</span>
+                        </div>
+
+                        <div class="sim-action-bar">
+                            <button class="btn btn-primary btn-sm" onclick="replaySimAnim()">
+                                <span>הפעל שוב</span>
+                            </button>
+                            <span class="sim-hint">בחר סגנון למעלה וראה איך הטקסט קופץ לחיים ברגע!</span>
                         </div>
                     </div>
                 </div>
@@ -996,11 +933,11 @@
 
                 <div class="faq-item">
                     <button class="faq-question">
-                        <span>איך עובדות אנימציות הטקסט (Text Animator) בתוסף?</span>
+                        <span>איך עובדות אנימציות הטקסט בתוסף?</span>
                         <span class="faq-icon">+</span>
                     </button>
                     <div class="faq-answer">
-                        <p>בלשונית <strong>אנימציות טקסט</strong> בתוסף תוכלו להנפיש כל שכבת טקסט, כתובית או גרפיקה ישירות בפרמייר בלחיצת כפתור אחת! הפלאגין כולל 4 פריסטים מובילים שנבנו בהשראת סרטוני טיקטוק ורילס ויראליים: <strong>פופ קופצני (Pop / Bounce)</strong>, <strong>החלקה למעלה (Slide Up)</strong>, <strong>זום דינמי (Zoom In)</strong> ו-<strong>עמעום חלק (Smooth Fade)</strong>. ניתן לבחור את ערוץ הווידאו הרצוי (V1 עד V4), סוג המעבר (כניסה, יציאה או שניהם), מהירות התנועה (מהיר 0.2s, רגיל 0.35s או חלק 0.55s), ואף להפעיל <strong>טשטוש תנועה קולנועי (Motion Blur PRO)</strong> שמייצר מראה חלק ומקצועי ללא צורך באפטר אפקטס!</p>
+                        <p>פשוט מאוד: מסמנים את שכבת הטקסט בטיימליין, בוחרים בפלאגין סגנון אנימציה (פופ, החלקה, זום או עמעום) ולוחצים <strong>החל אנימציה</strong>. התנועה מוחלת מיד ישירות בפרמייר עם טשטוש תנועה חלק ומקצועי — בלי צורך באפטר אפקטס ובלי הגדרות מסובכות.</p>
                     </div>
                 </div>
 

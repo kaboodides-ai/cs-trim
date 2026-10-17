@@ -759,8 +759,14 @@ a {
 
 .sim-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+}
+
+@media (max-width: 1080px) {
+    .sim-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .sim-card {
@@ -2249,430 +2255,86 @@ a {
 }
 
 /* ==========================================================================
-   Simulator 3: Live Text Animations & Premiere Monitor Mockup
+   Simulator 3: Clean & Simple Text Animations
    ========================================================================== */
-.sim-card-anim {
-    grid-column: 1 / -1;
-    border-color: rgba(59, 130, 246, 0.35);
-    background: radial-gradient(circle at 85% 20%, rgba(37, 99, 235, 0.08) 0%, rgba(18, 22, 34, 0.98) 70%);
-}
-
-.sim-anim-badge {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(147, 51, 234, 0.2));
-    border: 1px solid rgba(96, 165, 250, 0.4);
-    color: #93c5fd;
-    padding: 5px 14px;
-    border-radius: var(--radius-full);
-    font-size: 0.82rem;
-    font-weight: 700;
-}
-
-.sim-anim-two-col {
-    display: grid;
-    grid-template-columns: 1fr 1.15fr;
-    gap: 32px;
-    align-items: center;
-}
-
-@media (max-width: 900px) {
-    .sim-anim-two-col {
-        grid-template-columns: 1fr;
-    }
-}
-
-.sim-anim-controls-pane {
+.sim-simple-anim-screen {
+    height: 200px;
+    background: radial-gradient(circle at center, #171d2f 0%, #0a0c13 85%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
     display: flex;
     flex-direction: column;
-    gap: 16px;
-}
-
-.sim-anim-presets-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.sim-anim-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #141926;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 12px 14px;
-    color: #cbd5e1;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: right;
-}
-
-.sim-anim-btn:hover {
-    background: #1d2335;
-    border-color: rgba(96, 165, 250, 0.4);
-    color: #fff;
-    transform: translateY(-1px);
-}
-
-.sim-anim-btn.active {
-    background: rgba(37, 99, 235, 0.22);
-    border-color: #3b82f6;
-    color: #93c5fd;
-    box-shadow: 0 0 14px rgba(37, 99, 235, 0.35);
-}
-
-.anim-btn-icon {
-    font-size: 1.15rem;
-}
-
-.sim-anim-settings-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #0d111c;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    padding: 10px 14px;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.sim-sublabel {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.sim-anim-speed-ctrl {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.sim-speed-btn-group {
-    display: flex;
-    background: #171d2c;
-    border-radius: 8px;
-    padding: 2px;
-}
-
-.sim-speed-btn {
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 5px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.sim-speed-btn:hover {
-    color: #fff;
-}
-
-.sim-speed-btn.active {
-    background: #2563eb;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
-}
-
-.sim-blur-switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 0.84rem;
-    color: #e2e8f0;
-}
-
-.sim-blur-switch input[type="checkbox"] {
-    accent-color: #2563eb;
-    width: 17px;
-    height: 17px;
-    cursor: pointer;
-}
-
-.anim-blur-pro-badge {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #000;
-    font-size: 0.68rem;
-    font-weight: 800;
-    padding: 1px 5px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
-}
-
-.sim-anim-input-box {
-    background: #0d111c;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    padding: 12px 14px;
-}
-
-.sim-anim-input-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
-}
-
-.sim-anim-input-row input {
-    flex: 1;
-    background: #171d2c;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 8px 14px;
-    color: #fff;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s ease;
-}
-
-.sim-anim-input-row input:focus {
-    border-color: #3b82f6;
-}
-
-.btn-replay-anim {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    padding: 8px 16px;
-}
-
-/* Premiere Pro Monitor Mockup */
-.premiere-monitor {
-    background: #0f121d;
-    border: 2px solid #23293e;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(37, 99, 235, 0.15);
-    display: flex;
-    flex-direction: column;
-}
-
-.monitor-top-bar {
-    background: #171b29;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.78rem;
-}
-
-.monitor-traffic-lights {
-    display: flex;
-    gap: 6px;
-}
-
-.monitor-traffic-lights .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-}
-
-.monitor-traffic-lights .dot.red { background: #ef4444; }
-.monitor-traffic-lights .dot.yellow { background: #eab308; }
-.monitor-traffic-lights .dot.green { background: #22c55e; }
-
-.monitor-title {
-    color: #94a3b8;
-    font-family: monospace;
-    font-size: 0.76rem;
-    direction: ltr;
-}
-
-.monitor-tag {
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    color: #93c5fd;
-    font-size: 0.72rem;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-weight: 600;
-}
-
-.monitor-viewport {
-    height: 220px;
-    background: radial-gradient(circle at center, #182035 0%, #090b11 90%);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 24px;
-}
-
-.monitor-grid-overlay {
-    position: absolute;
-    inset: 12px;
-    border: 1px dashed rgba(255, 255, 255, 0.08);
-    pointer-events: none;
-    border-radius: 4px;
-}
-
-.monitor-text-wrapper {
-    display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    z-index: 2;
-    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: var(--transition);
 }
 
-.monitor-animated-text {
-    font-size: 1.65rem;
+.sim-simple-anim-screen:hover {
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.sim-simple-anim-text {
+    font-size: 1.55rem;
     font-weight: 800;
     color: #ffffff;
-    display: inline-block;
-    padding: 8px 18px;
-    background: rgba(13, 17, 28, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-    will-change: transform, opacity, filter;
-    transform-origin: center center;
-}
-
-.monitor-status-pill {
-    position: absolute;
-    bottom: 12px;
-    right: 14px;
+    padding: 10px 22px;
+    border-radius: 12px;
     background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-    padding: 3px 10px;
-    border-radius: var(--radius-full);
-    font-size: 0.72rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 3;
-    direction: ltr;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(37, 99, 235, 0.25);
+    will-change: transform, opacity;
+    transform-origin: center center;
+    text-align: center;
+    user-select: none;
 }
 
-.status-indicator-dot {
-    width: 6px;
-    height: 6px;
-    background: #22c55e;
-    border-radius: 50%;
-    box-shadow: 0 0 6px #22c55e;
-}
-
-.monitor-bottom-bar {
-    background: #141724;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: monospace;
+.sim-screen-click-hint {
+    position: absolute;
+    bottom: 10px;
     font-size: 0.76rem;
-    color: #94a3b8;
-    direction: ltr;
+    color: var(--text-muted);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    user-select: none;
 }
 
-.monitor-mini-timeline {
-    flex: 1;
-    height: 4px;
-    background: #23283c;
-    border-radius: 2px;
-    margin: 0 16px;
-    position: relative;
-    display: flex;
-    align-items: center;
+.sim-simple-anim-screen:hover .sim-screen-click-hint {
+    opacity: 1;
+    color: #93c5fd;
 }
 
-.monitor-playhead {
-    width: 10px;
-    height: 10px;
-    background: #38bdf8;
-    border-radius: 50%;
-    position: absolute;
-    left: 45%;
-    box-shadow: 0 0 8px #38bdf8;
-}
-
-.monitor-keyframe-marker {
-    width: 6px;
-    height: 6px;
-    background: #eab308;
-    transform: rotate(45deg);
-    position: absolute;
-}
-
-.monitor-keyframe-marker.start { left: 15%; }
-.monitor-keyframe-marker.end { right: 15%; }
-
-/* --- Live Animation Keyframes for Monitor --- */
-@keyframes animMonitorPop {
-    0% { transform: scale(0.3); opacity: 0; }
-    55% { transform: scale(1.18); opacity: 1; }
+/* 4 Simple Keyframe Animations */
+@keyframes simPop {
+    0% { transform: scale(0.3); opacity: 0; filter: blur(5px); }
+    55% { transform: scale(1.15); opacity: 1; filter: blur(0); }
     78% { transform: scale(0.96); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
 
-@keyframes animMonitorPopBlur {
-    0% { transform: scale(0.3); opacity: 0; filter: blur(8px); }
-    55% { transform: scale(1.18); opacity: 1; filter: blur(2px); }
-    78% { transform: scale(0.96); opacity: 1; filter: blur(0); }
-    100% { transform: scale(1); opacity: 1; filter: blur(0); }
-}
-
-@keyframes animMonitorSlide {
-    0% { transform: translateY(50px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes animMonitorSlideBlur {
-    0% { transform: translateY(50px); opacity: 0; filter: blur(8px); }
+@keyframes simSlide {
+    0% { transform: translateY(40px); opacity: 0; filter: blur(4px); }
     100% { transform: translateY(0); opacity: 1; filter: blur(0); }
 }
 
-@keyframes animMonitorZoom {
-    0% { transform: scale(0.2); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes animMonitorZoomBlur {
-    0% { transform: scale(0.2); opacity: 0; filter: blur(10px); }
+@keyframes simZoom {
+    0% { transform: scale(0.25); opacity: 0; filter: blur(6px); }
     100% { transform: scale(1); opacity: 1; filter: blur(0); }
 }
 
-@keyframes animMonitorFade {
+@keyframes simFade {
     0% { opacity: 0; }
     100% { opacity: 1; }
 }
 
-.anim-effect-pop {
-    animation: animMonitorPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-.with-blur.anim-effect-pop {
-    animation-name: animMonitorPopBlur;
-}
-
-.anim-effect-slide_up {
-    animation: animMonitorSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.with-blur.anim-effect-slide_up {
-    animation-name: animMonitorSlideBlur;
-}
-
-.anim-effect-zoom_in {
-    animation: animMonitorZoom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.with-blur.anim-effect-zoom_in {
-    animation-name: animMonitorZoomBlur;
-}
-
-.anim-effect-fade {
-    animation: animMonitorFade 0.35s ease-in-out forwards;
-}
+.anim-pop { animation: simPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.anim-slide_up { animation: simSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-zoom_in { animation: simZoom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-fade { animation: simFade 0.35s ease-in-out forwards; }
 
 
 

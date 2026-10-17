@@ -1,6 +1,18 @@
 {
   "feedbacks": [
     {
+      "id": "fb_1792254338347_i9obu",
+      "timestamp": "2026-10-17T16:25:38.347Z",
+      "dateFormatted": "17.10.2026, 19:25:38",
+      "type": "improvement",
+      "typeLabel": "💡 הצעת שיפור / פיצ'ר",
+      "message": "שדגשדגשדג",
+      "contact": "ק׳/שגשדג",
+      "source": "website",
+      "platform": "MacIntel",
+      "version": "1.0.5"
+    },
+    {
       "id": "fb_1792254154090_hbwe5",
       "timestamp": "2026-10-17T16:22:34.090Z",
       "dateFormatted": "17.10.2026, 19:22:34",

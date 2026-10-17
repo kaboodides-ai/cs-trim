@@ -204,6 +204,48 @@
         margin-top: 8px !important;
         text-align: right !important;
         display: none;
+        line-height: 1.45 !important;
+    }
+    .lead-suggestion-box {
+        margin-top: 8px !important;
+        padding: 8px 12px !important;
+        background: rgba(37, 99, 235, 0.15) !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        border-radius: 8px !important;
+        font-size: 0.86rem !important;
+        color: #e2e8f0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 6px !important;
+        text-align: right !important;
+        direction: rtl !important;
+        box-sizing: border-box !important;
+    }
+    .lead-suggestion-box .btn-fix-email {
+        background: rgba(56, 189, 248, 0.2) !important;
+        border: 1px solid #38bdf8 !important;
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+        padding: 2px 8px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        font-size: 0.85rem !important;
+        direction: ltr !important;
+        font-family: inherit !important;
+    }
+    .lead-suggestion-box .btn-fix-email:hover {
+        background: #38bdf8 !important;
+        color: #0f172a !important;
+    }
+    .lead-input.is-invalid {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+    }
+    .lead-input.is-valid {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
     }
     .download-toast {
         position: fixed !important;
@@ -1001,7 +1043,7 @@
                 <form id="leadForm" onsubmit="handleLeadSubmit(event)">
                     <div class="lead-form-group">
                         <div class="lead-input-wrap">
-                            <input type="email" id="leadEmailInput" class="lead-input" placeholder="your.name@gmail.com" required autocomplete="email">
+                            <input type="email" id="leadEmailInput" class="lead-input" placeholder="your.name@gmail.com" required autocomplete="email" oninput="handleLeadEmailInput(this)" onblur="handleLeadEmailBlur(this)">
                             <span class="lead-input-icon">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect width="20" height="16" x="2" y="4" rx="2"></rect>
@@ -1009,6 +1051,7 @@
                                 </svg>
                             </span>
                         </div>
+                        <div id="leadSuggestionBox" class="lead-suggestion-box" style="display: none;"></div>
                         <div id="leadErrorMsg" class="lead-error-msg">נא להזין כתובת אימייל תקינה</div>
 
                         <label class="lead-consent-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-top: 10px; text-align: right; user-select: none;">
@@ -1118,6 +1161,14 @@
         var submitBtn = document.getElementById("btnLeadSubmit");
 
         if (errorMsg) errorMsg.style.display = "none";
+        var suggestionBox = document.getElementById("leadSuggestionBox");
+        if (suggestionBox) {
+            suggestionBox.style.display = "none";
+            suggestionBox.innerHTML = "";
+        }
+        if (emailInput) {
+            emailInput.classList.remove("is-invalid", "is-valid");
+        }
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
@@ -1217,22 +1268,255 @@
         console.log("Lead gate reset successfully!");
     };
 
-    window.handleLeadSubmit = function(e) {
+    // --- Advanced Email Realness Validator ---
+    var EMAIL_DISPOSABLE_DOMAINS = [
+        "mailinator.com", "tempmail.com", "temp-mail.org", "10minutemail.com", "guerrillamail.com",
+        "guerrillamail.net", "guerrillamail.biz", "guerrillamail.org", "guerrillamailblock.com",
+        "yopmail.com", "yopmail.fr", "yopmail.net", "trashmail.com", "trashmail.net", "trashmail.me",
+        "sharklasers.com", "getairmail.com", "dispostable.com", "throwawaymail.com", "fakeinbox.com",
+        "maildrop.cc", "inboxkitten.com", "mohmal.com", "burnermail.io", "crazymailing.com",
+        "generator.email", "tempail.com", "fakemailgenerator.com", "nada.ltd", "dropmail.me",
+        "emailondeck.com", "mintemail.com", "spamgourmet.com", "mytemp.email", "disposablemail.com",
+        "getnada.com", "airmail.news", "abczmail.com", "spambox.us", "mytempemail.com", "temp-mail.io",
+        "internxt.com", "emailfake.com", "tempmailo.com", "zillamail.com", "bupmail.com",
+        "throwawayemailaddress.com", "meltmail.com", "hidemail.com", "disposableaddress.com",
+        "harakirimail.com", "cuvox.de", "dayrep.com", "fleckens.hu", "gustr.com", "jourrapide.com",
+        "rhyta.com", "superrito.com", "teleworm.us", "armyspy.com", "einrot.com", "chacuo.net"
+    ];
+
+    var EMAIL_DOMAIN_TYPOS = {
+        "gmai.com": "gmail.com",
+        "gmial.com": "gmail.com",
+        "gamil.com": "gmail.com",
+        "gmaill.com": "gmail.com",
+        "gmal.com": "gmail.com",
+        "gmaik.com": "gmail.com",
+        "gmail.con": "gmail.com",
+        "gmail.cm": "gmail.com",
+        "gmail.co": "gmail.com",
+        "gemail.com": "gmail.com",
+        "gmail.co.il": "gmail.com",
+        "g-mail.com": "gmail.com",
+        "gmaol.com": "gmail.com",
+        "gmaul.com": "gmail.com",
+        "hotmial.com": "hotmail.com",
+        "hotmal.com": "hotmail.com",
+        "hotmai.com": "hotmail.com",
+        "hotmaill.com": "hotmail.com",
+        "hotmil.com": "hotmail.com",
+        "hotamil.com": "hotmail.com",
+        "homail.com": "hotmail.com",
+        "hotmail.con": "hotmail.com",
+        "hotmail.co.il": "hotmail.com",
+        "outlok.com": "outlook.com",
+        "outluk.com": "outlook.com",
+        "ootlook.com": "outlook.com",
+        "putlook.com": "outlook.com",
+        "outlook.con": "outlook.com",
+        "yaoo.com": "yahoo.com",
+        "yaho.com": "yahoo.com",
+        "yahooo.com": "yahoo.com",
+        "yahu.com": "yahoo.com",
+        "yahoo.con": "yahoo.com",
+        "yaho.co.il": "yahoo.com",
+        "wala.co.il": "walla.co.il",
+        "wallla.co.il": "walla.co.il",
+        "walla.il": "walla.co.il",
+        "walla.com.il": "walla.co.il",
+        "iclod.com": "icloud.com",
+        "icluod.com": "icloud.com",
+        "icloud.con": "icloud.com"
+    };
+
+    var DUMMY_USERNAMES = [
+        "test", "testing", "test1", "tester", "asdf", "asdfg", "asdfgh", "qwer", "qwerty", "zxcv",
+        "123", "1234", "12345", "123456", "fake", "dummy", "spam", "none", "noemail", "temp",
+        "trash", "sample", "aaa", "bbb", "ccc", "abc", "abcd", "abcde", "bla", "blabla", "user",
+        "admin", "root", "email", "mail", "myemail", "someone", "nobody", "null", "undefined",
+        "anonymous", "nothankyou", "no", "nah", "idk", "wtf", "random", "fakeemail"
+    ];
+
+    var RESERVED_DOMAINS = [
+        "example.com", "example.org", "example.net", "test.com", "invalid.com", "localhost.com",
+        "domain.com", "sample.com", "none.com", "null.com", "fake.com", "website.com", "site.com",
+        "somesite.com", "sitedomain.com", "email.com", "mail.com"
+    ];
+
+    function checkEmailSyntaxAndPlausibility(email) {
+        email = (email || "").trim().toLowerCase();
+        if (!email) {
+            return { valid: false, reason: "empty", message: "נא להזין כתובת אימייל" };
+        }
+
+        var emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+        if (!emailRegex.test(email)) {
+            return { valid: false, reason: "syntax", message: "מבנה כתובת האימייל אינו תקין (לדוגמה: name@gmail.com)" };
+        }
+
+        var parts = email.split("@");
+        if (parts.length !== 2) {
+            return { valid: false, reason: "syntax", message: "כתובת האימייל אינה שלמה" };
+        }
+
+        var localPart = parts[0];
+        var domain = parts[1];
+
+        if (!localPart || !domain) {
+            return { valid: false, reason: "syntax", message: "כתובת האימייל אינה שלמה" };
+        }
+
+        var domainParts = domain.split(".");
+        var tld = domainParts[domainParts.length - 1];
+        if (!tld || tld.length < 2 || !/^[a-z]+$/.test(tld)) {
+            return { valid: false, reason: "invalid_tld", message: "סיומת הדומיין אינה תקינה (למשל .com, .co.il)" };
+        }
+
+        if (EMAIL_DOMAIN_TYPOS[domain]) {
+            var suggestedDomain = EMAIL_DOMAIN_TYPOS[domain];
+            var suggestedEmail = localPart + "@" + suggestedDomain;
+            return {
+                valid: false,
+                reason: "typo",
+                suggestedEmail: suggestedEmail,
+                suggestedDomain: suggestedDomain,
+                message: "נראה שנפלה שגיאת הקלדה. האם התכוונת ל-" + suggestedEmail + "?"
+            };
+        }
+
+        if (DUMMY_USERNAMES.indexOf(localPart) !== -1) {
+            return { valid: false, reason: "dummy", message: "נא להזין כתובת אימייל אישית אמיתית ולא כתובת דמה" };
+        }
+
+        if (localPart.length >= 4) {
+            var allSame = true;
+            for (var i = 1; i < localPart.length; i++) {
+                if (localPart[i] !== localPart[0]) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if (allSame) {
+                return { valid: false, reason: "repeated_chars", message: "כתובת האימייל מכילה תווים חוזרים ואינה נראית אמיתית" };
+            }
+        }
+
+        if (EMAIL_DISPOSABLE_DOMAINS.indexOf(domain) !== -1) {
+            return { valid: false, reason: "disposable", message: "שירותי אימייל זמניים / חד-פעמיים אינם נתמכים. נא להזין אימייל אמיתי" };
+        }
+
+        if (RESERVED_DOMAINS.indexOf(domain) !== -1) {
+            return { valid: false, reason: "reserved", message: "הדומיין שהוזן אינו פעיל לקבלת דואר" };
+        }
+
+        if (domain === "gmail.com" || domain === "googlemail.com") {
+            var cleanGmailUser = localPart.replace(/\./g, "");
+            if (cleanGmailUser.length < 6) {
+                return { valid: false, reason: "gmail_too_short", message: "שם משתמש ב-Gmail חייב להכיל לפחות 6 תווים" };
+            }
+        }
+
+        return { valid: true, email: email, domain: domain };
+    }
+
+    window.handleLeadEmailInput = function(inputEl) {
+        var errorMsg = document.getElementById("leadErrorMsg");
+        var suggestionBox = document.getElementById("leadSuggestionBox");
+        if (!inputEl) return;
+
+        inputEl.classList.remove("is-invalid");
+
+        var val = (inputEl.value || "").trim().toLowerCase();
+        if (errorMsg) errorMsg.style.display = "none";
+
+        if (val.indexOf("@") !== -1) {
+            var parts = val.split("@");
+            var local = parts[0];
+            var dom = parts[1];
+            if (dom && EMAIL_DOMAIN_TYPOS[dom]) {
+                var corrected = local + "@" + EMAIL_DOMAIN_TYPOS[dom];
+                if (suggestionBox) {
+                    suggestionBox.innerHTML = '<span>💡 שים לב: התכוונת ל-</span><button type="button" class="btn-fix-email" onclick="applySuggestedEmail(\'' + corrected + '\')">' + corrected + '</button>?';
+                    suggestionBox.style.display = "flex";
+                }
+                return;
+            }
+        }
+
+        if (suggestionBox) {
+            suggestionBox.style.display = "none";
+            suggestionBox.innerHTML = "";
+        }
+    };
+
+    window.handleLeadEmailBlur = function(inputEl) {
+        if (!inputEl) return;
+        var val = (inputEl.value || "").trim().toLowerCase();
+        if (!val) return;
+        var check = checkEmailSyntaxAndPlausibility(val);
+        var errorMsg = document.getElementById("leadErrorMsg");
+        var suggestionBox = document.getElementById("leadSuggestionBox");
+
+        if (!check.valid) {
+            if (check.reason === "typo" && check.suggestedEmail && suggestionBox) {
+                suggestionBox.innerHTML = '<span>💡 שים לב: התכוונת ל-</span><button type="button" class="btn-fix-email" onclick="applySuggestedEmail(\'' + check.suggestedEmail + '\')">' + check.suggestedEmail + '</button>?';
+                suggestionBox.style.display = "flex";
+            } else if (errorMsg) {
+                errorMsg.textContent = check.message;
+                errorMsg.style.display = "block";
+                inputEl.classList.add("is-invalid");
+            }
+        } else {
+            inputEl.classList.remove("is-invalid");
+            if (errorMsg) errorMsg.style.display = "none";
+        }
+    };
+
+    window.applySuggestedEmail = function(email) {
+        var inputEl = document.getElementById("leadEmailInput");
+        var suggestionBox = document.getElementById("leadSuggestionBox");
+        var errorMsg = document.getElementById("leadErrorMsg");
+        if (inputEl && email) {
+            inputEl.value = email;
+            inputEl.classList.remove("is-invalid");
+            inputEl.classList.add("is-valid");
+            setTimeout(function() {
+                inputEl.classList.remove("is-valid");
+            }, 1200);
+        }
+        if (suggestionBox) {
+            suggestionBox.style.display = "none";
+            suggestionBox.innerHTML = "";
+        }
+        if (errorMsg) {
+            errorMsg.style.display = "none";
+        }
+    };
+
+    window.handleLeadSubmit = async function(e) {
         if (e) e.preventDefault();
         var emailInput = document.getElementById("leadEmailInput");
         var errorMsg = document.getElementById("leadErrorMsg");
         var submitBtn = document.getElementById("btnLeadSubmit");
         var consent = document.getElementById("leadConsentCheckbox");
+        var suggestionBox = document.getElementById("leadSuggestionBox");
 
         var email = (emailInput ? emailInput.value : "").trim().toLowerCase();
-        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!email || !emailRegex.test(email)) {
+        // 1. Client-side instant check
+        var clientCheck = checkEmailSyntaxAndPlausibility(email);
+        if (!clientCheck.valid) {
             if (errorMsg) {
-                errorMsg.textContent = "נא להזין כתובת אימייל תקינה";
+                errorMsg.textContent = clientCheck.message;
                 errorMsg.style.display = "block";
             }
-            if (emailInput) emailInput.focus();
+            if (emailInput) {
+                emailInput.classList.add("is-invalid");
+                emailInput.focus();
+            }
+            if (clientCheck.reason === "typo" && clientCheck.suggestedEmail && suggestionBox) {
+                suggestionBox.innerHTML = '<span>💡 שים לב: התכוונת ל-</span><button type="button" class="btn-fix-email" onclick="applySuggestedEmail(\'' + clientCheck.suggestedEmail + '\')">' + clientCheck.suggestedEmail + '</button>?';
+                suggestionBox.style.display = "flex";
+            }
             return false;
         }
 
@@ -1245,10 +1529,53 @@
         }
 
         if (errorMsg) errorMsg.style.display = "none";
+        if (suggestionBox) suggestionBox.style.display = "none";
+        if (emailInput) emailInput.classList.remove("is-invalid");
 
+        // UI Loading state
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>מאמת ומכין הורדה...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
+            submitBtn.innerHTML = '<span>מאמת כתובת אימייל...</span><span style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>';
+        }
+
+        // 2. Active MX / server-side verification check
+        try {
+            var controller = new AbortController();
+            var timeoutId = setTimeout(function() { controller.abort(); }, 3500);
+
+            var verifyRes = await fetch("/api/verify-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email }),
+                signal: controller.signal
+            }).catch(function() { return null; });
+
+            clearTimeout(timeoutId);
+
+            if (verifyRes && verifyRes.ok) {
+                var verifyData = await verifyRes.json().catch(function() { return {}; });
+                if (verifyData && verifyData.valid === false) {
+                    if (errorMsg) {
+                        errorMsg.textContent = verifyData.message || "כתובת האימייל אינה קיימת או שאינה פעילה";
+                        errorMsg.style.display = "block";
+                    }
+                    if (emailInput) {
+                        emailInput.classList.add("is-invalid");
+                        emailInput.focus();
+                    }
+                    if (verifyData.reason === "typo" && verifyData.suggestedEmail && suggestionBox) {
+                        suggestionBox.innerHTML = '<span>💡 שים לב: התכוונת ל-</span><button type="button" class="btn-fix-email" onclick="applySuggestedEmail(\'' + verifyData.suggestedEmail + '\')">' + verifyData.suggestedEmail + '</button>?';
+                        suggestionBox.style.display = "flex";
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                    }
+                    return false;
+                }
+            }
+        } catch (eVerify) {
+            console.warn("Email verification network check bypassed:", eVerify);
         }
 
         var leadData = {

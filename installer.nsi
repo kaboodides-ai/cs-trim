@@ -25,12 +25,12 @@ ManifestDPIAware true
 ; --------------------------------
 ; Version Metadata (Prevents Defender & Chrome Heuristic Flags)
 ; --------------------------------
-VIProductVersion "1.0.9.0"
+VIProductVersion "1.0.10.0"
 VIAddVersionKey "ProductName" "CS Trim"
 VIAddVersionKey "CompanyName" "CS Trim"
 VIAddVersionKey "LegalCopyright" "© 2026 CS Trim"
 VIAddVersionKey "FileDescription" "התקנת תוסף CS Trim עבור Adobe Premiere Pro"
-VIAddVersionKey "FileVersion" "1.0.9.0"
+VIAddVersionKey "FileVersion" "1.0.10.0"
 VIAddVersionKey "OriginalFilename" "CS-Trim-Setup.exe"
 VIAddVersionKey "InternalName" "CS-Trim"
 
@@ -202,7 +202,7 @@ skip_common64:
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayName" "תוסף CS Trim עבור Adobe Premiere Pro"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "UninstallString" '"$INSTDIR\Uninstall.exe"'
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayIcon" "$INSTDIR\img\logo.ico"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayVersion" "1.0.9"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "DisplayVersion" "1.0.10"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\CSTrim" "Publisher" "CS Trim"
 SectionEnd
 

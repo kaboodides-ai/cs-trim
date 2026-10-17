@@ -152,12 +152,21 @@ export default async function handler(req, res) {
     // -------------------------------------------------------------------------
     if (action === "heartbeat") {
         try {
-            const body = req.body || {};
+            let body = req.body || {};
+            if (typeof body === "string") {
+                try { body = JSON.parse(body); } catch (e) {}
+            }
             const installId = (body.installId || "unknown").slice(0, 100);
             const platform = (body.platform || "Unknown").slice(0, 50);
-            const version = (body.version || "1.0.8").slice(0, 30);
+            const version = (body.version || "1.0.9").slice(0, 30);
             const isConnected = Boolean(body.isConnected !== false);
+            const isClosing = Boolean(body.isClosing || body.status === "offline");
             const now = Date.now();
+
+            if (isClosing) {
+                liveSessions.delete(installId);
+                return res.status(200).json({ ok: true, disconnected: true, activeUsers: liveSessions.size });
+            }
 
             liveSessions.set(installId, {
                 installId: installId,
@@ -269,15 +278,13 @@ export default async function handler(req, res) {
     if (action === "stats") {
         try {
             const now = Date.now();
-            const liveThresholdMs = 12 * 60 * 1000; // 12 minutes considered live
-
-            // Clean expired live sessions and collect currently active
+            const liveThresholdMs = 75 * 1000; // 75 seconds threshold for ultra-accurate live count
             const liveList = [];
             for (const [id, session] of liveSessions.entries()) {
                 if (now - session.lastPing < liveThresholdMs) {
                     liveList.push(session);
-                } else if (now - session.lastPing > 24 * 60 * 60 * 1000) {
-                    liveSessions.delete(id); // remove very old in-memory items
+                } else {
+                    liveSessions.delete(id); // immediately drop expired sessions
                 }
             }
 
@@ -318,3 +325,4 @@ export default async function handler(req, res) {
 
     return res.status(400).json({ error: "Unknown action" });
 }
+

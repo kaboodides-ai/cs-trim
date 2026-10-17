@@ -1170,10 +1170,10 @@
 
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
-            // Auto refresh every 25 seconds
+            // Auto refresh every 10 seconds for real-time responsiveness
             refreshInterval = setInterval(function() {
                 fetchDashboardStats(false);
-            }, 25000);
+            }, 10000);
         }
 
         function logoutAdmin() {
@@ -1197,3 +1197,4 @@
     </script>
 </body>
 </html>
+

@@ -494,7 +494,7 @@ function initAdminHeartbeat(isConnected) {
             else if (isMac) osName = "macOS";
         }
 
-        var curVer = (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.8";
+        var curVer = (typeof AutoUpdater !== "undefined" && AutoUpdater.CURRENT_VERSION) ? AutoUpdater.CURRENT_VERSION : "1.0.9";
 
         function sendPing() {
             try {
@@ -511,10 +511,36 @@ function initAdminHeartbeat(isConnected) {
             } catch (e) {}
         }
 
+        function sendDisconnect() {
+            try {
+                var payload = JSON.stringify({
+                    installId: installId,
+                    platform: osName,
+                    version: curVer,
+                    status: "offline",
+                    isClosing: true
+                });
+                if (navigator && typeof navigator.sendBeacon === "function") {
+                    navigator.sendBeacon("https://cstrim.site/api/admin?action=heartbeat", payload);
+                } else {
+                    fetch("https://cstrim.site/api/admin?action=heartbeat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: payload,
+                        keepalive: true
+                    }).catch(function() {});
+                }
+            } catch (e) {}
+        }
+
         sendPing();
         if (!window._cstrimHeartbeatTimer) {
-            window._cstrimHeartbeatTimer = setInterval(sendPing, 3 * 60 * 1000);
+            window._cstrimHeartbeatTimer = setInterval(sendPing, 30 * 1000);
         }
+
+        window.addEventListener("beforeunload", sendDisconnect);
+        window.addEventListener("pagehide", sendDisconnect);
+        window.addEventListener("unload", sendDisconnect);
     } catch (err) {}
 }
 

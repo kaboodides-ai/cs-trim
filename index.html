@@ -4,58 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS Trim</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=6">
+    <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
-    <!-- Top Status Bar (Integrated Sequence & Connection, no redundant double title) -->
-    <div class="top-bar">
-        <div class="seq-info">
-            <span class="seq-label">סיקוונס</span>
-            <span id="seqName">טוען...</span>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="brand">
+            <img src="img/logo-mark.svg" alt="" class="brand-mark">
+            <span class="brand-name">CS Trim</span>
         </div>
-        <div class="top-actions">
-            <button type="button" id="topUpdateBadge" class="btn-top-update" onclick="openUpdateModal(event)" title="גרסה חדשה זמינה לעדכון!" style="display:none;">
-                <span class="top-update-icon">🚀</span>
-                <span class="top-update-text">עדכון חדש!</span>
-                <span class="top-update-ping"></span>
+        <div class="header-actions">
+            <button type="button" id="topUpdateBadge" class="btn-top-update" onclick="openUpdateModal(event)" title="גרסה חדשה זמינה לעדכון" style="display:none;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+                <span class="top-update-text">עדכון</span>
             </button>
-            <button type="button" id="btnOpenFeedback" class="btn-top-feedback" onclick="openFeedbackModal(event)" title="שלח פידבק או הצעת שיפור לפלאגין">
-                <span class="icon-bulb">💡</span>
-                <span>פידבק</span>
+            <button type="button" id="btnOpenFeedback" class="icon-btn" onclick="openFeedbackModal(event)" title="פידבק והצעות">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
-            <button type="button" id="btnOpenLog" class="btn-top-log" onclick="openLogView(event)" title="מעבר ליומן פעילות (לוג)">
-                <svg class="icon-terminal" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="4 17 10 11 4 5"></polyline>
-                    <line x1="12" y1="19" x2="20" y2="19"></line>
-                </svg>
-                <span>לוג</span>
+            <button type="button" id="btnOpenLog" class="icon-btn" onclick="openLogView(event)" title="יומן פעילות">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
                 <span id="logBadge" class="log-badge" style="display:none;"></span>
             </button>
-            <div id="connectionStatus" class="status-badge" onclick="openLogView(event)" title="מצב חיבור לפרמייר (לחץ לפתיחת יומן)">
-                <span class="status-dot"></span>
-                <span id="statusText">בודק חיבור...</span>
-            </div>
+        </div>
+    </header>
+
+    <!-- Context: active sequence + host connection -->
+    <div class="context-bar">
+        <div class="seq-info">
+            <svg class="seq-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20M7 4v5M12 4v5M17 4v5"/></svg>
+            <span id="seqName">טוען...</span>
+        </div>
+        <div id="connectionStatus" class="status-badge" onclick="openLogView(event)" title="מצב חיבור לפרמייר">
+            <span class="status-dot"></span>
+            <span id="statusText">בודק...</span>
         </div>
     </div>
 
-    <!-- In-App Auto Update Banner -->
+    <!-- In-App Update Banner -->
     <div id="updateBanner" class="update-banner" style="display:none;">
         <div class="update-banner-main">
-            <div class="update-sparkle-icon">🚀</div>
             <div class="update-banner-info">
                 <div class="update-title-line">
-                    <span class="update-main-title">גרסה חדשה זמינה!</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.11</span>
+                    <span class="update-main-title">גרסה חדשה זמינה</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.12</span>
                 </div>
-                <div id="updateNotesPreview" class="update-notes-preview">לחץ לעדכון מהיר בלחיצה אחת</div>
+                <div id="updateNotesPreview" class="update-notes-preview">עדכון בלחיצה אחת</div>
             </div>
             <div class="update-banner-actions">
-                <button type="button" id="btnRunUpdate" class="btn-update-apply" onclick="runBannerUpdate(event)">עדכן עכשיו</button>
-                <button type="button" id="btnViewUpdateDetails" class="btn-update-details" onclick="openUpdateModal(event)" title="פירוט השינויים">פרטים</button>
-                <button type="button" id="btnDismissUpdate" class="btn-update-close" title="סגור">✕</button>
+                <button type="button" id="btnRunUpdate" class="btn-update-apply" onclick="runBannerUpdate(event)">עדכן</button>
+                <button type="button" id="btnViewUpdateDetails" class="btn-update-details" onclick="openUpdateModal(event)">פרטים</button>
+                <button type="button" id="btnDismissUpdate" class="btn-update-close" title="סגור">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
             </div>
         </div>
         <div id="updateProgressWrap" class="update-progress-wrap" style="display:none;">
@@ -69,346 +69,278 @@
         </div>
     </div>
 
-    <!-- Segmented Navigation Tabs -->
-    <div class="tabs-nav" id="tabsNav">
+    <!-- Tabs -->
+    <nav class="tabs-nav" id="tabsNav">
         <button type="button" class="tab-btn active" data-tab="view-trim">חיתוך שקט</button>
-        <button type="button" class="tab-btn" data-tab="view-captions">כתוביות AI</button>
-        <button type="button" class="tab-btn" data-tab="view-animations">אנימציות טקסט</button>
-    </div>
+        <button type="button" class="tab-btn" data-tab="view-captions">כתוביות</button>
+        <button type="button" class="tab-btn" data-tab="view-animations">אנימציות<span class="tab-beta-pill">Beta</span></button>
+    </nav>
 
     <!-- View: Silence Trim -->
     <div id="view-trim" class="tab-view active">
-        <div class="profiles" id="profiles">
-            <button type="button" class="profile active" data-profile="normal">רגיל (Normal)</button>
-            <button type="button" class="profile" data-profile="high">גבוה (High)</button>
-            <button type="button" class="profile" data-profile="aggressive">אגרסיבי (Aggressive)</button>
-        </div>
+        <section class="section">
+            <div class="section-title">רגישות</div>
+            <div class="segmented profiles" id="profiles">
+                <button type="button" class="profile active" data-profile="normal">רגיל</button>
+                <button type="button" class="profile" data-profile="high">גבוה</button>
+                <button type="button" class="profile" data-profile="aggressive">אגרסיבי</button>
+            </div>
+            <p class="hint">רגישות גבוהה יותר חותכת גם הפסקות קצרות בין משפטים.</p>
+        </section>
 
         <div id="resultsCard" class="results" style="display:none;">
             <div id="resultsText"></div>
         </div>
 
-        <button type="button" id="btnAutoCut" class="btn btn-primary">חיתוך שקט</button>
-        <button type="button" id="btnSilenceMarkers" class="btn btn-secondary">סימון שקט בלבד (תצוגה מקדימה)</button>
+        <div class="actions">
+            <button type="button" id="btnAutoCut" class="btn btn-primary">חיתוך שקט</button>
+            <button type="button" id="btnSilenceMarkers" class="btn btn-secondary">סימון שקט בלבד, בלי לחתוך</button>
+        </div>
     </div>
 
     <!-- View: AI Captions -->
     <div id="view-captions" class="tab-view" style="display:none;">
-        <div class="row api-row">
-            <label for="groqApiKey">מפתח API</label>
-            <div class="api-control-wrap">
-                <div class="api-input-wrap">
-                    <input type="password" id="groqApiKey" placeholder="gsk_..." autocomplete="off" spellcheck="false">
-                    <button type="button" id="btnToggleKey" class="btn-api-toggle" title="הצג/הסתר מפתח">הצג</button>
-                </div>
-                <a href="#" id="linkGetApiKey" class="link-groq-hint">קבלת מפתח API חינמי</a>
-            </div>
-        </div>
-
-        <div class="row row-scope">
-            <label id="lblCaptionScope">טווח כתוביות</label>
-            <div class="scope-selector" id="captionScopeSelector" role="group" aria-labelledby="lblCaptionScope">
-                <button type="button" class="scope-btn active" data-scope="entire" title="יצירת כתוביות לכל הסיקוונס">כל הסיקוונס</button>
-                <button type="button" class="scope-btn" data-scope="inout" title="יצירת כתוביות רק בין נקודות In ל-Out">In / Out</button>
-            </div>
-        </div>
-        <div id="inOutHint" class="scope-hint" style="display:none;"></div>
-
-        <div class="row row-slider">
-            <label for="captionWordCount">מילים במשפט</label>
-            <div class="slider-control-wrap" id="sliderWrap" title="גרור או גלול עם העכבר לשינוי מספר המילים (1-8)">
-                <span class="slider-badge" id="captionWordCountVal">3 מילים</span>
-                <div class="slider-track-wrap">
-                    <input type="range" id="captionWordCount" min="1" max="8" step="1" value="3" aria-label="מילים במשפט">
+        <section class="section">
+            <div class="section-title">חיבור</div>
+            <div class="card">
+                <div class="field api-row">
+                    <div class="field-head">
+                        <label for="groqApiKey">מפתח Groq API</label>
+                        <a href="#" id="linkGetApiKey" class="link-groq-hint">קבלת מפתח חינם</a>
+                    </div>
+                    <div class="api-input-wrap">
+                        <input type="password" id="groqApiKey" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+                        <button type="button" id="btnToggleKey" class="btn-api-toggle" title="הצג/הסתר מפתח">הצג</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <label class="row row-toggle" for="captionPunctuation" id="rowPunctuation" title="סימני פיסוק: מופעל (עם פסיקים ונקודות)">
-            <span class="toggle-label">סימני פיסוק</span>
-            <span class="custom-checkbox-wrap">
-                <input type="checkbox" id="captionPunctuation" checked>
-                <span class="custom-checkbox" aria-hidden="true">
-                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
-                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            </span>
-        </label>
+        <section class="section">
+            <div class="section-title">הגדרות</div>
+            <div class="card">
+                <div class="row">
+                    <label id="lblCaptionScope">טווח</label>
+                    <div class="segmented segmented-sm scope-selector" id="captionScopeSelector" role="group" aria-labelledby="lblCaptionScope">
+                        <button type="button" class="scope-btn active" data-scope="entire" title="כתוביות לכל הסיקוונס">כל הסיקוונס</button>
+                        <button type="button" class="scope-btn" data-scope="inout" title="כתוביות רק בין נקודות In ל-Out">In / Out</button>
+                    </div>
+                </div>
+                <div id="inOutHint" class="scope-hint" style="display:none;"></div>
 
-        <label class="row row-toggle" for="captionStretchGaps" id="rowStretchGaps" title="מתיחת כתוביות: מופעל (ללא רווחים ריקים)">
-            <span class="toggle-label">מתיחת כתוביות</span>
-            <span class="custom-checkbox-wrap">
-                <input type="checkbox" id="captionStretchGaps" checked>
-                <span class="custom-checkbox" aria-hidden="true">
-                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
-                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            </span>
-        </label>
+                <div class="row row-slider">
+                    <label for="captionWordCount">מילים בשורה</label>
+                    <div class="slider-control-wrap" id="sliderWrap" title="גרירה או גלילה לשינוי (1-8)">
+                        <span class="slider-badge" id="captionWordCountVal">3 מילים</span>
+                        <div class="slider-track-wrap">
+                            <input type="range" id="captionWordCount" min="1" max="8" step="1" value="3" aria-label="מילים בשורה">
+                        </div>
+                    </div>
+                </div>
 
-        <label class="row row-toggle" for="captionWordHighlight" id="rowWordHighlight" title="הייליט מילים (מרקר): הדגשת כל מילה בזמן הדיבור">
-            <span class="toggle-label highlight-toggle-label">
-                <span>הייליט מילים</span>
-                <span class="highlight-preview-pill" id="highlightPreviewPill">מרקר</span>
-            </span>
-            <span class="custom-checkbox-wrap">
-                <input type="checkbox" id="captionWordHighlight">
-                <span class="custom-checkbox" aria-hidden="true">
-                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
-                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            </span>
-        </label>
+                <label class="row row-toggle" for="captionPunctuation" id="rowPunctuation">
+                    <span class="toggle-label">סימני פיסוק</span>
+                    <span class="switch"><input type="checkbox" id="captionPunctuation" checked><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
 
-        <div class="row row-highlight-color" id="rowHighlightColor">
-            <label for="captionHighlightColor">צבע ההייליט</label>
-            <div class="highlight-color-controls" id="highlightSwatches">
-                <button type="button" class="color-swatch active" data-color="#FACC15" style="--swatch-color: #FACC15;" title="צהוב מרקר" aria-label="צהוב מרקר"></button>
-                <button type="button" class="color-swatch" data-color="#22C55E" style="--swatch-color: #22C55E;" title="ירוק זוהר" aria-label="ירוק זוהר"></button>
-                <button type="button" class="color-swatch" data-color="#2563EB" style="--swatch-color: #2563EB;" title="כחול" aria-label="כחול"></button>
-                <button type="button" class="color-swatch" data-color="#EC4899" style="--swatch-color: #EC4899;" title="ורוד מרקר" aria-label="ורוד מרקר"></button>
-                <button type="button" class="color-swatch" data-color="#F97316" style="--swatch-color: #F97316;" title="כתום" aria-label="כתום"></button>
-                <button type="button" class="color-swatch" data-color="#A855F7" style="--swatch-color: #A855F7;" title="סגול" aria-label="סגול"></button>
-                <div class="custom-color-picker-wrap" id="customColorWrap" title="בחירת צבע מותאם אישית מהפלטה">
-                    <button type="button" class="custom-color-picker-btn" id="customColorBtn" aria-label="בחירת צבע מותאם אישית מהפלטה">+</button>
-                    <input type="color" id="captionHighlightColor" value="#FACC15" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden;" aria-label="בחירת צבע ההייליט">
+                <label class="row row-toggle" for="captionStretchGaps" id="rowStretchGaps">
+                    <span class="toggle-label">מתיחה על פני רווחים</span>
+                    <span class="switch"><input type="checkbox" id="captionStretchGaps" checked><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-title">הדגשת מילים</div>
+            <div class="card">
+                <label class="row row-toggle" for="captionWordHighlight" id="rowWordHighlight">
+                    <span class="toggle-label highlight-toggle-label">
+                        <span>מרקר על המילה המדוברת</span>
+                        <span class="highlight-preview-pill" id="highlightPreviewPill">מרקר</span>
+                    </span>
+                    <span class="switch"><input type="checkbox" id="captionWordHighlight"><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
+
+                <div class="row row-highlight-color" id="rowHighlightColor">
+                    <label for="captionHighlightColor">צבע</label>
+                    <div class="highlight-color-controls" id="highlightSwatches">
+                        <button type="button" class="color-swatch active" data-color="#FACC15" style="--swatch-color: #FACC15;" title="צהוב" aria-label="צהוב"></button>
+                        <button type="button" class="color-swatch" data-color="#22C55E" style="--swatch-color: #22C55E;" title="ירוק" aria-label="ירוק"></button>
+                        <button type="button" class="color-swatch" data-color="#2563EB" style="--swatch-color: #2563EB;" title="כחול" aria-label="כחול"></button>
+                        <button type="button" class="color-swatch" data-color="#EC4899" style="--swatch-color: #EC4899;" title="ורוד" aria-label="ורוד"></button>
+                        <button type="button" class="color-swatch" data-color="#F97316" style="--swatch-color: #F97316;" title="כתום" aria-label="כתום"></button>
+                        <button type="button" class="color-swatch" data-color="#A855F7" style="--swatch-color: #A855F7;" title="סגול" aria-label="סגול"></button>
+                        <div class="custom-color-picker-wrap" id="customColorWrap" title="צבע מותאם אישית">
+                            <button type="button" class="custom-color-picker-btn" id="customColorBtn" aria-label="צבע מותאם אישית">+</button>
+                            <input type="color" id="captionHighlightColor" value="#FACC15" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden;" aria-label="בחירת צבע">
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Custom Color Palette Popover (macOS & Windows) -->
-        <div id="highlightColorPopover" class="highlight-color-popover" style="display:none;">
-            <div class="popover-header">
-                <div class="popover-title">
-                    <span class="popover-title-icon">🎨</span>
-                    <span>פלטת צבעים מותאמת אישית</span>
+            <!-- Custom Color Popover -->
+            <div id="highlightColorPopover" class="highlight-color-popover" style="display:none;">
+                <div class="popover-header">
+                    <div class="popover-title">צבע מותאם אישית</div>
+                    <button type="button" class="popover-close-btn" id="popoverCloseBtn" title="סגור">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" class="popover-close-btn" id="popoverCloseBtn" title="סגור פלטה">✕</button>
-            </div>
 
-            <div class="color-sv-field" id="colorSvField" title="גרור לבחירת גוון ובהירות">
-                <div class="color-sv-cursor" id="colorSvCursor"></div>
-            </div>
-
-            <div class="color-hue-bar" id="colorHueBar" title="פס צבעי הקשת (Hue)">
-                <div class="color-hue-cursor" id="colorHueCursor"></div>
-            </div>
-
-            <div class="color-inputs-row">
-                <div class="color-preview-box" id="popoverPreviewBox" title="צבע נבחר"></div>
-                <div class="color-hex-wrap">
-                    <span class="color-hex-prefix">#</span>
-                    <input type="text" id="popoverHexInput" class="color-hex-input" maxlength="6" value="FACC15" placeholder="HEX" spellcheck="false" aria-label="קוד צבע HEX">
+                <div class="color-sv-field" id="colorSvField">
+                    <div class="color-sv-cursor" id="colorSvCursor"></div>
                 </div>
-                <button type="button" class="btn-color-eyedropper" id="btnColorEyedropper" title="דוגם צבע מהמסך" style="display:none;">
-                    <span>💧</span>
-                </button>
-                <button type="button" class="btn-color-system" id="btnSystemColor" title="פתיחת חלון הצבע של מערכת ההפעלה" style="display:none;">
-                    <span>🪟 מערכת</span>
-                </button>
-            </div>
 
-            <div class="color-presets-section">
-                <div class="color-presets-title">גווני מרקר פופולריים:</div>
+                <div class="color-hue-bar" id="colorHueBar">
+                    <div class="color-hue-cursor" id="colorHueCursor"></div>
+                </div>
+
+                <div class="color-inputs-row">
+                    <div class="color-preview-box" id="popoverPreviewBox"></div>
+                    <div class="color-hex-wrap">
+                        <span class="color-hex-prefix">#</span>
+                        <input type="text" id="popoverHexInput" class="color-hex-input" maxlength="6" value="FACC15" placeholder="HEX" spellcheck="false" aria-label="קוד צבע HEX">
+                    </div>
+                    <button type="button" class="btn-color-eyedropper" id="btnColorEyedropper" title="דגימת צבע מהמסך" style="display:none;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
+                    </button>
+                    <button type="button" class="btn-color-system" id="btnSystemColor" title="חלון הצבע של המערכת" style="display:none;">מערכת</button>
+                </div>
+
                 <div class="color-presets-grid" id="colorPresetsGrid">
-                    <button type="button" class="color-mini-swatch" data-color="#FACC15" style="--swatch-c: #FACC15;" title="צהוב מרקר"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#FEF08A" style="--swatch-c: #FEF08A;" title="צהוב בהיר"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#F59E0B" style="--swatch-c: #F59E0B;" title="ענבר"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#FB923C" style="--swatch-c: #FB923C;" title="כתום פסטל"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#F97316" style="--swatch-c: #F97316;" title="כתום זוהר"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#EF4444" style="--swatch-c: #EF4444;" title="אדום"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#F43F5E" style="--swatch-c: #F43F5E;" title="רוז"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#EC4899" style="--swatch-c: #EC4899;" title="ורוד מרקר"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#D946EF" style="--swatch-c: #D946EF;" title="פוקסיה"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#A855F7" style="--swatch-c: #A855F7;" title="סגול"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#8B5CF6" style="--swatch-c: #8B5CF6;" title="סגול חשמלי"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#6366F1" style="--swatch-c: #6366F1;" title="אינדיגו"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#3B82F6" style="--swatch-c: #3B82F6;" title="כחול"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#0EA5E9" style="--swatch-c: #0EA5E9;" title="ציאן"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#06B6D4" style="--swatch-c: #06B6D4;" title="טורקיז"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#10B981" style="--swatch-c: #10B981;" title="מנטה"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#22C55E" style="--swatch-c: #22C55E;" title="ירוק זוהר"></button>
-                    <button type="button" class="color-mini-swatch" data-color="#84CC16" style="--swatch-c: #84CC16;" title="ליים"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#FACC15" style="--swatch-c: #FACC15;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#FEF08A" style="--swatch-c: #FEF08A;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#F59E0B" style="--swatch-c: #F59E0B;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#FB923C" style="--swatch-c: #FB923C;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#F97316" style="--swatch-c: #F97316;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#EF4444" style="--swatch-c: #EF4444;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#F43F5E" style="--swatch-c: #F43F5E;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#EC4899" style="--swatch-c: #EC4899;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#D946EF" style="--swatch-c: #D946EF;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#A855F7" style="--swatch-c: #A855F7;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#8B5CF6" style="--swatch-c: #8B5CF6;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#6366F1" style="--swatch-c: #6366F1;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#3B82F6" style="--swatch-c: #3B82F6;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#0EA5E9" style="--swatch-c: #0EA5E9;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#06B6D4" style="--swatch-c: #06B6D4;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#10B981" style="--swatch-c: #10B981;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#22C55E" style="--swatch-c: #22C55E;"></button>
+                    <button type="button" class="color-mini-swatch" data-color="#84CC16" style="--swatch-c: #84CC16;"></button>
                 </div>
-            </div>
 
-            <div class="popover-actions">
-                <button type="button" id="btnApplyCustomColor" class="btn-apply-color">אישור ובחירה</button>
+                <button type="button" id="btnApplyCustomColor" class="btn btn-primary btn-sm">אישור</button>
             </div>
+        </section>
+
+        <div class="actions">
+            <button type="button" id="btnCaptions" class="btn btn-primary">יצירת כתוביות לכל הסיקוונס</button>
+            <button type="button" id="btnEditCaptions" class="btn btn-secondary" style="display:none;">
+                <span>עריכת טקסט הכתוביות</span>
+            </button>
         </div>
-
-
-        <button type="button" id="btnCaptions" class="btn btn-primary btn-captions-primary">יצירת כתוביות לכל הסיקוונס</button>
-        <button type="button" id="btnEditCaptions" class="btn btn-secondary btn-edit-captions" style="display:none;">
-            <span>✏️ עריכת טקסט הכתוביות (תיקון שגיאות)</span>
-        </button>
     </div>
 
     <!-- View: Text Animations -->
     <div id="view-animations" class="tab-view" style="display:none;">
-        <!-- Animation Presets Grid with Live Previews -->
-        <div class="anim-preview-grid" id="animPresetsGrid">
-            <!-- Preset: Pop / Bounce -->
-            <button type="button" class="anim-preview-card active" data-preset="pop" title="פופ וקפיצה">
-                <div class="anim-card-viewport">
-                    <div class="anim-sample-element anim-sample-pop">
-                        <span>טקסט</span>
-                    </div>
-                </div>
-                <div class="anim-card-footer">
-                    <span class="anim-card-name">פופ (Bounce)</span>
-                </div>
-            </button>
-
-            <!-- Preset: Slide Up -->
-            <button type="button" class="anim-preview-card" data-preset="slide_up" title="החלקה למעלה">
-                <div class="anim-card-viewport">
-                    <div class="anim-sample-element anim-sample-slide">
-                        <span>טקסט</span>
-                    </div>
-                </div>
-                <div class="anim-card-footer">
+        <section class="section">
+            <div class="section-title">סגנון</div>
+            <div class="anim-preview-grid" id="animPresetsGrid">
+                <button type="button" class="anim-preview-card active" data-preset="pop">
+                    <div class="anim-card-viewport"><div class="anim-sample-element anim-sample-pop"><span>טקסט</span></div></div>
+                    <span class="anim-card-name">פופ</span>
+                </button>
+                <button type="button" class="anim-preview-card" data-preset="slide_up">
+                    <div class="anim-card-viewport"><div class="anim-sample-element anim-sample-slide"><span>טקסט</span></div></div>
                     <span class="anim-card-name">החלקה למעלה</span>
-                </div>
-            </button>
+                </button>
+                <button type="button" class="anim-preview-card" data-preset="zoom_in">
+                    <div class="anim-card-viewport"><div class="anim-sample-element anim-sample-zoom"><span>טקסט</span></div></div>
+                    <span class="anim-card-name">זום</span>
+                </button>
+                <button type="button" class="anim-preview-card" data-preset="fade">
+                    <div class="anim-card-viewport"><div class="anim-sample-element anim-sample-fade"><span>טקסט</span></div></div>
+                    <span class="anim-card-name">עמעום</span>
+                </button>
+            </div>
+        </section>
 
-            <!-- Preset: Zoom In -->
-            <button type="button" class="anim-preview-card" data-preset="zoom_in" title="זום פנימה">
-                <div class="anim-card-viewport">
-                    <div class="anim-sample-element anim-sample-zoom">
-                        <span>טקסט</span>
+        <section class="section">
+            <div class="section-title">הגדרות</div>
+            <div class="card">
+                <div class="field">
+                    <label>שכבת וידאו</label>
+                    <div class="segmented segmented-sm anim-track-selector" role="group" aria-label="שכבת וידאו">
+                        <button type="button" class="anim-segment-btn anim-track-btn" data-track="V1">V1</button>
+                        <button type="button" class="anim-segment-btn anim-track-btn active" data-track="V2">V2</button>
+                        <button type="button" class="anim-segment-btn anim-track-btn" data-track="V3">V3</button>
+                        <button type="button" class="anim-segment-btn anim-track-btn" data-track="V4">V4</button>
                     </div>
                 </div>
-                <div class="anim-card-footer">
-                    <span class="anim-card-name">זום פנימה</span>
-                </div>
-            </button>
-
-            <!-- Preset: Smooth Fade -->
-            <button type="button" class="anim-preview-card" data-preset="fade" title="עמעום חלק">
-                <div class="anim-card-viewport">
-                    <div class="anim-sample-element anim-sample-fade">
-                        <span>טקסט</span>
+                <div class="field">
+                    <label>מעבר</label>
+                    <div class="segmented segmented-sm anim-scope-selector" role="group" aria-label="מעבר">
+                        <button type="button" class="anim-segment-btn anim-scope-btn active" data-scope="in_out">כניסה ויציאה</button>
+                        <button type="button" class="anim-segment-btn anim-scope-btn" data-scope="in">כניסה</button>
+                        <button type="button" class="anim-segment-btn anim-scope-btn" data-scope="out">יציאה</button>
                     </div>
                 </div>
-                <div class="anim-card-footer">
-                    <span class="anim-card-name">עמעום חלק</span>
+                <div class="field">
+                    <label>מהירות</label>
+                    <div class="segmented segmented-sm anim-speed-selector" role="group" aria-label="מהירות">
+                        <button type="button" class="anim-segment-btn anim-speed-btn" data-dur="0.20" title="0.2 שניות">מהיר</button>
+                        <button type="button" class="anim-segment-btn anim-speed-btn active" data-dur="0.35" title="0.35 שניות">רגיל</button>
+                        <button type="button" class="anim-segment-btn anim-speed-btn" data-dur="0.55" title="0.55 שניות">חלק</button>
+                    </div>
                 </div>
-            </button>
-        </div>
-
-        <!-- Track Selection (V1, V2, V3, V4) -->
-        <div class="anim-control-block">
-            <div class="anim-control-title">שכבת וידאו (Track)</div>
-            <div class="anim-segmented-ctrl anim-track-selector" role="group" aria-label="שכבת וידאו">
-                <button type="button" class="anim-segment-btn anim-track-btn" data-track="V1">V1</button>
-                <button type="button" class="anim-segment-btn anim-track-btn active" data-track="V2">V2</button>
-                <button type="button" class="anim-segment-btn anim-track-btn" data-track="V3">V3</button>
-                <button type="button" class="anim-segment-btn anim-track-btn" data-track="V4">V4</button>
+                <label class="row row-toggle" for="animMotionBlur" id="rowAnimMotionBlur">
+                    <span class="toggle-label">Motion Blur</span>
+                    <span class="switch"><input type="checkbox" id="animMotionBlur"><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
             </div>
-        </div>
-
-        <!-- Scope Selection (Full Width Block - Never Overflows) -->
-        <div class="anim-control-block">
-            <div class="anim-control-title">סוג מעבר</div>
-            <div class="anim-segmented-ctrl anim-scope-selector" role="group" aria-label="סוג מעבר">
-                <button type="button" class="anim-segment-btn anim-scope-btn active" data-scope="in_out">כניסה ויציאה</button>
-                <button type="button" class="anim-segment-btn anim-scope-btn" data-scope="in">כניסה בלבד</button>
-                <button type="button" class="anim-segment-btn anim-scope-btn" data-scope="out">יציאה בלבד</button>
-            </div>
-        </div>
-
-        <!-- Speed Selection (Full Width Block - Never Overflows) -->
-        <div class="anim-control-block">
-            <div class="anim-control-title">מהירות</div>
-            <div class="anim-segmented-ctrl anim-speed-selector" role="group" aria-label="מהירות">
-                <button type="button" class="anim-segment-btn anim-speed-btn" data-dur="0.20">מהיר (0.2s)</button>
-                <button type="button" class="anim-segment-btn anim-speed-btn active" data-dur="0.35">רגיל (0.35s)</button>
-                <button type="button" class="anim-segment-btn anim-speed-btn" data-dur="0.55">חלק (0.55s)</button>
-            </div>
-        </div>
-
-        <!-- Motion Blur Toggle -->
-        <label class="row row-toggle anim-toggle-row" for="animMotionBlur" id="rowAnimMotionBlur" title="טשטוש תנועה קולנועי (Motion Blur) בזמן המעברים">
-            <span class="toggle-label anim-toggle-label">
-                <span>טשטוש תנועה (Motion Blur)</span>
-                <span class="anim-blur-badge">PRO</span>
-            </span>
-            <span class="custom-checkbox-wrap">
-                <input type="checkbox" id="animMotionBlur">
-                <span class="custom-checkbox" aria-hidden="true">
-                    <svg class="checkbox-svg" viewBox="0 0 12 12" fill="none">
-                        <path class="checkbox-tick" d="M2.4 6.2L4.8 8.7L9.6 3.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            </span>
-        </label>
+        </section>
 
         <div id="animSuccessPill" class="anim-success-pill" style="display:none;"></div>
 
-        <!-- Action Buttons -->
-        <button type="button" id="btnApplyAnimation" class="btn btn-primary btn-apply-anim">החל אנימציה</button>
-        <button type="button" id="btnResetAnimation" class="btn btn-secondary btn-reset-anim">איפוס אנימציות</button>
+        <div class="actions">
+            <button type="button" id="btnApplyAnimation" class="btn btn-primary">החל אנימציה</button>
+            <button type="button" id="btnResetAnimation" class="btn btn-ghost">איפוס אנימציות</button>
+        </div>
+        <p class="hint hint-center">פיצ'ר בבטא. מומלץ לבדוק את התוצאה בטיים-ליין.</p>
     </div>
 
-    <!-- View: Caption Text Editor (Fix typos & re-render markers instantly) -->
+    <!-- View: Caption Text Editor -->
     <div id="view-caption-editor" class="tab-view" style="display:none;">
-        <div class="log-view-header">
-            <div class="log-view-title-wrap">
-                <button type="button" id="btnBackFromEditor" class="btn-log-back" title="חזרה להגדרות כתוביות">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                    <span>חזרה</span>
-                </button>
-                <span class="log-view-title">עריכת טקסט הכתוביות</span>
-            </div>
-            <span id="editorLinesCount" class="log-counter">0 שורות</span>
+        <div class="subview-header">
+            <button type="button" id="btnBackFromEditor" class="btn-back" title="חזרה">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <span class="subview-title">עריכת כתוביות</span>
+            <span id="editorLinesCount" class="subview-meta">0 שורות</span>
         </div>
 
-        <div class="caption-editor-hint">
-            לחץ על כל משפט כדי לתקן שגיאות כתיב. לחיצה על הזמן תקפיץ את הסמן בפרמייר.
-        </div>
+        <p class="hint">לחיצה על משפט לתיקון. לחיצה על הזמן מקפיצה את הסמן בפרמייר.</p>
 
         <div class="caption-editor-list" id="captionEditorList"></div>
 
-        <button type="button" id="btnApplyCaptionEdits" class="btn btn-primary btn-apply-edits">
-            עדכן כתוביות ומרקר בטיים-ליין
-        </button>
+        <div class="actions">
+            <button type="button" id="btnApplyCaptionEdits" class="btn btn-primary">עדכון כתוביות בטיים-ליין</button>
+        </div>
     </div>
 
     <!-- View: Activity Log -->
     <div id="view-log" class="tab-view" style="display:none;">
-        <div class="log-view-header">
-            <div class="log-view-title-wrap">
-                <button type="button" id="btnBackFromLog" class="btn-log-back" onclick="closeLogView(event)" title="חזרה למסך הראשי">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                    <span>חזרה</span>
-                </button>
-                <svg class="icon-terminal" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="4 17 10 11 4 5"></polyline>
-                    <line x1="12" y1="19" x2="20" y2="19"></line>
-                </svg>
-                <span class="log-view-title">יומן פעילות (לוג)</span>
-            </div>
-            <div class="log-view-actions">
-                <button type="button" id="btnCopyLog" class="btn-log-action" onclick="copyLogsToClipboard(event)" title="העתק תוכן היומן">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
+        <div class="subview-header">
+            <button type="button" id="btnBackFromLog" class="btn-back" onclick="closeLogView(event)" title="חזרה">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <span class="subview-title">יומן פעילות</span>
+            <div class="subview-actions">
+                <button type="button" id="btnCopyLog" class="btn-log-action" onclick="copyLogsToClipboard(event)" title="העתקה">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     <span>העתק</span>
                 </button>
-                <button type="button" id="btnClearLog" class="btn-log-action" onclick="clearLogs(event)" title="נקה יומן">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
+                <button type="button" id="btnClearLog" class="btn-log-action" onclick="clearLogs(event)" title="ניקוי">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     <span>נקה</span>
                 </button>
             </div>
@@ -417,12 +349,12 @@
         <div class="console-box" id="consoleBox"></div>
 
         <div class="log-view-footer">
-            <span id="logCounter" class="log-counter">0 הודעות</span>
+            <span id="logCounter">0 הודעות</span>
             <span class="log-status-live">מתעדכן בזמן אמת</span>
         </div>
     </div>
 
-    <!-- Shared Progress Area -->
+    <!-- Shared Progress -->
     <div id="progressArea" class="progress-area" style="display:none;">
         <div class="progress-head">
             <span id="progressStatus">מעבד...</span>
@@ -431,50 +363,37 @@
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
     </div>
 
-    <!-- Footer Credit & Version Check -->
-    <div class="footer-credit-row">
-        <span class="footer-credit">Created by Kaboodi</span>
-        <span class="footer-dot">•</span>
-        <button type="button" class="btn-feedback-pill" onclick="openFeedbackModal(event)" title="שלח פידבק או הצעת שיפור לפלאגין">💬 פידבק והצעות</button>
-        <span class="footer-dot">•</span>
-        <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="handleFooterVersionClick(event)" title="לחץ לבדיקת עדכונים">
+    <!-- Footer -->
+    <footer class="app-footer">
+        <span class="footer-credit">by Kaboodi</span>
+        <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="handleFooterVersionClick(event)" title="בדיקת עדכונים">
             <span id="footerUpdatePing" class="version-update-ping" style="display:none;"></span>
-            <span id="footerVersionText">v1.0.11</span>
-            <span id="footerCheckSpin" class="spin-icon">🔄</span>
+            <span id="footerVersionText">v1.0.12</span>
+            <svg id="footerCheckSpin" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         </button>
-    </div>
+    </footer>
 
-    <!-- Plugin Logo -->
-    <div class="plugin-logo-wrap">
-        <img src="img/logo.png" alt="CS Trim - Auto Cut & Captions" class="plugin-logo">
-    </div>
-
-    <!-- Plugin Update Modal Overlay -->
-    <div id="pluginUpdateModal" class="feedback-modal-overlay" style="display:none;" onclick="handleUpdateModalOverlayClick(event)">
-        <div class="feedback-modal-card update-modal-card">
-            <div class="feedback-modal-header">
-                <div class="feedback-modal-title">
-                    <span class="feedback-icon">🚀</span>
-                    <span>גרסה חדשה זמינה ל-CS Trim!</span>
-                </div>
-                <button type="button" class="btn-feedback-close" onclick="closeUpdateModal(event)" title="סגור">✕</button>
+    <!-- Update Modal -->
+    <div id="pluginUpdateModal" class="modal-overlay" style="display:none;" onclick="handleUpdateModalOverlayClick(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">גרסה חדשה זמינה</div>
+                <button type="button" class="btn-modal-close" onclick="closeUpdateModal(event)" title="סגור">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
             </div>
-            
+
             <div class="update-modal-ver-row">
-                <div class="update-vtag-new" id="modalNewVersionBadge">v1.0.10 זמינה עכשיו</div>
-                <div class="update-vtag-cur" id="modalCurVersionBadge">גרסה נוכחית: v1.0.10</div>
+                <span class="update-vtag-new" id="modalNewVersionBadge">v1.0.10</span>
+                <span class="update-vtag-cur" id="modalCurVersionBadge">גרסה נוכחית: v1.0.10</span>
             </div>
-
-            <p class="update-modal-intro">עדכון חדש מוכן להתקנה בלחיצה אחת, ישירות מתוך התוסף ללא הורדה ידנית:</p>
 
             <div class="update-changelog-box">
-                <div class="update-changelog-header">מה חדש בעדכון זה:</div>
-                <ul class="update-changelog-list" id="modalChangelogList">
-                    <!-- Populated dynamically -->
-                </ul>
+                <div class="update-changelog-header">מה חדש</div>
+                <ul class="update-changelog-list" id="modalChangelogList"></ul>
             </div>
 
-            <div id="modalUpdateProgressWrap" class="update-progress-wrap" style="display:none; margin: 12px 0 6px;">
+            <div id="modalUpdateProgressWrap" class="update-progress-wrap" style="display:none;">
                 <div class="update-progress-head">
                     <span id="modalUpdateProgressMsg" class="update-progress-msg">מוריד קבצי עדכון...</span>
                     <span id="modalUpdateProgressPct" class="update-progress-pct">0%</span>
@@ -484,63 +403,55 @@
                 </div>
             </div>
 
-            <div class="update-modal-actions" id="modalUpdateActions">
-                <button type="button" id="btnModalApplyUpdate" class="btn btn-primary btn-modal-apply" onclick="runModalUpdate(event)">
-                    <span>⚡ עדכן עכשיו בלחיצה אחת</span>
-                </button>
-                <button type="button" class="btn-modal-snooze" onclick="closeUpdateModal(event)">
-                    <span>הזכר לי מאוחר יותר</span>
-                </button>
+            <div class="modal-actions" id="modalUpdateActions">
+                <button type="button" id="btnModalApplyUpdate" class="btn btn-primary" onclick="runModalUpdate(event)">עדכן עכשיו</button>
+                <button type="button" class="btn btn-ghost" onclick="closeUpdateModal(event)">אחר כך</button>
             </div>
         </div>
     </div>
 
-    <!-- Plugin Feedback Modal -->
-    <div id="pluginFeedbackModal" class="feedback-modal-overlay" style="display:none;" onclick="handlePluginFeedbackOverlayClick(event)">
-        <div class="feedback-modal-card">
-            <div class="feedback-modal-header">
-                <div class="feedback-modal-title">
-                    <span class="feedback-icon">💡</span>
-                    <span>פידבק והצעות ל-CS Trim</span>
-                </div>
-                <button type="button" class="btn-feedback-close" onclick="closeFeedbackModal(event)" title="סגור">✕</button>
+    <!-- Feedback Modal -->
+    <div id="pluginFeedbackModal" class="modal-overlay" style="display:none;" onclick="handlePluginFeedbackOverlayClick(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">פידבק והצעות</div>
+                <button type="button" class="btn-modal-close" onclick="closeFeedbackModal(event)" title="סגור">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
             </div>
-            <p class="feedback-modal-desc">ספרו לנו מה אפשר לשפר, לתקן או להוסיף — הפידבק שלכם מגיע ישירות למפתחים:</p>
+            <p class="modal-desc">מה אפשר לשפר, לתקן או להוסיף? ההודעה מגיעה ישירות למפתח.</p>
 
             <form id="pluginFeedbackForm" onsubmit="submitPluginFeedback(event)">
                 <div class="pfb-group">
-                    <label class="pfb-label">סוג הפנייה</label>
-                    <div class="pfb-type-selector">
+                    <div class="segmented segmented-sm pfb-type-selector">
                         <label class="pfb-type-pill active">
                             <input type="radio" name="pluginFbType" value="improvement" checked onchange="updatePluginFbTypePill(this)">
-                            <span>💡 שיפור</span>
+                            <span>שיפור</span>
                         </label>
                         <label class="pfb-type-pill">
                             <input type="radio" name="pluginFbType" value="bug" onchange="updatePluginFbTypePill(this)">
-                            <span>🐛 באג</span>
+                            <span>באג</span>
                         </label>
                         <label class="pfb-type-pill">
                             <input type="radio" name="pluginFbType" value="general" onchange="updatePluginFbTypePill(this)">
-                            <span>⭐ כללי</span>
+                            <span>כללי</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="pfb-group">
-                    <label for="pluginFbMessage" class="pfb-label">מה אפשר לשפר או לתקן? <span class="req">*</span></label>
-                    <textarea id="pluginFbMessage" class="pfb-textarea" rows="3" placeholder="פרטו כאן מה תרצו שנשפר, או תקלה שקרתה..." required></textarea>
+                    <label for="pluginFbMessage" class="pfb-label">הודעה <span class="req">*</span></label>
+                    <textarea id="pluginFbMessage" class="pfb-textarea" rows="4" placeholder="מה תרצו שנשפר, או איזו תקלה קרתה..." required></textarea>
                 </div>
 
                 <div class="pfb-group">
-                    <label for="pluginFbContact" class="pfb-label">אימייל או טלפון לחזרה (אופציונלי)</label>
-                    <input type="text" id="pluginFbContact" class="pfb-input" placeholder="כדי שנוכל לעדכן כשהשיפור ישוחרר">
+                    <label for="pluginFbContact" class="pfb-label">אימייל או טלפון (לא חובה)</label>
+                    <input type="text" id="pluginFbContact" class="pfb-input" placeholder="כדי שנעדכן כשזה ישוחרר">
                 </div>
 
-                <div class="pfb-actions">
-                    <button type="submit" id="btnSendPluginFb" class="btn btn-primary" style="width: 100%; height: 34px; font-size: 12px; font-weight: 700;">
-                        <span>שלח פידבק למפתחים</span>
-                    </button>
-                </div>
+                <button type="submit" id="btnSendPluginFb" class="btn btn-primary">
+                    <span>שליחה</span>
+                </button>
 
                 <div id="pluginFbStatus" class="pfb-status" style="display:none;"></div>
             </form>
@@ -552,6 +463,6 @@
     <script src="js/audioAnalyzer.js?v=5"></script>
     <script src="js/captionGenerator.js?v=5"></script>
     <script src="js/textAnimator.js?v=5"></script>
-    <script src="js/main.js?v=8"></script>
+    <script src="js/main.js?v=9"></script>
 </body>
 </html>

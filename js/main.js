@@ -1386,7 +1386,7 @@ function initApp() {
                             var btnEdit = document.getElementById("btnEditCaptions");
                             if (btnEdit && capResult.cues && capResult.cues.length > 0) {
                                 btnEdit.style.display = "flex";
-                                btnEdit.innerHTML = "<span>✏️ עריכת טקסט הכתוביות (" + capResult.cues.length + " שורות)</span>";
+                                btnEdit.innerHTML = "<span>עריכת טקסט הכתוביות · " + capResult.cues.length + " שורות</span>";
                             }
 
                             if (capResult.highlightWords && capResult.highlightManifestPath) {
@@ -1462,7 +1462,7 @@ function initApp() {
                         }
                         if (btnEditCaptions) {
                             btnEditCaptions.style.display = "flex";
-                            btnEditCaptions.innerHTML = "<span>✏️ עריכת טקסט הכתוביות (" + parsedCues.length + " שורות)</span>";
+                            btnEditCaptions.innerHTML = "<span>עריכת טקסט הכתוביות · " + parsedCues.length + " שורות</span>";
                         }
                     }
                 }
@@ -2108,7 +2108,7 @@ function submitPluginFeedback(e) {
 
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = "<span>שולח פידבק למערכת...</span>";
+        submitBtn.innerHTML = "<span>שולח...</span>";
     }
 
     var payload = {
@@ -2157,7 +2157,7 @@ function submitPluginFeedback(e) {
     .then(function (data) {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = "<span>שלח פידבק למפתחים</span>";
+            submitBtn.innerHTML = "<span>שליחה</span>";
         }
         if (statusBox) {
             statusBox.className = "pfb-status success";
@@ -2174,7 +2174,7 @@ function submitPluginFeedback(e) {
     .catch(function (err) {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = "<span>שלח פידבק למפתחים</span>";
+            submitBtn.innerHTML = "<span>שליחה</span>";
         }
         if (statusBox) {
             statusBox.className = "pfb-status success";

@@ -1,6 +1,13 @@
 {
   "leads": [
     {
+      "email": "oshrialkoby11@gmail.com",
+      "platform": "Mac",
+      "fileName": "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.7",
+      "dateFormatted": "18.10.2026, 18:11:17",
+      "timestamp": "2026-10-18T15:11:17.426Z"
+    },
+    {
       "email": "kadoomi@gmail.com",
       "platform": "Mac",
       "fileName": "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.7",
@@ -22,5 +29,5 @@
       "timestamp": "2026-10-17T10:30:00.000Z"
     }
   ],
-  "lastUpdated": "2026-10-17"
+  "lastUpdated": "2026-10-18"
 }

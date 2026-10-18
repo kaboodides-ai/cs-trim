@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=2.1.0">
+    <link rel="stylesheet" href="css/site.css?v=2.2.0">
 
     <script type="application/ld+json">
     {
@@ -88,6 +88,7 @@
                         <span>הורדה חינם ל-Mac</span>
                     </a>
                 </div>
+                <p class="phone-note">התוסף עובד במחשב. נשלח לכם קישור במייל, ותורידו כשתהיו מול המחשב.</p>
                 <ul class="free-points"><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי מנוי</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי כרטיס אשראי</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי הגבלת סרטונים</li></ul>
                 <p class="hero-meta">גרסה 1.0.11 &middot; Premiere Pro 2020 ומעלה &middot; <a href="install-guide.html">מדריך התקנה</a></p>
 
@@ -299,6 +300,7 @@
                             </a>
                         </div>
 
+                        <p class="phone-note">התוסף עובד במחשב. נשלח לכם קישור במייל, ותורידו כשתהיו מול המחשב.</p>
                         <ul class="download-meta">
                             <li>Premiere Pro 2020 ומעלה</li>
                             <li>macOS, כולל Apple Silicon</li>
@@ -588,6 +590,31 @@
     <script id="inlineLeadLogic">
     var GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzwu0SYpzKo7R8PLspujaNAyqjG_jnKgmXOU2scPQgr14aUuP5EUzPz9Xd0yK8zIGZ7/exec"; 
 
+    // Visitors on a phone can't install a Premiere plugin, so we email them the desktop links instead.
+    var IS_PHONE = /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    function submitLabelHtml() {
+        var text = IS_PHONE ? "שלחו לי את הקישור" : "המשך להורדה חינם";
+        return '<span>' + text + '</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+    }
+
+    if (IS_PHONE) {
+        document.documentElement.classList.add("is-phone");
+        ["btnHeroDownloadWin", "btnCardDownloadWin"].forEach(function (id) {
+            var span = document.querySelector("#" + id + " span");
+            if (span) span.textContent = "שלחו לי קישור הורדה למחשב";
+            var icon = document.querySelector("#" + id + " svg");
+            if (icon) icon.outerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>';
+        });
+        var setText = function (sel, html) { var el = document.querySelector(sel); if (el) el.innerHTML = html; };
+        setText("#leadFormView .lead-modal-title", "נשלח לך קישור למחשב");
+        setText("#leadFormView .lead-modal-subtitle", "התוסף עובד במחשב (Mac או Windows). השאירו מייל ונשלח קישור הורדה לשתי הגרסאות.");
+        setText("#leadSuccessView .lead-modal-title", "הקישור בדרך אליך");
+        setText("#leadSuccessView .lead-modal-subtitle", 'שלחנו קישור ל-<strong id="leadConfirmedEmail" dir="ltr"></strong>.<br>פתחו את המייל במחשב ובחרו Mac או Windows. לא הגיע? בדקו בספאם.');
+        setText("#btnLeadSubmit", submitLabelHtml());
+    }
+
     var pendingDownload = {
         url: "",
         filename: "",
@@ -639,7 +666,7 @@
         }
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+            submitBtn.innerHTML = submitLabelHtml();
         }
 
         if (badgeText) {
@@ -1036,7 +1063,7 @@
                     }
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                        submitBtn.innerHTML = submitLabelHtml();
                     }
                     return false;
                 }
@@ -1053,6 +1080,7 @@
             dateFormatted: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
             referrer: document.referrer || "direct"
         };
+        if (IS_PHONE) leadData.platform = "Phone (emailed link)";
 
         try {
             localStorage.setItem("cs_trim_lead_email", email);
@@ -1079,10 +1107,41 @@
             }).catch(function(){});
         } catch (eAdm) {}
 
+        if (IS_PHONE) {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = "<span>שולח את הקישור...</span>";
+            }
+            var sent = await fetch("/api/send-download-link", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email })
+            }).then(function (r) {
+                return r.json().catch(function () { return { ok: r.ok }; });
+            }).catch(function () { return { ok: false }; });
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = submitLabelHtml();
+            }
+            if (!sent || !sent.ok) {
+                if (errorMsg) {
+                    errorMsg.textContent = (sent && sent.message) || "לא הצלחנו לשלוח את המייל. נסו שוב בעוד רגע.";
+                    errorMsg.style.display = "block";
+                }
+                return false;
+            }
+            var sentToEl = document.getElementById("leadConfirmedEmail");
+            if (sentToEl) sentToEl.textContent = email;
+            document.getElementById("leadFormView").style.display = "none";
+            document.getElementById("leadSuccessView").style.display = "block";
+            return false;
+        }
+
         setTimeout(function() {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>המשך להורדה חינם</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                submitBtn.innerHTML = submitLabelHtml();
             }
 
             // עדכון תצוגת אישור

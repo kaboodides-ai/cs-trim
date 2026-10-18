@@ -989,6 +989,16 @@ button, input, textarea { font: inherit; color: inherit; }
 .viz-head { position: absolute; top: -5px; left: 0; width: 1.5px; height: 12px; background: var(--text); animation: playhead 2.4s linear infinite; }
 @keyframes playhead { from { left: 0; } to { left: 100%; } }
 
+/* ---------- Phone visitors (emailed download link) ---------- */
+.phone-note { display: none; }
+.is-phone .phone-note { display: block; margin-top: 14px; font-size: 0.9rem; color: var(--text-muted); }
+.is-phone #btnHeroDownloadMac,
+.is-phone #btnCardDownloadMac,
+.is-phone .download-alt,
+.is-phone .os-pill-badge,
+.is-phone #leadTargetBadge,
+.is-phone .lead-manual { display: none; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
     .nav-links { display: none; }

@@ -92,6 +92,38 @@ def resize_rgba(src_pixels, src_w, src_h, dst_w, dst_h):
         dst.append(row)
     return dst
 
+def resize_area(src_pixels, src_w, src_h, dst_w, dst_h):
+    # Box-filter downscale with premultiplied alpha, keeps small icon sizes smooth
+    dst = []
+    for dy in range(dst_h):
+        sy0 = dy * src_h / dst_h
+        sy1 = (dy + 1) * src_h / dst_h
+        row = bytearray(dst_w * 4)
+        for dx in range(dst_w):
+            sx0 = dx * src_w / dst_w
+            sx1 = (dx + 1) * src_w / dst_w
+            acc = [0.0, 0.0, 0.0, 0.0]
+            total = 0.0
+            for sy in range(int(sy0), min(src_h, int(sy1 + 0.999999))):
+                wy = min(sy + 1, sy1) - max(sy, sy0)
+                src_row = src_pixels[sy]
+                for sx in range(int(sx0), min(src_w, int(sx1 + 0.999999))):
+                    wgt = wy * (min(sx + 1, sx1) - max(sx, sx0))
+                    if wgt <= 0:
+                        continue
+                    a = src_row[sx*4 + 3] / 255.0
+                    acc[0] += src_row[sx*4] * a * wgt
+                    acc[1] += src_row[sx*4 + 1] * a * wgt
+                    acc[2] += src_row[sx*4 + 2] * a * wgt
+                    acc[3] += a * wgt
+                    total += wgt
+            a = acc[3] / total if total else 0
+            for c in range(3):
+                row[dx*4 + c] = min(255, int(round(acc[c] / acc[3]))) if acc[3] else 0
+            row[dx*4 + 3] = min(255, int(round(a * 255)))
+        dst.append(row)
+    return dst
+
 def make_png_chunk(chunk_type, data):
     c = chunk_type + data
     crc = zlib.crc32(c) & 0xffffffff
@@ -157,7 +189,13 @@ def generate_assets():
     base = os.path.dirname(os.path.abspath(__file__))
     logo_path = os.path.join(base, "img", "logo.png")
     orig_w, orig_h, orig_pixels = decode_png(logo_path)
-    sq_size, sq_pixels = pad_to_square(orig_pixels, orig_w, orig_h)
+    # Square app-icon mark (falls back to the padded full logo)
+    icon_path = os.path.join(base, "img", "logo-icon.png")
+    if os.path.exists(icon_path):
+        icon_w, icon_h, icon_pixels = decode_png(icon_path)
+        sq_size, sq_pixels = pad_to_square(icon_pixels, icon_w, icon_h)
+    else:
+        sq_size, sq_pixels = pad_to_square(orig_pixels, orig_w, orig_h)
     
     # -------------------------------------------------------------
     # 1. Generate multi-resolution img/logo.ico
@@ -168,7 +206,7 @@ def generate_assets():
     data_blobs = []
     
     for s in ico_sizes:
-        resized = resize_rgba(sq_pixels, sq_size, sq_size, s, s)
+        resized = resize_area(sq_pixels, sq_size, sq_size, s, s)
         if s == 256:
             blob = encode_png(resized, 256, 256)
             width_byte = 0
@@ -205,7 +243,7 @@ def generate_assets():
     # Logo scaled to 110 x 126 (maintaining 350:400)
     logo_target_w = 112
     logo_target_h = int(round(logo_target_w * (orig_h / orig_w))) # ~128
-    logo_resized = resize_rgba(orig_pixels, orig_w, orig_h, logo_target_w, logo_target_h)
+    logo_resized = resize_area(orig_pixels, orig_w, orig_h, logo_target_w, logo_target_h)
     
     logo_start_x = (w_width - logo_target_w) // 2
     logo_start_y = 52
@@ -264,12 +302,12 @@ def generate_assets():
     
     # -------------------------------------------------------------
     # 3. Generate img/installer_header.bmp (150 x 57)
-    # White background with crisp CS Trim logo on the left (RTL friendly)
+    # White background with the CS Trim icon on the left (RTL friendly)
     # -------------------------------------------------------------
     h_width, h_height = 150, 57
     h_logo_h = 44
-    h_logo_w = int(round(h_logo_h * (orig_w / orig_h))) # ~38
-    h_logo_resized = resize_rgba(orig_pixels, orig_w, orig_h, h_logo_w, h_logo_h)
+    h_logo_w = 44
+    h_logo_resized = resize_area(sq_pixels, sq_size, sq_size, h_logo_w, h_logo_h)
     
     # Align to left side (x=12) so in RTL it sits gracefully on the left while Hebrew title is on right
     h_start_x = 12

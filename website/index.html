@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=2.0.0">
+    <link rel="stylesheet" href="css/site.css?v=2.1.0">
 
     <script type="application/ld+json">
     {
@@ -130,6 +130,9 @@
 
                 <div class="features-grid">
                     <article class="feature">
+                        <div class="viz viz-trim" aria-hidden="true">
+                            <span class="viz-speech"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="viz-gap"></span><span class="viz-speech"><i></i><i></i><i></i><i></i><i></i></span><span class="viz-gap"></span><span class="viz-speech"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                        </div>
                         <span class="feature-num">01</span>
                         <h3>חיתוך שקט אוטומטי</h3>
                         <p class="feature-lead">מוריד שתיקות, הפסקות והיסוסים ומהדק את הסיקוונס.</p>
@@ -142,6 +145,9 @@
                     </article>
 
                     <article class="feature">
+                        <div class="viz viz-caption" aria-hidden="true">
+                            <span class="viz-words"><span>חותכים</span> <span>שקט</span> <span>בקליק</span></span>
+                        </div>
                         <span class="feature-num">02</span>
                         <h3>כתוביות AI בעברית</h3>
                         <p class="feature-lead">תמלול וסנכרון ישירות לטיימליין, תוך שניות.</p>
@@ -154,6 +160,10 @@
                     </article>
 
                     <article class="feature">
+                        <div class="viz viz-anim" aria-hidden="true">
+                            <span class="viz-pop">Pop</span>
+                            <span class="viz-track"><i class="viz-key"></i><i class="viz-key"></i><i class="viz-head"></i></span>
+                        </div>
                         <span class="feature-num">03</span>
                         <h3>אנימציות טקסט <span class="tag">Beta</span></h3>
                         <p class="feature-lead">תנועה לשכבת טקסט בלחיצה, בלי קיפריימים ידניים.</p>
@@ -520,6 +530,37 @@
     <div id="downloadToast" class="download-toast" role="status">
         <span id="downloadToastText">תודה! קובץ ההתקנה מתחיל לרדת כעת...</span>
     </div>
+
+    <!-- Fade sections in as they scroll into view; content stays visible without JS -->
+    <script>
+    (function () {
+        var header = document.getElementById("navbar");
+        function onScroll() { header.classList.toggle("is-scrolled", window.scrollY > 8); }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+
+        if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var groups = [".section-head", ".fact", ".feature", ".perk", ".demo-chapters", ".demo-video-card", ".step", ".download-card", ".faq-item", ".suggest-card"];
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("is-visible");
+                    var el = entry.target;
+                    setTimeout(function () { el.style.transitionDelay = ""; }, 1200);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+        groups.forEach(function (sel) {
+            document.querySelectorAll(sel).forEach(function (el) {
+                var siblings = Array.prototype.filter.call(el.parentElement.children, function (c) { return c.matches(sel); });
+                el.style.transitionDelay = Math.min(siblings.indexOf(el), 5) * 80 + "ms";
+                el.classList.add("reveal");
+                observer.observe(el);
+            });
+        });
+    })();
+    </script>
 
     <!-- Play the demo only once it scrolls into view, so its 8MB don't block page load -->
     <script>

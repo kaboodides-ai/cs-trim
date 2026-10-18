@@ -27,8 +27,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=2.2.0">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css?v=3.0.0">
 
     <script type="application/ld+json">
     {
@@ -59,9 +59,9 @@
             </a>
 
             <nav class="nav-links" aria-label="ניווט ראשי">
-                <a href="#features">יכולות</a>
-                <a href="#simulator">הדגמה</a>
-                <a href="#how-it-works">איך זה עובד</a>
+                <a href="#glance">בקצרה</a>
+                <a href="#features">איך זה עובד</a>
+                <a href="#compare">השוואה</a>
                 <a href="#faq">שאלות נפוצות</a>
                 <a href="install-guide.html">מדריך התקנה</a>
             </nav>
@@ -72,211 +72,225 @@
 
     <main>
         <!-- Hero -->
-        <section class="hero">
+        <section class="h-hero" id="top">
+            <div class="container h-hero-grid">
+                <div class="h-hero-copy">
+                    <p class="free-badge"><strong>100% חינם</strong> תוסף ל-Adobe Premiere Pro</p>
+                    <h1 class="h-title">חותכים שקט ומוסיפים כתוביות בעברית, <span class="h-title-mark">בלחיצה אחת.</span></h1>
+                    <p class="h-sub">פאנל בתוך פרמייר שמוריד שתיקות מהסיקוונס, מתמלל לכתוביות בעברית עם הדגשת מילים, ומוסיף אנימציות טקסט. בלי לייצא ובלי לעבור תוכנה.</p>
+
+                    <div class="hero-cta">
+                        <a href="download/CS-Trim-Setup.exe?v=1.0.11" class="btn btn-primary btn-lg" id="btnHeroDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                            <span>הורדה חינם ל-Windows</span>
+                        </a>
+                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" class="btn btn-secondary btn-lg" id="btnHeroDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" download>
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
+                            <span>הורדה חינם ל-Mac</span>
+                        </a>
+                    </div>
+                    <p class="phone-note">התוסף עובד במחשב. נשלח לכם קישור במייל, ותורידו כשתהיו מול המחשב.</p>
+                    <ul class="free-points">
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי מנוי</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי כרטיס אשראי</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Mac ו-Windows</li>
+                    </ul>
+                </div>
+
+                <figure class="h-window-wrap" role="img" aria-label="הדמיה: שתיקות בטיימליין מסומנות ונחתכות אוטומטית, והכתוביות מדגישות כל מילה בזמן הדיבור">
+                    <div class="h-window" dir="ltr">
+                        <div class="h-window-bar">
+                            <span class="h-dot" style="background:#ff5f57"></span><span class="h-dot" style="background:#febc2e"></span><span class="h-dot" style="background:#28c840"></span>
+                            <span class="h-window-title">Premiere Pro — Reel_Edit_01</span>
+                        </div>
+                        <div class="h-window-body">
+                            <div class="h-monitor">
+                                <div class="h-caption" dir="rtl">
+                                    <span class="h-w3">חותכים</span><span class="h-w3" style="animation-delay:-2s">שקט</span><span class="h-w3" style="animation-delay:-1s">בקליק</span>
+                                </div>
+                            </div>
+                            <div class="h-panel" dir="rtl">
+                                <div class="h-panel-name">CS Trim</div>
+                                <div class="h-panel-tabs"><span class="is-on">חיתוך שקט</span><span>כתוביות</span><span>אנימציות</span></div>
+                                <div class="h-slider"><i style="width:62%"></i></div>
+                                <div class="h-slider"><i style="width:40%"></i></div>
+                                <div class="h-panel-btn h-press">חתוך שקט</div>
+                            </div>
+                        </div>
+                        <div class="h-timeline">
+                            <div class="h-track h-track-v">
+                                <i class="h-clip" style="flex-grow:1"></i><i class="h-gap"></i><i class="h-clip" style="flex-grow:1.3"></i><i class="h-gap"></i><i class="h-clip" style="flex-grow:.9"></i>
+                            </div>
+                            <div class="h-track h-track-a">
+                                <i class="h-clip h-wave" style="flex-grow:1"></i><i class="h-gap"><b class="h-mark"></b></i><i class="h-clip h-wave" style="flex-grow:1.3"></i><i class="h-gap"><b class="h-mark"></b></i><i class="h-clip h-wave" style="flex-grow:.9"></i>
+                            </div>
+                            <span class="h-playhead"></span>
+                        </div>
+                    </div>
+                    <figcaption class="h-figcap">השתיקות מסומנות, נחתכות, והכתוביות מדגישות כל מילה בזמן הדיבור.</figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <!-- At a glance -->
+        <section class="h-glance section-alt" id="glance">
             <div class="container">
-                <p class="free-badge"><strong>100% חינם</strong> תוסף ל-Adobe Premiere Pro</p>
-                <h1 class="hero-title">חותכים שקט ומוסיפים כתוביות בעברית, בלי לצאת מפרמייר.</h1>
-                <p class="hero-sub">CS Trim הוא פאנל בתוך Premiere Pro שמוריד שתיקות מהסיקוונס, מתמלל לכתוביות בעברית עם הדגשת מילים, ומוסיף אנימציות טקסט. כל אחד מהם בלחיצה אחת.</p>
-
-                <div class="hero-cta">
-                    <a href="download/CS-Trim-Setup.exe?v=1.0.11" class="btn btn-primary btn-lg" id="btnHeroDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
-                        <span>הורדה חינם ל-Windows</span>
-                    </a>
-                    <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" class="btn btn-secondary btn-lg" id="btnHeroDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" download>
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
-                        <span>הורדה חינם ל-Mac</span>
-                    </a>
-                </div>
-                <p class="phone-note">התוסף עובד במחשב. נשלח לכם קישור במייל, ותורידו כשתהיו מול המחשב.</p>
-                <ul class="free-points"><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי מנוי</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי כרטיס אשראי</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי הגבלת סרטונים</li></ul>
-                <p class="hero-meta">גרסה 1.0.11 &middot; Premiere Pro 2020 ומעלה &middot; <a href="install-guide.html">מדריך התקנה</a></p>
-
-                <a href="#simulator" class="hero-shot" aria-label="צפייה בהדגמה">
-                    <img src="assets/cs-trim-demo-poster.jpg" alt="הפאנל של CS Trim פתוח בתוך Premiere Pro, עם כתוביות בעברית על הטיימליין" width="1600" height="900" fetchpriority="high">
-                </a>
-            </div>
-        </section>
-
-        <!-- Facts -->
-        <section class="facts" aria-label="עובדות על התוסף">
-            <div class="container facts-grid">
-                <div class="fact">
-                    <div class="fact-value">חינם</div>
-                    <div class="fact-label">בלי מנוי ובלי הגבלת שימוש</div>
-                </div>
-                <div class="fact">
-                    <div class="fact-value">עברית</div>
-                    <div class="fact-label">תמלול עם Whisper Large v3</div>
-                </div>
-                <div class="fact">
-                    <div class="fact-value">2020+</div>
-                    <div class="fact-label">כל גרסאות Premiere Pro מאז</div>
-                </div>
-                <div class="fact">
-                    <div class="fact-value">Mac / Win</div>
-                    <div class="fact-label">כולל Apple Silicon</div>
+                <header class="section-head">
+                    <p class="eyebrow">בקצרה</p>
+                    <h2 class="section-title">כל מה שצריך לדעת, בארבע שורות</h2>
+                </header>
+                <div class="h-glance-grid">
+                    <div class="h-card"><h3>מה זה?</h3><p>תוסף שנפתח כחלון בתוך Premiere Pro ועובד ישירות על הסיקוונס שלך.</p></div>
+                    <div class="h-card"><h3>למי זה?</h3><p>עורכים ויוצרים שעושים רילס, פודקאסטים ווולוגים בעברית.</p></div>
+                    <div class="h-card"><h3>כמה זה עולה?</h3><p><strong class="price-free">כלום.</strong> בלי מנוי, בלי כרטיס אשראי ובלי הגבלת סרטונים.</p></div>
+                    <div class="h-card"><h3>מה צריך?</h3><p>Premiere Pro 2020 ומעלה, על Mac או Windows 10/11.</p></div>
                 </div>
             </div>
         </section>
 
-        <!-- Features -->
+        <!-- Features with animated explainers -->
         <section class="section" id="features">
             <div class="container">
                 <header class="section-head">
-                    <p class="eyebrow">יכולות</p>
-                    <h2 class="section-title">שלושה כלים, פאנל אחד</h2>
-                    <p class="section-desc">הכל קורה על הסיקוונס הפעיל, בלי ייצוא, בלי אפטר אפקטס ובלי לעבור בין תוכנות.</p>
-                </header>
-
-                <div class="features-grid">
-                    <article class="feature">
-                        <div class="viz viz-trim" aria-hidden="true">
-                            <span class="viz-speech"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="viz-gap"></span><span class="viz-speech"><i></i><i></i><i></i><i></i><i></i></span><span class="viz-gap"></span><span class="viz-speech"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-                        </div>
-                        <span class="feature-num">01</span>
-                        <h3>חיתוך שקט אוטומטי</h3>
-                        <p class="feature-lead">מוריד שתיקות, הפסקות והיסוסים ומהדק את הסיקוונס.</p>
-                        <ul class="feature-list">
-                            <li>מבדיל בין דיבור לרעשי רקע</li>
-                            <li>פרופילי קצב לפודקאסט, וולוג ורילס</li>
-                            <li>תצוגה מקדימה במרקרים לפני החיתוך</li>
-                            <li>Ripple Delete שסוגר את הרווחים</li>
-                        </ul>
-                    </article>
-
-                    <article class="feature">
-                        <div class="viz viz-caption" aria-hidden="true">
-                            <span class="viz-words"><span>חותכים</span> <span>שקט</span> <span>בקליק</span></span>
-                        </div>
-                        <span class="feature-num">02</span>
-                        <h3>כתוביות AI בעברית</h3>
-                        <p class="feature-lead">תמלול וסנכרון ישירות לטיימליין, תוך שניות.</p>
-                        <ul class="feature-list">
-                            <li>הדגשת המילה הנאמרת, בצבע שתבחרו</li>
-                            <li>בין מילה אחת לשמונה בכל כתובית</li>
-                            <li>מילון תיקונים שמשתפר עם כל דיווח</li>
-                            <li>עריכת טקסט מהירה מתוך הפאנל</li>
-                        </ul>
-                    </article>
-
-                    <article class="feature">
-                        <div class="viz viz-anim" aria-hidden="true">
-                            <span class="viz-pop">Pop</span>
-                            <span class="viz-track"><i class="viz-key"></i><i class="viz-key"></i><i class="viz-head"></i></span>
-                        </div>
-                        <span class="feature-num">03</span>
-                        <h3>אנימציות טקסט <span class="tag">Beta</span></h3>
-                        <p class="feature-lead">תנועה לשכבת טקסט בלחיצה, בלי קיפריימים ידניים.</p>
-                        <ul class="feature-list">
-                            <li>Pop, Slide, Zoom ו-Fade</li>
-                            <li>Motion Blur מובנה</li>
-                            <li>מוחל ישירות על השכבה בטיימליין</li>
-                            <li>אפשר לשנות ולהחיל מחדש בכל רגע</li>
-                        </ul>
-                    </article>
-                </div>
-
-                <div class="perks">
-                    <div class="perk">
-                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <h4>החיתוך רץ על המחשב שלך</h4>
-                        <p>חיתוך השקט והאנימציות לא מעלים שום קובץ לרשת.</p>
-                    </div>
-                    <div class="perk">
-                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
-                        <h4>מסונכרן לסיקוונס</h4>
-                        <p>עובד על הסיקוונס הפעיל. אין קבצים לייצא ולייבא בחזרה.</p>
-                    </div>
-                    <div class="perk">
-                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                        <h4>עיצוב משלך</h4>
-                        <p>צבע הדגשה, גופן וגודל שמתאימים למיתוג שלך.</p>
-                    </div>
-                    <div class="perk">
-                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-                        <h4>תמלול בחינם</h4>
-                        <p>מפתח Groq חינמי מספיק לשעות של תמלול ביום.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Demo video -->
-        <section class="section section-alt" id="simulator">
-            <div class="container">
-                <header class="section-head">
-                    <p class="eyebrow">הדגמה</p>
-                    <h2 class="section-title">ככה זה נראה בתוך פרמייר</h2>
-                    <p class="section-desc">24 שניות: חיתוך שקט, כתוביות עם הדגשת מילים, ואנימציית טקסט.</p>
-                </header>
-
-                <div class="demo-chapters" id="demoChaptersBar">
-                    <button type="button" class="demo-chapter-btn active" data-chapter="0" onclick="seekDemoVideo(0, 0)"><span class="chapter-num">01</span>חיתוך שקט</button>
-                    <button type="button" class="demo-chapter-btn" data-chapter="1" onclick="seekDemoVideo(6.2, 1)"><span class="chapter-num">02</span>כתוביות והדגשה</button>
-                    <button type="button" class="demo-chapter-btn" data-chapter="2" onclick="seekDemoVideo(13.5, 2)"><span class="chapter-num">03</span>אנימציית טקסט</button>
-                    <button type="button" class="demo-chapter-btn" data-chapter="3" onclick="seekDemoVideo(19.5, 3)"><span class="chapter-num">04</span>התוצאה</button>
-                </div>
-
-                <div class="demo-video-card">
-                    <div class="demo-video-stage" onclick="toggleDemoVideoPlay()">
-                        <video id="csTrimDemoVideo" class="demo-video-element" src="assets/cs-trim-demo.mp4" poster="assets/cs-trim-demo-poster.jpg" muted loop playsinline preload="none" width="1600" height="900">
-                            הדפדפן שלך אינו תומך בניגון וידאו.
-                        </video>
-                        <div class="demo-play-overlay" id="demoPlayOverlay" style="display: none;">
-                            <div class="demo-play-circle">
-                                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="demo-video-controls">
-                        <button type="button" class="demo-ctrl-btn" id="btnDemoPlayPause" onclick="toggleDemoVideoPlay()" aria-label="נגן / השהה">
-                            <svg id="iconDemoPause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>
-                            <svg id="iconDemoPlay" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
-                        </button>
-                        <div class="demo-progress-wrap" id="demoProgressWrap" onclick="scrubDemoVideo(event)">
-                            <div class="demo-progress-track">
-                                <div class="demo-progress-fill" id="demoProgressFill"></div>
-                                <span class="demo-chapter-tick" style="left: 25.8%;"></span>
-                                <span class="demo-chapter-tick" style="left: 56.2%;"></span>
-                                <span class="demo-chapter-tick" style="left: 81.2%;"></span>
-                            </div>
-                        </div>
-                        <span class="demo-time" id="demoTimeDisplay">00:00 / 00:24</span>
-                        <button type="button" class="demo-ctrl-btn" onclick="openDemoFullscreen()" aria-label="מסך מלא">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- How it works -->
-        <section class="section" id="how-it-works">
-            <div class="container">
-                <header class="section-head">
                     <p class="eyebrow">איך זה עובד</p>
+                    <h2 class="section-title">שלושה כלים. כל אחד בלחיצה.</h2>
+                </header>
+
+                <div class="h-feats">
+                    <article class="h-feat">
+                        <div class="h-feat-copy">
+                            <span class="h-feat-num">01</span>
+                            <h3>חיתוך שקט אוטומטי</h3>
+                            <p class="h-feat-lead">התוסף מוצא את השתיקות וההיסוסים, מסמן אותם במרקרים כדי שתראו מה ייחתך, ואז סוגר את הרווחים.</p>
+                            <ol class="h-numlist">
+                                <li><span>1</span>בוחרים קצב: פודקאסט, וולוג או רילס</li>
+                                <li><span>2</span>בודקים את המרקרים על הטיימליין</li>
+                                <li><span>3</span>לוחצים "חתוך", והסיקוונס מתהדק</li>
+                            </ol>
+                        </div>
+                        <figure class="h-feat-media h-card" role="img" aria-label="אנימציה: מרקרים צהובים מסמנים שתיקות בגל הקול, והשתיקות נעלמות">
+                            <div class="h-ba-label">לפני</div>
+                            <div class="h-track h-track-a h-track-lg h-static" dir="ltr">
+                                <i class="h-clip h-wave" style="flex-grow:1"></i><i class="h-gap"></i><i class="h-clip h-wave" style="flex-grow:1.2"></i><i class="h-gap"></i><i class="h-clip h-wave" style="flex-grow:.8"></i>
+                            </div>
+                            <div class="h-ba-label">אחרי CS Trim</div>
+                            <div class="h-track h-track-a h-track-lg" dir="ltr">
+                                <i class="h-clip h-wave" style="flex-grow:1"></i><i class="h-gap"><b class="h-mark"></b></i><i class="h-clip h-wave" style="flex-grow:1.2"></i><i class="h-gap"><b class="h-mark"></b></i><i class="h-clip h-wave" style="flex-grow:.8"></i>
+                            </div>
+                            <ul class="h-legend">
+                                <li><span class="h-key h-key-speech"></span>דיבור</li>
+                                <li><span class="h-key h-key-silence"></span>שקט</li>
+                                <li><span class="h-key h-key-mark"></span>מרקר</li>
+                            </ul>
+                        </figure>
+                    </article>
+
+                    <article class="h-feat h-feat-rev">
+                        <div class="h-feat-copy">
+                            <span class="h-feat-num">02</span>
+                            <h3>כתוביות AI בעברית</h3>
+                            <p class="h-feat-lead">התמלול רץ על Whisper Large v3 ונכנס ישר לטיימליין, מסונכרן לדיבור. המילה שנאמרת מודגשת בצבע שתבחרו.</p>
+                            <ul class="h-dotlist">
+                                <li>בין מילה אחת לשמונה בכל כתובית</li>
+                                <li>מילון תיקונים שמשתפר מדיווחי משתמשים</li>
+                                <li>עריכת טקסט מהירה מתוך הפאנל</li>
+                            </ul>
+                        </div>
+                        <figure class="h-feat-media h-card" role="img" aria-label="אנימציה: כתוביות בעברית מתחלפות לפי הדיבור, והמילה הנאמרת מודגשת בצהוב">
+                            <div class="h-track h-track-a h-track-md" dir="ltr">
+                                <i class="h-clip h-wave" style="flex-grow:1"></i>
+                                <span class="h-playhead"></span>
+                            </div>
+                            <div class="h-screen">
+                                <div class="h-chunk"><span class="h-w6">איך</span><span class="h-w6" style="animation-delay:-5s">חותכים</span></div>
+                                <div class="h-chunk" style="animation-delay:-4s"><span class="h-w6" style="animation-delay:-4s">שקט</span><span class="h-w6" style="animation-delay:-3s">בפרמייר</span></div>
+                                <div class="h-chunk" style="animation-delay:-2s"><span class="h-w6" style="animation-delay:-2s">בלחיצה</span><span class="h-w6" style="animation-delay:-1s">אחת</span></div>
+                            </div>
+                            <div class="h-words-picker">
+                                <span>מילים בכל כתובית</span>
+                                <span class="h-pills" dir="ltr"><i>1</i><i class="is-on">2</i><i>3</i><i>…</i><i>8</i></span>
+                            </div>
+                        </figure>
+                    </article>
+
+                    <article class="h-feat">
+                        <div class="h-feat-copy">
+                            <span class="h-feat-num">03</span>
+                            <h3>אנימציות טקסט <span class="tag">Beta</span></h3>
+                            <p class="h-feat-lead">מסמנים שכבת טקסט, בוחרים סגנון ולוחצים "החל". הקיפריימים וה-Motion Blur נוצרים לבד, בלי אפטר אפקטס.</p>
+                            <p class="h-feat-note">ארבעה סגנונות מוכנים:</p>
+                        </div>
+                        <figure class="h-feat-media" role="img" aria-label="אנימציה: ארבעה סגנונות תנועה לטקסט – Pop, Slide, Zoom ו-Fade">
+                            <div class="h-fx-grid">
+                                <div class="h-card h-fx"><span class="h-fx-word h-fx-pop">כותרת</span><span class="h-fx-name">Pop</span></div>
+                                <div class="h-card h-fx"><span class="h-fx-word h-fx-slide">כותרת</span><span class="h-fx-name">Slide</span></div>
+                                <div class="h-card h-fx"><span class="h-fx-word h-fx-zoom">כותרת</span><span class="h-fx-name">Zoom</span></div>
+                                <div class="h-card h-fx"><span class="h-fx-word h-fx-fade">כותרת</span><span class="h-fx-name">Fade</span></div>
+                            </div>
+                        </figure>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Install steps -->
+        <section class="section section-alt" id="how-it-works">
+            <div class="container">
+                <header class="section-head">
+                    <p class="eyebrow">התקנה</p>
                     <h2 class="section-title">מהורדה לעבודה בתוך דקה</h2>
                 </header>
-
-                <ol class="steps">
-                    <li class="step">
-                        <span class="step-num">1</span>
-                        <h4>מתקינים</h4>
-                        <p>מורידים את קובץ ההתקנה ל-Mac או ל-Windows ופותחים אותו. ההתקנה מגדירה את הכל לבד.</p>
+                <ol class="h-steps">
+                    <li class="h-card h-step">
+                        <div class="h-step-anim" aria-hidden="true">
+                            <svg class="h-drop" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="17"/><polyline points="6 11 12 17 18 11"/></svg>
+                            <div class="h-bar" dir="ltr"><i></i></div>
+                        </div>
+                        <h3>1. מתקינים</h3>
+                        <p>מורידים את קובץ ההתקנה ל-Mac או ל-Windows ופותחים אותו. הוא מגדיר הכל לבד.</p>
                     </li>
-                    <li class="step">
-                        <span class="step-num">2</span>
-                        <h4>פותחים את הפאנל</h4>
-                        <p>ב-Premiere Pro: <span class="kbd" dir="ltr">Window &rsaquo; Extensions &rsaquo; CS Trim</span></p>
+                    <li class="h-card h-step">
+                        <div class="h-step-anim h-menu" aria-hidden="true" dir="ltr">
+                            <span class="h-chip">Window</span><span class="h-sep">›</span><span class="h-chip" style="animation-delay:-2s">Extensions</span><span class="h-sep">›</span><span class="h-chip" style="animation-delay:-1s">CS Trim</span>
+                        </div>
+                        <h3>2. פותחים את הפאנל</h3>
+                        <p>ב-Premiere Pro, בתפריט העליון: <span class="kbd" dir="ltr">Window › Extensions › CS Trim</span></p>
                     </li>
-                    <li class="step">
-                        <span class="step-num">3</span>
-                        <h4>לוחצים</h4>
-                        <p>בוחרים חיתוך שקט, כתוביות או אנימציה, והטיימליין מתעדכן תוך שניות.</p>
+                    <li class="h-card h-step">
+                        <div class="h-step-anim" aria-hidden="true">
+                            <span class="h-panel-btn h-press">חתוך שקט</span>
+                            <div class="h-track h-track-sm" dir="ltr"><i class="h-clip"></i><i class="h-gap"></i><i class="h-clip"></i><i class="h-gap"></i><i class="h-clip"></i></div>
+                        </div>
+                        <h3>3. לוחצים</h3>
+                        <p>בוחרים חיתוך, כתוביות או אנימציה, והטיימליין מתעדכן תוך שניות.</p>
                     </li>
                 </ol>
+                <p class="h-more"><a href="install-guide.html">למדריך ההתקנה המצולם, כולל הודעות האבטחה ומפתח Groq &larr;</a></p>
+            </div>
+        </section>
+
+        <!-- Comparison -->
+        <section class="section" id="compare">
+            <div class="container container-narrow h-compare">
+                <header class="section-head">
+                    <p class="eyebrow">השוואה</p>
+                    <h2 class="section-title">מה משתנה בעבודה</h2>
+                </header>
+                <div class="h-card h-table-wrap">
+                    <table class="h-table">
+                        <caption class="sr-only">השוואה בין עריכה ידנית לעבודה עם CS Trim</caption>
+                        <thead>
+                            <tr><td></td><th scope="col">ידנית בפרמייר</th><th scope="col" class="is-us">עם CS Trim</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><th scope="row">הסרת שתיקות</th><td data-label="ידנית">גוזרים ומזיזים קטע אחרי קטע</td><td class="is-us" data-label="עם CS Trim">מסמנים במרקרים וחותכים בלחיצה</td></tr>
+                            <tr><th scope="row">כתוביות בעברית</th><td data-label="ידנית">מקלידים ומסנכרנים ידנית</td><td class="is-us" data-label="עם CS Trim">תמלול אוטומטי ישר לטיימליין</td></tr>
+                            <tr><th scope="row">הדגשת מילה מדוברת</th><td data-label="ידנית">קיפריים לכל מילה</td><td class="is-us" data-label="עם CS Trim">נוצרת אוטומטית, בצבע שבוחרים</td></tr>
+                            <tr><th scope="row">אנימציית טקסט</th><td data-label="ידנית">קיפריימים, או מעבר לאפטר אפקטס</td><td class="is-us" data-label="עם CS Trim">בוחרים סגנון ולוחצים "החל"</td></tr>
+                            <tr><th scope="row">מחיר</th><td data-label="ידנית">—</td><td class="is-us" data-label="עם CS Trim"><strong class="price-free">חינם</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -286,8 +300,7 @@
                 <div class="download-card" id="download">
                     <div class="download-main">
                         <h2 class="download-title">מוכנים לנסות? <span class="price-free">זה בחינם.</span></h2>
-                        <p class="download-sub">כל הכלים פתוחים: חיתוך שקט, כתוביות בעברית ואנימציות טקסט. בלי תשלום ובלי גרסת ניסיון.</p>
-                        <ul class="free-points"><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי מנוי</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי כרטיס אשראי</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>בלי הגבלת סרטונים</li></ul>
+                        <p class="download-sub">כל הכלים פתוחים. בלי תשלום ובלי גרסת ניסיון.</p>
 
                         <div class="download-buttons">
                             <a href="download/CS-Trim-Setup.exe?v=1.0.11" class="btn btn-primary btn-lg" id="btnCardDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
@@ -299,21 +312,20 @@
                                 <span>הורדה חינם ל-Mac</span>
                             </a>
                         </div>
-
-                        <p class="phone-note">התוסף עובד במחשב. נשלח לכם קישור במייל, ותורידו כשתהיו מול המחשב.</p>
-                        <ul class="download-meta">
-                            <li>Premiere Pro 2020 ומעלה</li>
-                            <li>macOS, כולל Apple Silicon</li>
-                            <li>Windows 10 / 11</li>
-                        </ul>
+                        <p class="phone-note">בטלפון? נשלח לכם קישור במייל, ותורידו כשתהיו מול המחשב.</p>
                         <a class="download-alt" href="download/CS-Trim-v1.0.0-Windows.zip?v=1.0.11" onclick="handleDownloadLinkClick(event, this); return false;" download>מעדיפים בלי אשף התקנה? חבילת ZIP ל-Windows</a>
                     </div>
 
-                    <a href="install-guide.html" class="download-guide">
-                        <span class="download-guide-label">מדריך התקנה מצולם</span>
-                        <span class="download-guide-text">צעד אחרי צעד ל-Mac ול-Windows, כולל מה לעשות בהודעות האבטחה ואיך מקבלים מפתח Groq חינמי.</span>
-                        <span class="download-guide-link">למדריך &larr;</span>
-                    </a>
+                    <div class="download-reqs">
+                        <h3>דרישות מערכת</h3>
+                        <dl>
+                            <div><dt>תוכנה</dt><dd>Premiere Pro 2020 ומעלה</dd></div>
+                            <div><dt>Mac</dt><dd>Intel ו-Apple Silicon</dd></div>
+                            <div><dt>Windows</dt><dd>Windows 10 ו-11</dd></div>
+                            <div><dt>לכתוביות</dt><dd>מפתח Groq חינמי (פחות מדקה לפתוח)</dd></div>
+                        </dl>
+                        <a href="install-guide.html" class="download-guide-link">מדריך ההתקנה המצולם &larr;</a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -325,40 +337,13 @@
                     <p class="eyebrow">שאלות נפוצות</p>
                     <h2 class="section-title">לפני שמורידים</h2>
                 </header>
-
-                <div class="faq-accordion">
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>זה באמת חינם?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>כן. כרגע כל הכלים פתוחים בלי תשלום, בלי כרטיס אשראי ובלי הגבלה על כמות הסרטונים. אם זה ישתנה בעתיד, נודיע מראש.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>כמה מדויק התמלול בעברית?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>התמלול רץ על Whisper Large v3 דרך Groq, ומדויק מאוד בעברית מדוברת. כשמילה יוצאת לא נכון אפשר לדווח עליה בטופס למטה, והיא נכנסת למילון התיקונים שמתעדכן אצל כל המשתמשים.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>איך עובדת הדגשת המילים?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>התוסף יודע מתי נאמרת כל מילה, ויוצר בטיימליין שכבה שמדגישה את המילה ברגע שהיא נאמרת, בסגנון שמוכר מרילס וטיקטוק. את צבע ההדגשה בוחרים מתוך הפאנל.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>איך מחילים אנימציית טקסט?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>מסמנים שכבת טקסט בטיימליין, בוחרים סגנון (Pop, Slide, Zoom או Fade) ולוחצים <strong>החל אנימציה</strong>. הקיפריימים וה-Motion Blur נוצרים ישירות בפרמייר.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>באילו גרסאות זה עובד?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>Premiere Pro 2020 ומעלה, כולל 2025 ו-2026. ב-macOS (מעבדי Intel ו-Apple Silicon) וב-Windows 10 ו-11.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>חיתוך השקט יכול לחתוך לי מילים?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>התוסף משאיר מרווח ביטחון לפני ואחרי כל קטע דיבור, כך שתחילת וסוף מילה לא נחתכים. אפשר גם להריץ קודם במצב <strong>סימון בלבד</strong>, לראות במרקרים מה ייחתך, ורק אז לחתוך.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>צריך לשלם ל-Groq על הכתוביות?</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>לא. למסלול החינמי של Groq יש מכסה יומית נדיבה שמספיקה לשעות של אודיו, בלי כרטיס אשראי. פתיחת מפתח לוקחת פחות מדקה, והמדריך מסביר איך.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button type="button" class="faq-question"><span>התקנתי והתוסף לא מופיע ב-Extensions</span><span class="faq-icon" aria-hidden="true"></span></button>
-                        <div class="faq-answer"><p>סגרו את Premiere Pro לגמרי ופתחו מחדש. אם עדיין לא מופיע, ודאו שהרצתם את קובץ ההתקנה עצמו (PKG במק, אשף ההתקנה ב-Windows), כי הוא זה שמפעיל את ההרשאות שהתוסף צריך. <a href="install-guide.html">פירוט במדריך ההתקנה</a>.</p></div>
-                    </div>
+                <div class="h-faq">
+                    <details open><summary>זה באמת חינם?<span class="h-plus" aria-hidden="true"></span></summary><p>כן. כל הכלים פתוחים בלי תשלום, בלי כרטיס אשראי ובלי הגבלה על כמות הסרטונים. אם זה ישתנה, נודיע מראש.</p></details>
+                    <details><summary>כמה מדויק התמלול בעברית?<span class="h-plus" aria-hidden="true"></span></summary><p>התמלול רץ על Whisper Large v3 דרך Groq. מילה שיצאה לא נכון אפשר <a href="#suggest">לדווח כאן באתר</a>, והיא נכנסת למילון התיקונים של כל המשתמשים.</p></details>
+                    <details><summary>איך עובדת הדגשת המילים?<span class="h-plus" aria-hidden="true"></span></summary><p>התוסף יודע מתי נאמרת כל מילה, ויוצר בטיימליין שכבה שמדגישה אותה ברגע שהיא נאמרת. את צבע ההדגשה בוחרים מתוך הפאנל.</p></details>
+                    <details><summary>חיתוך השקט יכול לחתוך לי מילים?<span class="h-plus" aria-hidden="true"></span></summary><p>התוסף משאיר מרווח ביטחון לפני ואחרי כל קטע דיבור. אפשר גם להריץ קודם במצב <strong>סימון בלבד</strong> ולראות במרקרים מה ייחתך.</p></details>
+                    <details><summary>צריך לשלם ל-Groq על הכתוביות?<span class="h-plus" aria-hidden="true"></span></summary><p>לא. המסלול החינמי של Groq מספיק לשעות של אודיו ביום, בלי כרטיס אשראי. פתיחת מפתח לוקחת פחות מדקה, ו<a href="install-guide.html">המדריך</a> מסביר איך.</p></details>
+                    <details><summary>התקנתי והתוסף לא מופיע ב-Extensions<span class="h-plus" aria-hidden="true"></span></summary><p>סגרו את Premiere Pro לגמרי ופתחו מחדש. אם עדיין לא מופיע, הריצו שוב את קובץ ההתקנה עצמו (PKG במק, אשף ההתקנה ב-Windows). <a href="install-guide.html">פירוט במדריך ההתקנה</a>.</p></details>
                 </div>
             </div>
         </section>
@@ -445,7 +430,7 @@
                 <div class="footer-col">
                     <h5>התוסף</h5>
                     <a href="#features">יכולות</a>
-                    <a href="#simulator">הדגמה</a>
+                    <a href="#compare">השוואה</a>
                     <a href="#download">הורדה</a>
                 </div>
                 <div class="footer-col">
@@ -542,7 +527,7 @@
         onScroll();
 
         if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        var groups = [".section-head", ".fact", ".feature", ".perk", ".demo-chapters", ".demo-video-card", ".step", ".download-card", ".faq-item", ".suggest-card"];
+        var groups = [".section-head", ".h-glance-grid .h-card", ".h-feat-copy", ".h-feat-media", ".h-step", ".h-table-wrap", ".download-card", ".h-faq details", ".suggest-card"];
         var observer = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
@@ -564,27 +549,6 @@
     })();
     </script>
 
-    <!-- Play the demo only once it scrolls into view, so its 8MB don't block page load -->
-    <script>
-    (function () {
-        var video = document.getElementById("csTrimDemoVideo");
-        if (!video || !("IntersectionObserver" in window)) {
-            if (video) { video.preload = "auto"; video.play().catch(function () {}); }
-            return;
-        }
-        var started = false;
-        new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    if (!started) { video.preload = "auto"; started = true; }
-                    video.play().catch(function () {});
-                } else if (!video.paused) {
-                    video.pause();
-                }
-            });
-        }, { threshold: 0.35 }).observe(video);
-    })();
-    </script>
 
     <!-- Inline Lead Modal Logic -->
     <script id="inlineLeadLogic">

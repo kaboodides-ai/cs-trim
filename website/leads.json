@@ -2,6 +2,13 @@
   "leads": [
     {
       "email": "kaboodides@gmail.com",
+      "platform": "Phone (emailed link)",
+      "fileName": "CS-Trim-Setup.exe",
+      "dateFormatted": "18.10.2026, 23:58:40",
+      "timestamp": "2026-10-18T20:58:40.140Z"
+    },
+    {
+      "email": "kaboodides@gmail.com",
       "platform": "Windows",
       "fileName": "CS-Trim-Setup.exe",
       "dateFormatted": "18.10.2026, 23:56:47",

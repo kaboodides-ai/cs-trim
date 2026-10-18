@@ -3,1002 +3,453 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS Trim - תוסף חיתוך שקט, כתוביות AI ואנימציות טקסט ל-Adobe Premiere Pro</title>
-    <meta name="description" content="התוסף המוביל ל-Adobe Premiere Pro: חיתוך שקט אוטומטי, כתוביות AI מדויקות וסופר-מהירות בעברית ואנימציות טקסט קולנועיות (Pop, Slide, Zoom, Fade עם Motion Blur). 100% בחינם!">
-    <meta name="keywords" content="CS Trim, Adobe Premiere Pro, תוסף פרמייר, אנימציות טקסט, חיתוך שקט אוטומטי, כתוביות AI, מרקר מילים, עריכת וידאו, טיקטוק, רילס, Groq Whisper">
-    <meta property="og:title" content="CS Trim - חיתוך שקט, כתוביות AI ואנימציות טקסט בפרמייר פרו">
-    <meta property="og:description" content="חיתוך שקט אוטומטי, כתוביות AI מהירות ואנימציות טקסט חיות בלחיצת כפתור ישירות בטיימליין של פרמייר. הורדה חינם למק ול-Windows!">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://cstrim.site">
-    <link rel="canonical" href="https://cstrim.site">
+    <title>CS Trim – חיתוך שקט וכתוביות בעברית ל-Premiere Pro | חינם</title>
+    <meta name="description" content="CS Trim הוא תוסף חינמי ל-Adobe Premiere Pro: חיתוך שקט אוטומטי, כתוביות AI בעברית עם הדגשת מילים, ואנימציות טקסט בלחיצה. ל-Mac ול-Windows.">
+    <meta name="theme-color" content="#0b0b0c">
+    <link rel="canonical" href="https://cstrim.site/">
 
-    <!-- Fonts -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="he_IL">
+    <meta property="og:site_name" content="CS Trim">
+    <meta property="og:url" content="https://cstrim.site/">
+    <meta property="og:title" content="CS Trim – חיתוך שקט וכתוביות בעברית ל-Premiere Pro">
+    <meta property="og:description" content="פאנל בתוך פרמייר שמוריד שתיקות, מתמלל לכתוביות בעברית ומוסיף אנימציות טקסט. חינם, ל-Mac ול-Windows.">
+    <meta property="og:image" content="https://cstrim.site/assets/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="675">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CS Trim – חיתוך שקט וכתוביות בעברית ל-Premiere Pro">
+    <meta name="twitter:description" content="פאנל בתוך פרמייר שמוריד שתיקות, מתמלל לכתוביות בעברית ומוסיף אנימציות טקסט. חינם.">
+    <meta name="twitter:image" content="https://cstrim.site/assets/og-image.jpg">
+
+    <link rel="icon" type="image/png" href="assets/logo-sm.png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="css/style.css?v=1.4.4">
-    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css?v=2.0.0">
 
-    <style id="leadModalStyles">
-    .lead-modal-overlay {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        background: rgba(4, 7, 15, 0.88) !important;
-        backdrop-filter: blur(14px) !important;
-        -webkit-backdrop-filter: blur(14px) !important;
-        z-index: 9999999 !important;
-        display: none !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 20px !important;
-        box-sizing: border-box !important;
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "CS Trim",
+        "url": "https://cstrim.site/",
+        "image": "https://cstrim.site/assets/og-image.jpg",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "macOS, Windows 10, Windows 11",
+        "softwareVersion": "1.0.11",
+        "inLanguage": "he",
+        "description": "תוסף ל-Adobe Premiere Pro לחיתוך שקט אוטומטי, כתוביות AI בעברית ואנימציות טקסט.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "ILS" }
     }
-    .lead-modal-overlay.active {
-        display: flex !important;
-    }
-    .lead-modal-card {
-        position: relative !important;
-        max-width: 480px !important;
-        width: 100% !important;
-        background: linear-gradient(180deg, #131826 0%, #0c0f18 100%) !important;
-        border: 1px solid rgba(59, 130, 246, 0.35) !important;
-        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(37, 99, 235, 0.22) !important;
-        border-radius: 22px !important;
-        padding: 34px 28px 28px !important;
-        text-align: center !important;
-        direction: rtl !important;
-        box-sizing: border-box !important;
-        animation: leadModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-    @keyframes leadModalIn {
-        from { opacity: 0; transform: scale(0.92) translateY(12px); }
-        to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    .lead-modal-close-btn {
-        position: absolute !important;
-        top: 16px !important;
-        left: 16px !important;
-        background: rgba(255, 255, 255, 0.06) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        color: #94a3b8 !important;
-        width: 34px !important;
-        height: 34px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        font-size: 1.35rem !important;
-        line-height: 1 !important;
-        transition: all 0.2s ease !important;
-    }
-    .lead-modal-close-btn:hover {
-        background: rgba(239, 68, 68, 0.2) !important;
-        border-color: rgba(239, 68, 68, 0.4) !important;
-        color: #f87171 !important;
-        transform: rotate(90deg) !important;
-    }
-    .lead-icon-bubble {
-        width: 68px !important;
-        height: 68px !important;
-        margin: 0 auto 18px !important;
-        border-radius: 20px !important;
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(56, 189, 248, 0.25)) !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        color: #38bdf8 !important;
-        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.28) !important;
-    }
-    .lead-modal-title {
-        font-size: 1.55rem !important;
-        font-weight: 800 !important;
-        color: #f8fafc !important;
-        margin-bottom: 8px !important;
-        letter-spacing: -0.02em !important;
-    }
-    .lead-modal-subtitle {
-        font-size: 0.95rem !important;
-        color: #94a3b8 !important;
-        line-height: 1.55 !important;
-        margin-bottom: 18px !important;
-    }
-    .lead-target-badge {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-        padding: 6px 14px !important;
-        background: rgba(37, 99, 235, 0.12) !important;
-        border: 1px solid rgba(59, 130, 246, 0.28) !important;
-        border-radius: 9999px !important;
-        color: #93c5fd !important;
-        font-size: 0.85rem !important;
-        font-weight: 600 !important;
-        margin-bottom: 22px !important;
-    }
-    .lead-form-group {
-        margin-bottom: 16px !important;
-        text-align: right !important;
-    }
-    .lead-input-wrap {
-        position: relative !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-    .lead-input-icon {
-        position: absolute !important;
-        right: 14px !important;
-        color: #64748b !important;
-        pointer-events: none !important;
-        display: flex !important;
-        align-items: center !important;
-        transition: color 0.2s ease !important;
-    }
-    .lead-input {
-        width: 100% !important;
-        padding: 14px 44px 14px 16px !important;
-        background: rgba(10, 14, 24, 0.85) !important;
-        border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 12px !important;
-        color: #ffffff !important;
-        font-size: 1.02rem !important;
-        font-family: inherit !important;
-        direction: ltr !important;
-        text-align: right !important;
-        transition: all 0.2s ease !important;
-        outline: none !important;
-        box-sizing: border-box !important;
-    }
-    .lead-input:focus {
-        border-color: #3b82f6 !important;
-        background: rgba(15, 23, 42, 0.95) !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
-    }
-    .lead-btn-submit {
-        width: 100% !important;
-        padding: 15px 24px !important;
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-size: 1.05rem !important;
-        font-weight: 700 !important;
-        font-family: inherit !important;
-        cursor: pointer !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 10px !important;
-        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4) !important;
-        transition: all 0.22s ease !important;
-        box-sizing: border-box !important;
-    }
-    .lead-btn-submit:hover:not(:disabled) {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.55) !important;
-        transform: translateY(-2px) !important;
-    }
-    .lead-btn-submit:disabled {
-        opacity: 0.65 !important;
-        cursor: not-allowed !important;
-    }
-    .lead-footer-note {
-        margin-top: 16px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 6px !important;
-        color: #64748b !important;
-        font-size: 0.8rem !important;
-    }
-    .lead-error-msg {
-        color: #f87171 !important;
-        font-size: 0.85rem !important;
-        margin-top: 8px !important;
-        text-align: right !important;
-        display: none;
-        line-height: 1.45 !important;
-    }
-    .lead-suggestion-box {
-        margin-top: 8px !important;
-        padding: 8px 12px !important;
-        background: rgba(37, 99, 235, 0.15) !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        border-radius: 8px !important;
-        font-size: 0.86rem !important;
-        color: #e2e8f0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: flex-start !important;
-        gap: 6px !important;
-        text-align: right !important;
-        direction: rtl !important;
-        box-sizing: border-box !important;
-    }
-    .lead-suggestion-box .btn-fix-email {
-        background: rgba(56, 189, 248, 0.2) !important;
-        border: 1px solid #38bdf8 !important;
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-        padding: 2px 8px !important;
-        border-radius: 6px !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-        font-size: 0.85rem !important;
-        direction: ltr !important;
-        font-family: inherit !important;
-    }
-    .lead-suggestion-box .btn-fix-email:hover {
-        background: #38bdf8 !important;
-        color: #0f172a !important;
-    }
-    .lead-input.is-invalid {
-        border-color: #ef4444 !important;
-        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
-    }
-    .lead-input.is-valid {
-        border-color: #10b981 !important;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
-    }
-    .download-toast {
-        position: fixed !important;
-        bottom: 30px !important;
-        left: 50% !important;
-        transform: translateX(-50%) translateY(100px) !important;
-        background: #101524 !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(37, 99, 235, 0.25) !important;
-        color: #f8fafc !important;
-        padding: 14px 24px !important;
-        border-radius: 9999px !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 12px !important;
-        z-index: 10000000 !important;
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        direction: rtl !important;
-    }
-    .download-toast.show {
-        transform: translateX(-50%) translateY(0) !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-    }
-    .download-toast-icon {
-        width: 24px !important;
-        height: 24px !important;
-        color: #10b981 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    </style>
+    </script>
+
     <!-- Vercel Web Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-    <!-- Top Glowing Ambient Background -->
-    <div class="ambient-glow glow-1"></div>
-    <div class="ambient-glow glow-2"></div>
 
-    <!-- Header / Navbar -->
     <header class="site-header" id="navbar">
-        <div class="container header-container">
-            <a href="#" class="brand-logo">
-                <img src="assets/logo.png" alt="CS Trim Logo" style="width: 40px; height: 40px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);">
-                <div class="brand-text">
-                    <span class="brand-name">CS Trim</span>
-                    <span class="brand-badge">לפרמייר פרו</span>
-                </div>
+        <div class="container header-inner">
+            <a href="#" class="brand" aria-label="CS Trim – לראש העמוד">
+                <img src="assets/logo-sm.png" alt="" width="28" height="32">
+                <span class="brand-name">CS Trim</span>
             </a>
 
-            <nav class="nav-links">
-                <a href="#features">יתרונות</a>
-                <a href="#simulator">סרטון הדגמה</a>
+            <nav class="nav-links" aria-label="ניווט ראשי">
+                <a href="#features">יכולות</a>
+                <a href="#simulator">הדגמה</a>
                 <a href="#how-it-works">איך זה עובד</a>
-                <a href="#download">הורדה</a>
-                <a href="install-guide.html">מדריך התקנה</a>
                 <a href="#faq">שאלות נפוצות</a>
-                <a href="#suggest">פידבק והצעות</a>
-                <a href="terms.html">תקנון</a>
+                <a href="install-guide.html">מדריך התקנה</a>
             </nav>
 
-            <div class="header-actions">
-                <a href="#download" class="btn btn-nav-cta" id="btnNavCta" onclick="handleNavDownloadClick(event); return false;">
-                    <span>הורדה חינם</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                </a>
-            </div>
+            <a href="#download" class="btn btn-primary btn-sm" id="btnNavCta" onclick="handleNavDownloadClick(event); return false;">הורדה חינם</a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container hero-container">
-            <h1 class="hero-title">
-                <span class="hero-brand gradient-text">CS Trim</span>
-                <span class="hero-tagline">תוסף <span class="highlight-free">חינמי</span> לחיתוך שקט, כתוביות AI ואנימציות טקסט לפרמייר פרו</span>
-            </h1>
-            <div class="hero-cta-group">
-                <a href="download/CS-Trim-Setup.exe?v=1.0.7" class="btn btn-primary" id="btnHeroDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" style="padding: 14px 28px; font-size: 1.05rem;" download="CS-Trim-Setup.exe">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
-                    </svg>
-                    <span>הורדה ל-Windows</span>
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container">
+                <p class="eyebrow">תוסף ל-Adobe Premiere Pro &middot; חינם</p>
+                <h1 class="hero-title">חותכים שקט ומוסיפים כתוביות בעברית, בלי לצאת מפרמייר.</h1>
+                <p class="hero-sub">CS Trim הוא פאנל בתוך Premiere Pro שמוריד שתיקות מהסיקוונס, מתמלל לכתוביות בעברית עם הדגשת מילים, ומוסיף אנימציות טקסט. כל אחד מהם בלחיצה אחת.</p>
+
+                <div class="hero-cta">
+                    <a href="download/CS-Trim-Setup.exe?v=1.0.11" class="btn btn-primary btn-lg" id="btnHeroDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                        <span>הורדה ל-Windows</span>
+                    </a>
+                    <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" class="btn btn-secondary btn-lg" id="btnHeroDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" download>
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
+                        <span>הורדה ל-Mac</span>
+                    </a>
+                </div>
+                <p class="hero-meta">גרסה 1.0.11 &middot; Premiere Pro 2020 ומעלה &middot; <a href="install-guide.html">מדריך התקנה</a></p>
+
+                <a href="#simulator" class="hero-shot" aria-label="צפייה בהדגמה">
+                    <img src="assets/cs-trim-demo-poster.jpg" alt="הפאנל של CS Trim פתוח בתוך Premiere Pro, עם כתוביות בעברית על הטיימליין" width="1600" height="900" fetchpriority="high">
                 </a>
-
-                <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.7" class="btn btn-secondary" id="btnHeroDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" style="padding: 14px 28px; font-size: 1.05rem;" download>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/>
-                    </svg>
-                    <span>הורדה ל-Mac</span>
-                </a>
             </div>
+        </section>
 
-            <div class="hero-features-list">
-                <div class="hero-feat-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>ללא מנוי וללא עלות</span>
+        <!-- Facts -->
+        <section class="facts" aria-label="עובדות על התוסף">
+            <div class="container facts-grid">
+                <div class="fact">
+                    <div class="fact-value">חינם</div>
+                    <div class="fact-label">בלי מנוי ובלי הגבלת שימוש</div>
                 </div>
-                <div class="hero-feat-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>התקנה מהירה ב-15 שניות</span>
+                <div class="fact">
+                    <div class="fact-value">עברית</div>
+                    <div class="fact-label">תמלול עם Whisper Large v3</div>
                 </div>
-                <div class="hero-feat-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>פאנל טבעי בתוך פרמייר</span>
+                <div class="fact">
+                    <div class="fact-value">2020+</div>
+                    <div class="fact-label">כל גרסאות Premiere Pro מאז</div>
                 </div>
-                <div class="hero-feat-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>תמיכה מלאה בעברית</span>
-                </div>
-                <div class="hero-feat-item hero-feat-highlight">
-                    <span class="feat-sparkle">🖍️</span>
-                    <span><strong>חדש:</strong> מרקר היילייט מילים</span>
-                </div>
-                <div class="hero-feat-item hero-feat-highlight" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.35);">
-                    <span class="feat-sparkle">🎬</span>
-                    <span><strong style="color: #93c5fd;">חדש:</strong> אנימציות טקסט</span>
+                <div class="fact">
+                    <div class="fact-value">Mac / Win</div>
+                    <div class="fact-label">כולל Apple Silicon</div>
                 </div>
             </div>
+        </section>
 
-        </div>
-    </section>
+        <!-- Features -->
+        <section class="section" id="features">
+            <div class="container">
+                <header class="section-head">
+                    <p class="eyebrow">יכולות</p>
+                    <h2 class="section-title">שלושה כלים, פאנל אחד</h2>
+                    <p class="section-desc">הכל קורה על הסיקוונס הפעיל, בלי ייצוא, בלי אפטר אפקטס ובלי לעבור בין תוכנות.</p>
+                </header>
 
-    <!-- Stats Bar -->
-    <section class="stats-section">
-        <div class="container stats-container">
-            <div class="stat-card">
-                <div class="stat-number">x5</div>
-                <div class="stat-label">מהירות עבודה על ה-Rough Cut</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">80%</div>
-                <div class="stat-label">חיסכון בזמן גזירה ידנית</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">&lt; 10s</div>
-                <div class="stat-label">מהירות תמלול דקת דיבור מלאה</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">חינמי לחלוטין ליוצרים בישראל</div>
-            </div>
-        </div>
-    </section>
+                <div class="features-grid">
+                    <article class="feature">
+                        <span class="feature-num">01</span>
+                        <h3>חיתוך שקט אוטומטי</h3>
+                        <p class="feature-lead">מוריד שתיקות, הפסקות והיסוסים ומהדק את הסיקוונס.</p>
+                        <ul class="feature-list">
+                            <li>מבדיל בין דיבור לרעשי רקע</li>
+                            <li>פרופילי קצב לפודקאסט, וולוג ורילס</li>
+                            <li>תצוגה מקדימה במרקרים לפני החיתוך</li>
+                            <li>Ripple Delete שסוגר את הרווחים</li>
+                        </ul>
+                    </article>
 
-    <!-- Main Features Section -->
-    <section class="features-section" id="features">
-        <div class="container">
-            <div class="section-badge-wrap">
-                <span class="section-badge">ארגז כלים מנצח</span>
-            </div>
-            <h2 class="section-title">3 כלים שכל עורך וידאו חייב בפרמייר</h2>
-            <p class="section-desc">חיתוך שקט אוטומטי, כתוביות AI מהירות בעברית ואנימציות טקסט קולנועיות — הכל ישירות בטיים ליין.</p>
+                    <article class="feature">
+                        <span class="feature-num">02</span>
+                        <h3>כתוביות AI בעברית</h3>
+                        <p class="feature-lead">תמלול וסנכרון ישירות לטיימליין, תוך שניות.</p>
+                        <ul class="feature-list">
+                            <li>הדגשת המילה הנאמרת, בצבע שתבחרו</li>
+                            <li>בין מילה אחת לשמונה בכל כתובית</li>
+                            <li>מילון תיקונים שמשתפר עם כל דיווח</li>
+                            <li>עריכת טקסט מהירה מתוך הפאנל</li>
+                        </ul>
+                    </article>
 
-            <div class="features-grid">
-                <!-- Feature 1: Silence Trim -->
-                <div class="feature-card highlight-card">
-                    <div class="card-icon-wrap icon-purple">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="6" cy="6" r="3"></circle>
-                            <circle cx="6" cy="18" r="3"></circle>
-                            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-                            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
-                            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
-                        </svg>
+                    <article class="feature">
+                        <span class="feature-num">03</span>
+                        <h3>אנימציות טקסט <span class="tag">Beta</span></h3>
+                        <p class="feature-lead">תנועה לשכבת טקסט בלחיצה, בלי קיפריימים ידניים.</p>
+                        <ul class="feature-list">
+                            <li>Pop, Slide, Zoom ו-Fade</li>
+                            <li>Motion Blur מובנה</li>
+                            <li>מוחל ישירות על השכבה בטיימליין</li>
+                            <li>אפשר לשנות ולהחיל מחדש בכל רגע</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="perks">
+                    <div class="perk">
+                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <h4>החיתוך רץ על המחשב שלך</h4>
+                        <p>חיתוך השקט והאנימציות לא מעלים שום קובץ לרשת.</p>
                     </div>
-                    <h3>חיתוך שקט אוטומטי</h3>
-                    <p class="feature-lead">מסיר שתיקות, הפסקות והיסוסים בלחיצת כפתור אחת.</p>
-                    <ul class="feature-points">
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>זיהוי אדפטיבי חכם:</strong> מבדיל במדויק בין דיבור לרעשי רקע.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>פרופילי קצב מוכנים:</strong> התאמה מהירה לפודקאסטים, וולוגים או רילס.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>תצוגה מקדימה במרקרים:</strong> בדיקת החיתוכים על הטיימליין לפני הביצוע.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>סגירת רווחים אוטומטית:</strong> Ripple Delete שמשאיר סיקוונס מהודק ומוכן.
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Feature 2: AI Captions -->
-                <div class="feature-card highlight-card">
-                    <div class="card-icon-wrap icon-indigo">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                            <path d="M8 9h8"></path>
-                            <path d="M8 13h6"></path>
-                        </svg>
+                    <div class="perk">
+                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+                        <h4>מסונכרן לסיקוונס</h4>
+                        <p>עובד על הסיקוונס הפעיל. אין קבצים לייצא ולייבא בחזרה.</p>
                     </div>
-                    <h3>כתוביות AI מהירות בעברית</h3>
-                    <p class="feature-lead">תמלול וסנכרון סופר-מהיר ישירות לטיימליין עם Whisper & Groq.</p>
-                    <ul class="feature-points">
-                        <li class="feature-point-featured">
-                            <span class="icon-check" style="color: #facc15;">✨</span>
-                            <div>
-                                <strong style="color: #fde047;">היילייט מילים דינמי (מרקר):</strong> הדגשה חיה של מילים לפי קצב הדיבור בסגנון ויראלי.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>דיוק שיא בעברית:</strong> זיהוי מעולה של סלנג ודיוק שמשתבח באופן שוטף.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>שליטה בכמות מילים (1–8):</strong> חלוקה אידיאלית למילים בודדות או משפטים קצרים.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>עריכה ישירה בפרמייר:</strong> פאנל מובנה לתיקון מהיר והחלפת טקסטים בסיקוונס.
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Feature 3: Text Animator -->
-                <div class="feature-card highlight-card">
-                    <div class="card-icon-wrap" style="background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.3);">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
+                    <div class="perk">
+                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        <h4>עיצוב משלך</h4>
+                        <p>צבע הדגשה, גופן וגודל שמתאימים למיתוג שלך.</p>
                     </div>
-                    <h3>אנימציות טקסט בקליק</h3>
-                    <p class="feature-lead">מעירים את הטקסט לחיים בלחיצת כפתור אחת — בלי אפטר אפקטס ובלי להסתבך.</p>
-                    <ul class="feature-points">
-                        <li class="feature-point-featured" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(37, 99, 235, 0.05) 100%) !important; border-color: rgba(56, 189, 248, 0.35) !important;">
-                            <span class="icon-check" style="color: #38bdf8;">✨</span>
-                            <div>
-                                <strong style="color: #93c5fd;">תנועות מוכנות מראש:</strong> פופ קופצני, החלקה, זום ועמעום שתופסים את העין של הצופה.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>קליק אחד להחלה:</strong> בוחרים סגנון ולוחצים "החל" — התנועה נוצרת מיידית על שכבת הטקסט.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>טשטוש תנועה חלק:</strong> מראה מקצועי ודינמי כמו בסרטוני הטיקטוק והרילס המובילים.
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon-check">✓</span>
-                            <div>
-                                <strong>חוסך שעות עבודה:</strong> שוכחים מיצירת קיפריימים ידנית ומסורבלת בכל פעם מחדש.
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- More perks row -->
-            <div class="perks-row">
-                <div class="perk-box">
-                    <div class="perk-icon">⚡</div>
-                    <h4>100% מקומי ומאובטח</h4>
-                    <p>החיתוך והאנימציות מתבצעים ישירות על המחשב שלך, ללא צורך בהעלאת קבצים לרשת.</p>
-                </div>
-                <div class="perk-box perk-highlight">
-                    <div class="perk-icon">🖍️</div>
-                    <h4>עיצוב ומרקר בהתאמה אישית</h4>
-                    <p>שליטה מלאה בצבעי המרקר, גופנים וסגנון ויזואלי שמתאים בדיוק למיתוג שלך.</p>
-                </div>
-                <div class="perk-box">
-                    <div class="perk-icon">🎬</div>
-                    <h4>אנימציות מוכנות בקליק</h4>
-                    <p>תנועות חלקות שמוחלות ישירות בפרמייר בלי לפתוח אפטר אפקטס ובלי פלאגינים כבדים.</p>
-                </div>
-                <div class="perk-box">
-                    <div class="perk-icon">🎯</div>
-                    <h4>סנכרון מלא לסיקוונס</h4>
-                    <p>מתחבר לסיקוונס הפעיל שלך בטיימליין ועובד בתיאום מושלם ללא ייצוא קבצים.</p>
-                </div>
-                <div class="perk-box">
-                    <div class="perk-icon">🔑</div>
-                    <h4>חינמי וללא הגבלה</h4>
-                    <p>חיבור מהיר ל-Groq Cloud API שמעניק תמלול מהיר בחינם וללא תשלום חודשי.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Plugin Demo Video Showcase Section -->
-    <section class="simulator-section video-showcase-section" id="simulator">
-        <div class="container">
-            <div class="section-badge-wrap">
-                <span class="section-badge">הדגמה מתוך Premiere Pro</span>
-            </div>
-            <h2 class="section-title">ראה איך CS Trim עובד בזמן אמת</h2>
-            <p class="section-desc">צפה בסרטון ההדגמה וראה איך CS Trim חותך שתיקות אוטומטית, מייצר כתוביות AI בעברית עם מרקר מילים, ומוסיף אנימציות טקסט בלחיצת כפתור.</p>
-
-            <!-- Interactive Chapter Switcher Pills -->
-            <div class="demo-chapters-bar" id="demoChaptersBar">
-                <button type="button" class="demo-chapter-btn active" data-chapter="0" onclick="seekDemoVideo(0, 0)">
-                    <span class="chapter-num">01</span>
-                    <span class="chapter-icon">✂️</span>
-                    <span class="chapter-label">חיתוך שקט אוטומטי</span>
-                </button>
-                <button type="button" class="demo-chapter-btn" data-chapter="1" onclick="seekDemoVideo(6.2, 1)">
-                    <span class="chapter-num">02</span>
-                    <span class="chapter-icon">✨</span>
-                    <span class="chapter-label">כתוביות AI + מרקר מילים</span>
-                </button>
-                <button type="button" class="demo-chapter-btn" data-chapter="2" onclick="seekDemoVideo(13.5, 2)">
-                    <span class="chapter-num">03</span>
-                    <span class="chapter-icon">🎬</span>
-                    <span class="chapter-label">אנימציות טקסט בקליק</span>
-                </button>
-                <button type="button" class="demo-chapter-btn" data-chapter="3" onclick="seekDemoVideo(19.5, 3)">
-                    <span class="chapter-num">04</span>
-                    <span class="chapter-icon">🚀</span>
-                    <span class="chapter-label">התוצאה הסופית</span>
-                </button>
-            </div>
-
-            <!-- Video Showcase Frame -->
-            <div class="demo-video-card">
-                <div class="demo-video-stage" onclick="toggleDemoVideoPlay()">
-                    <video
-                        id="csTrimDemoVideo"
-                        class="demo-video-element"
-                        src="assets/cs-trim-demo.mp4"
-                        poster="assets/cs-trim-demo-poster.png"
-                        autoplay
-                        muted
-                        loop
-                        playsinline
-                        preload="auto">
-                        הדפדפן שלך אינו תומך בניגון וידאו.
-                    </video>
-
-                    <!-- Center Play Overlay Indicator (shown only when paused) -->
-                    <div class="demo-play-overlay" id="demoPlayOverlay" style="display: none;">
-                        <div class="demo-play-circle">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                            </svg>
-                        </div>
+                    <div class="perk">
+                        <svg class="perk-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+                        <h4>תמלול בחינם</h4>
+                        <p>מפתח Groq חינמי מספיק לשעות של תמלול ביום.</p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Custom Bottom Control Bar -->
-                <div class="demo-video-controls">
-                    <button type="button" class="demo-ctrl-btn" id="btnDemoPlayPause" onclick="toggleDemoVideoPlay()" title="נגן / השהה">
-                        <svg id="iconDemoPause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                            <rect x="6" y="4" width="4" height="16" rx="1"></rect>
-                            <rect x="14" y="4" width="4" height="16" rx="1"></rect>
-                        </svg>
-                        <svg id="iconDemoPlay" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                    </button>
+        <!-- Demo video -->
+        <section class="section section-alt" id="simulator">
+            <div class="container">
+                <header class="section-head">
+                    <p class="eyebrow">הדגמה</p>
+                    <h2 class="section-title">ככה זה נראה בתוך פרמייר</h2>
+                    <p class="section-desc">24 שניות: חיתוך שקט, כתוביות עם הדגשת מילים, ואנימציית טקסט.</p>
+                </header>
 
-                    <div class="demo-progress-wrap" id="demoProgressWrap" onclick="scrubDemoVideo(event)" title="לחץ לדילוג בווידאו">
-                        <div class="demo-progress-track">
-                            <div class="demo-progress-fill" id="demoProgressFill"></div>
-                            <span class="demo-chapter-tick" style="left: 25.8%;" title="שלב 2: כתוביות AI"></span>
-                            <span class="demo-chapter-tick" style="left: 56.2%;" title="שלב 3: אנימציות טקסט"></span>
-                            <span class="demo-chapter-tick" style="left: 81.2%;" title="תוצאה סופית"></span>
+                <div class="demo-chapters" id="demoChaptersBar">
+                    <button type="button" class="demo-chapter-btn active" data-chapter="0" onclick="seekDemoVideo(0, 0)"><span class="chapter-num">01</span>חיתוך שקט</button>
+                    <button type="button" class="demo-chapter-btn" data-chapter="1" onclick="seekDemoVideo(6.2, 1)"><span class="chapter-num">02</span>כתוביות והדגשה</button>
+                    <button type="button" class="demo-chapter-btn" data-chapter="2" onclick="seekDemoVideo(13.5, 2)"><span class="chapter-num">03</span>אנימציית טקסט</button>
+                    <button type="button" class="demo-chapter-btn" data-chapter="3" onclick="seekDemoVideo(19.5, 3)"><span class="chapter-num">04</span>התוצאה</button>
+                </div>
+
+                <div class="demo-video-card">
+                    <div class="demo-video-stage" onclick="toggleDemoVideoPlay()">
+                        <video id="csTrimDemoVideo" class="demo-video-element" src="assets/cs-trim-demo.mp4" poster="assets/cs-trim-demo-poster.jpg" muted loop playsinline preload="none" width="1600" height="900">
+                            הדפדפן שלך אינו תומך בניגון וידאו.
+                        </video>
+                        <div class="demo-play-overlay" id="demoPlayOverlay" style="display: none;">
+                            <div class="demo-play-circle">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
+                            </div>
                         </div>
                     </div>
 
-                    <span class="demo-time-badge" id="demoTimeDisplay">00:00 / 00:24</span>
-
-                    <button type="button" class="demo-ctrl-btn demo-ctrl-text" onclick="seekDemoVideo(0, 0)" title="הפעל מההתחלה">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="1 4 1 10 7 10"></polyline>
-                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                        </svg>
-                        <span>מההתחלה</span>
-                    </button>
-
-                    <button type="button" class="demo-ctrl-btn" onclick="openDemoFullscreen()" title="מסך מלא">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section class="how-section" id="how-it-works">
-        <div class="container">
-            <div class="section-badge-wrap">
-                <span class="section-badge">פשטות מעל הכל</span>
-            </div>
-            <h2 class="section-title">איך זה עובד? ב-3 צעדים פשוטים</h2>
-            <p class="section-desc">אין צורך בהגדרות מסובכות או ידע טכני. בתוך דקה אחת מהרגע שאתה מוריד — הפלאגין כבר עובד בפרמייר.</p>
-
-            <div class="steps-grid">
-                <div class="step-card">
-                    <div class="step-number">01</div>
-                    <div class="step-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    </div>
-                    <h4>מורידים ומתקינים</h4>
-                    <p>מורידים את קובץ ההתקנה (Mac או Windows), לוחצים עליו פעמיים, ותוך 5 שניות התוסף מותקן ומוגדר בפרמייר אוטומטית!</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">02</div>
-                    <div class="step-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-                    </div>
-                    <h4>פותחים בפרמייר</h4>
-                    <p>פותחים את Premiere Pro וניגשים בתפריט העליון אל: <strong>Window &gt; Extensions &gt; CS Trim</strong>. הפאנל נפתח מיד ומוכן לעבודה.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">03</div>
-                    <div class="step-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    </div>
-                    <h4>חיתוך, כתוביות ואנימציות בקליק</h4>
-                    <p>בוחרים חיתוך שקט, כתוביות AI או אנימציית טקסט קולנועית — לוחצים על הכפתור והטיימליין מתעדכן ומתעורר לחיים בשניות!</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Installation & Download Section -->
-    <section class="install-section" id="install">
-        <div class="container">
-            <div class="download-box-wrapper" id="download">
-                <div class="dl-content">
-                    <span class="dl-tag">הורדה חינם • גרסה 1.0.7 (כולל פלטת צבעי מרקר, אנימציות והיילייט מילים)</span>
-                    <h2 class="dl-title">מוכן לקצר 80% מזמן העריכה שלך?</h2>
-                    <p class="dl-subtitle">הורד את CS Trim עכשיו. חיתוך שקט אוטומטי, כתוביות AI מדויקות, אנימציות טקסט חיות, היילייט מילים דינמי, ו-100% חינם לתמיד.</p>
-
-                    <div class="dl-buttons-row" style="display: flex; gap: 14px; flex-wrap: wrap;">
-                        <a href="download/CS-Trim-Setup.exe?v=1.0.7" class="btn btn-primary" id="btnCardDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download="CS-Trim-Setup.exe">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
-                            </svg>
-                            <span>הורדה ל-Windows</span>
-                        </a>
-
-                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.7" class="btn btn-secondary" id="btnCardDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" style="flex: 1; min-width: 170px; padding: 14px 20px; font-size: 1.05rem;" download>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/>
-                            </svg>
-                            <span>הורדה ל-Mac</span>
-                        </a>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px;">
-                        <a href="download/CS-Trim-v1.0.0-Windows.zip?v=1.0.7" onclick="handleDownloadLinkClick(event, this); return false;" style="color: #94a3b8; font-size: 0.88rem; text-decoration: underline;" download>
-                            הורדת חבילת ZIP מלאה ל-Windows (למי שמעדיף התקנה ללא Setup)
-                        </a>
-                    </div>
-
-                    <div class="dl-meta-info" style="margin-top: 16px;">
-                        <span> תואם Premiere Pro CC 2020 ומעלה</span>
-                        <span>•</span>
-                        <span> תמיכה מלאה במעבדי Apple Silicon (M1/M2/M3/M4) ואינטל</span>
-                        <span>•</span>
-                        <span> Windows 10/11</span>
-                    </div>
-                </div>
-
-                <!-- Simple Dedicated Guide Link Card -->
-                <div class="guide-banner-card" style="margin-top: 24px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(59, 130, 246, 0.32); border-radius: 14px; padding: 22px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(59, 130, 246, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
-                            📘
+                    <div class="demo-video-controls">
+                        <button type="button" class="demo-ctrl-btn" id="btnDemoPlayPause" onclick="toggleDemoVideoPlay()" aria-label="נגן / השהה">
+                            <svg id="iconDemoPause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>
+                            <svg id="iconDemoPlay" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                        </button>
+                        <div class="demo-progress-wrap" id="demoProgressWrap" onclick="scrubDemoVideo(event)">
+                            <div class="demo-progress-track">
+                                <div class="demo-progress-fill" id="demoProgressFill"></div>
+                                <span class="demo-chapter-tick" style="left: 25.8%;"></span>
+                                <span class="demo-chapter-tick" style="left: 56.2%;"></span>
+                                <span class="demo-chapter-tick" style="left: 81.2%;"></span>
+                            </div>
                         </div>
-                        <div>
-                            <h3 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 4px;">מדריך התקנה מהיר ומצולם</h3>
-                            <p style="font-size: 0.92rem; color: #94a3b8; margin: 0; line-height: 1.5;">התקנה פשוטה ב-60 שניות למחשבי Mac ו-Windows — כולל פתרון להודעות אבטחה ב-2 שניות והגדרת מפתח AI חינם.</p>
-                        </div>
+                        <span class="demo-time" id="demoTimeDisplay">00:00 / 00:24</span>
+                        <button type="button" class="demo-ctrl-btn" onclick="openDemoFullscreen()" aria-label="מסך מלא">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                        </button>
                     </div>
-                    <a href="install-guide.html" class="btn btn-secondary" style="padding: 12px 24px; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
-                        <span>למדריך ההתקנה המלא</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(180deg);"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section class="section" id="how-it-works">
+            <div class="container">
+                <header class="section-head">
+                    <p class="eyebrow">איך זה עובד</p>
+                    <h2 class="section-title">מהורדה לעבודה בתוך דקה</h2>
+                </header>
+
+                <ol class="steps">
+                    <li class="step">
+                        <span class="step-num">1</span>
+                        <h4>מתקינים</h4>
+                        <p>מורידים את קובץ ההתקנה ל-Mac או ל-Windows ופותחים אותו. ההתקנה מגדירה את הכל לבד.</p>
+                    </li>
+                    <li class="step">
+                        <span class="step-num">2</span>
+                        <h4>פותחים את הפאנל</h4>
+                        <p>ב-Premiere Pro: <span class="kbd" dir="ltr">Window &rsaquo; Extensions &rsaquo; CS Trim</span></p>
+                    </li>
+                    <li class="step">
+                        <span class="step-num">3</span>
+                        <h4>לוחצים</h4>
+                        <p>בוחרים חיתוך שקט, כתוביות או אנימציה, והטיימליין מתעדכן תוך שניות.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Download -->
+        <section class="section section-tight" id="install">
+            <div class="container">
+                <div class="download-card" id="download">
+                    <div class="download-main">
+                        <h2 class="download-title">מוכנים לנסות?</h2>
+                        <p class="download-sub">CS Trim חינמי. בלי כרטיס אשראי, בלי מנוי ובלי הגבלת סרטונים.</p>
+
+                        <div class="download-buttons">
+                            <a href="download/CS-Trim-Setup.exe?v=1.0.11" class="btn btn-primary btn-lg" id="btnCardDownloadWin" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                                <span>הורדה ל-Windows</span>
+                            </a>
+                            <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" class="btn btn-secondary btn-lg" id="btnCardDownloadMac" onclick="handleDownloadLinkClick(event, this); return false;" download>
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.64-1.24z"/></svg>
+                                <span>הורדה ל-Mac</span>
+                            </a>
+                        </div>
+
+                        <ul class="download-meta">
+                            <li>Premiere Pro 2020 ומעלה</li>
+                            <li>macOS, כולל Apple Silicon</li>
+                            <li>Windows 10 / 11</li>
+                        </ul>
+                        <a class="download-alt" href="download/CS-Trim-v1.0.0-Windows.zip?v=1.0.11" onclick="handleDownloadLinkClick(event, this); return false;" download>מעדיפים בלי אשף התקנה? חבילת ZIP ל-Windows</a>
+                    </div>
+
+                    <a href="install-guide.html" class="download-guide">
+                        <span class="download-guide-label">מדריך התקנה מצולם</span>
+                        <span class="download-guide-text">צעד אחרי צעד ל-Mac ול-Windows, כולל מה לעשות בהודעות האבטחה ואיך מקבלים מפתח Groq חינמי.</span>
+                        <span class="download-guide-link">למדריך &larr;</span>
                     </a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- FAQ Section -->
-    <section class="faq-section" id="faq">
-        <div class="container">
-            <div class="section-badge-wrap">
-                <span class="section-badge">תשובות לכל השאלות</span>
-            </div>
-            <h2 class="section-title">שאלות נפוצות</h2>
-            <p class="section-desc">כל מה שרצית לדעת על CS Trim, תאימות, חינמיות ואופן הפעולה.</p>
+        <!-- FAQ -->
+        <section class="section" id="faq">
+            <div class="container container-narrow">
+                <header class="section-head">
+                    <p class="eyebrow">שאלות נפוצות</p>
+                    <h2 class="section-title">לפני שמורידים</h2>
+                </header>
 
-            <div class="faq-accordion">
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>האם התוסף באמת בחינם לחלוטין?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>כן! כרגע התוסף נמצא בתקופת הרצה וכל הכלים פתוחים לשימוש בחינם לחלוטין. אין צורך בכרטיס אשראי, אין מנוי חודשי, ואין הגבלת שימוש או כמות סרטונים — כרגע הכל חופשי לגמרי, ובהמשך נראה מה יהיה בהתאם לפידבקים ולהתפתחות התוכנה.</p>
+                <div class="faq-accordion">
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>זה באמת חינם?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>כן. כרגע כל הכלים פתוחים בלי תשלום, בלי כרטיס אשראי ובלי הגבלה על כמות הסרטונים. אם זה ישתנה בעתיד, נודיע מראש.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>האם התמלול בכתוביות תומך בעברית בצורה מדויקת?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>בהחלט! התוסף משתמש במודל המוביל <strong>Whisper Large v3</strong> המופעל על גבי מעבדי Groq המהירים. רמת הדיוק בעברית פנומנלית, ובנוסף קיים מנגנון דיווח שגיאות קהילתי באתר: כל מילה שמדווחת נכנסת ישירות למילון האוטומטי ומתעדכנת אצל כולם, כך שככל שאנשים מדווחים יותר — הפלאגין מגיע ל-100% דיוק מלא!</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>כמה מדויק התמלול בעברית?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>התמלול רץ על Whisper Large v3 דרך Groq, ומדויק מאוד בעברית מדוברת. כשמילה יוצאת לא נכון אפשר לדווח עליה בטופס למטה, והיא נכנסת למילון התיקונים שמתעדכן אצל כל המשתמשים.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>איך עובד פיצ'ר ההיילייט (הדגשת מילים / מרקר) על הטקסט?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>פיצ'ר ההיילייט (Word Highlight) מזהה בעזרת בינה מלאכותית את התזמון המדויק שבו כל מילה נאמרת. הוא יוצר באופן אוטומטי שכבת מרקר ויזואלית על גבי ערוץ וידאו ייעודי בטיימליין בפרמייר, שמדגישה את המילה הפעילה ברגע הדיבור (בסגנון קריוקי / MrBeast / Alex Hormozi). ניתן לבחור בלחיצת כפתור כל צבע מרקר שתרצו — צהוב זוהר, ירוק, ורוד, כחול, או כל צבע מותאם אישית שנבחר בעזרת ה-Color Picker.</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>איך עובדת הדגשת המילים?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>התוסף יודע מתי נאמרת כל מילה, ויוצר בטיימליין שכבה שמדגישה את המילה ברגע שהיא נאמרת, בסגנון שמוכר מרילס וטיקטוק. את צבע ההדגשה בוחרים מתוך הפאנל.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>איך עובדות אנימציות הטקסט בתוסף?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>פשוט מאוד: מסמנים את שכבת הטקסט בטיימליין, בוחרים בפלאגין סגנון אנימציה (פופ, החלקה, זום או עמעום) ולוחצים <strong>החל אנימציה</strong>. התנועה מוחלת מיד ישירות בפרמייר עם טשטוש תנועה חלק ומקצועי — בלי צורך באפטר אפקטס ובלי הגדרות מסובכות.</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>איך מחילים אנימציית טקסט?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>מסמנים שכבת טקסט בטיימליין, בוחרים סגנון (Pop, Slide, Zoom או Fade) ולוחצים <strong>החל אנימציה</strong>. הקיפריימים וה-Motion Blur נוצרים ישירות בפרמייר.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>באילו גרסאות של Premiere Pro התוסף נתמך?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>התוסף תומך בכל גרסאות Adobe Premiere Pro החל מ-CC 2018/2020 ועד לגרסאות 2024, 2025 ו-2026. הוא נתמך גם במערכות macOS (כולל מעבדי M1/M2/M3/M4 של אפל) וגם ב-Windows 10/11.</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>באילו גרסאות זה עובד?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>Premiere Pro 2020 ומעלה, כולל 2025 ו-2026. ב-macOS (מעבדי Intel ו-Apple Silicon) וב-Windows 10 ו-11.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>האם חיתוך השקט יכול למחוק לי בטעות מילים?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>לא. האלגוריתם של CS Trim שומר על מרווחי ביטחון (Padding) לפני ואחרי כל קטע דיבור, כך שאף פעם לא נחתכת תחילת או סוף מילה. בנוסף, יש לך אפשרות להפעיל את מצב <strong>סימון שקט בלבד (Markers)</strong> שמאפשר לך לראות בעיניים בטיימליין בדיוק היכן השתיקות לפני שמתבצע חיתוך בפועל.</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>חיתוך השקט יכול לחתוך לי מילים?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>התוסף משאיר מרווח ביטחון לפני ואחרי כל קטע דיבור, כך שתחילת וסוף מילה לא נחתכים. אפשר גם להריץ קודם במצב <strong>סימון בלבד</strong>, לראות במרקרים מה ייחתך, ורק אז לחתוך.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>האם אני צריך לשלם על Groq API עבור הכתוביות?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>לא! Groq מעניקה מסלול חינמי נדיב ביותר המאפשר תמלול של שעות רבות של אודיו בכל יום בחינם לחלוטין וללא צורך בהזנת כרטיס אשראי. ההרשמה והפקת המפתח לוקחות 15 שניות בלבד.</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>צריך לשלם ל-Groq על הכתוביות?</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>לא. למסלול החינמי של Groq יש מכסה יומית נדיבה שמספיקה לשעות של אודיו, בלי כרטיס אשראי. פתיחת מפתח לוקחת פחות מדקה, והמדריך מסביר איך.</p></div>
                     </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>פתחתי את פרמייר והתוסף לא מופיע בתפריט Extensions, מה לעשות?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>ודאו שסגרתם ופתחתם מחדש את Premiere Pro לאחר ההתקנה. בנוסף, ודאו שהפעלתם את קובץ ההתקנה (קובץ ה-PKG או סקריפט Install_Mac.command במק, או אשף ההתקנה ב-Windows) שמגדיר את כל הרשאות ההרחבה (PlayerDebugMode) באופן אוטומטי.</p>
+                    <div class="faq-item">
+                        <button type="button" class="faq-question"><span>התקנתי והתוסף לא מופיע ב-Extensions</span><span class="faq-icon" aria-hidden="true"></span></button>
+                        <div class="faq-answer"><p>סגרו את Premiere Pro לגמרי ופתחו מחדש. אם עדיין לא מופיע, ודאו שהרצתם את קובץ ההתקנה עצמו (PKG במק, אשף ההתקנה ב-Windows), כי הוא זה שמפעיל את ההרשאות שהתוסף צריך. <a href="install-guide.html">פירוט במדריך ההתקנה</a>.</p></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Community Feedback & Typo Reporting Section -->
-    <section class="suggest-section" id="suggest">
-        <div class="container">
-            <div class="suggest-card">
-                <div class="section-badge-wrap">
-                    <span class="section-badge">שיפור מתמיד וקהילה</span>
-                </div>
+        <!-- Feedback & typo reports -->
+        <section class="section section-alt" id="suggest">
+            <div class="container container-narrow">
+                <header class="section-head">
+                    <p class="eyebrow">פידבק</p>
+                    <h2 class="section-title">משהו לא עובד? יש רעיון?</h2>
+                    <p class="section-desc">אנחנו קוראים כל הודעה. רוב השיפורים בגרסאות האחרונות הגיעו מכאן.</p>
+                </header>
 
-                <!-- Community Switcher Tabs -->
-                <div class="com-tabs-nav" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;">
-                    <button type="button" class="com-tab-btn active" id="btnTabFeedback" onclick="switchCommunityTab('feedback', this)">
-                        <span>💡 פידבק והצעות לשיפור</span>
-                    </button>
-                    <button type="button" class="com-tab-btn" id="btnTabTypo" onclick="switchCommunityTab('typo', this)">
-                        <span>✍️ דיווח על שגיאת כתוביות</span>
-                    </button>
-                </div>
-
-                <!-- Pane 1: Feedback & Feature Requests -->
-                <div id="paneFeedback" class="community-pane">
-                    <h2 class="section-title">יש לכם רעיון לשיפור? משהו לא עובד חלק?</h2>
-                    <p class="section-desc">ספרו לנו מה אפשר לשפר, לתקן או להוסיף ב-CS Trim — כל פידבק נשמר ונכנס ישירות לפיתוח הגרסה הבאה!</p>
-
-                    <form class="suggest-form" id="webFeedbackForm" onsubmit="handleFeedbackSubmit(event)">
-                        <input type="text" name="website_trap" id="feedback_trap" style="display:none;" tabindex="-1" autocomplete="off">
-                        
-                        <div class="form-group">
-                            <label>סוג הפנייה</label>
-                            <div class="web-fb-type-pills" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <label class="web-fb-pill active">
-                                    <input type="radio" name="webFbType" value="improvement" checked onchange="updateWebFbTypePill(this)">
-                                    <span>💡 הצעת שיפור / פיצ'ר חדש</span>
-                                </label>
-                                <label class="web-fb-pill">
-                                    <input type="radio" name="webFbType" value="bug" onchange="updateWebFbTypePill(this)">
-                                    <span>🐛 דיווח על באג / תקלה</span>
-                                </label>
-                                <label class="web-fb-pill">
-                                    <input type="radio" name="webFbType" value="general" onchange="updateWebFbTypePill(this)">
-                                    <span>⭐ חוות דעת ופידבק כללי</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="webFbMessage">מה אפשר לשפר או לתקן בפלאגין? <span class="req">*</span></label>
-                            <textarea id="webFbMessage" name="webFbMessage" rows="4" placeholder="לדוגמה: הייתי שמח אם תוסיפו אפשרות ל... / כאשר אני מפעיל את הפלאגין קורה ש..." required style="width: 100%; padding: 14px 16px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: inherit; font-size: 0.98rem; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="webFbContact">אימייל או מספר טלפון לחזרה (אופציונלי)</label>
-                            <input type="text" id="webFbContact" name="webFbContact" placeholder="כדי שנוכל לחזור אליך ולעדכן כשהשיפור ישוחרר" autocomplete="off">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-submit-suggest" id="btnSubmitFeedbackWeb">
-                            <span>שלח פידבק למפתחים</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </button>
-
-                        <div class="suggest-status" id="webFeedbackStatus" style="display:none;"></div>
-                    </form>
-                </div>
-
-                <!-- Pane 2: Typo Suggestion Form -->
-                <div id="paneTypo" class="community-pane" style="display:none;">
-                    <h2 class="section-title">נתקלתם בשגיאת כתיב בכתוביות?</h2>
-                    <p class="section-desc">עזרו לקהילת עורכי הווידאו בישראל — ככל שיותר אנשים ידווחו על שגיאות, התוסף ילמד ויגיע ל-100% דיוק מושלם לכולם!</p>
-
-                    <div class="community-accuracy-banner">
-                        <div class="cab-icon">🎯</div>
-                        <div class="cab-text">
-                            <strong>כוחה של הקהילה: כל דיווח משפר את התוסף לכולם!</strong>
-                            <span>באמצעות מנגנון דיווח השגיאות, כל מילה שאתם מתקנים מתווספת ישירות למילון האוטומטי ומתעדכנת אצל כל המשתמשים. ככל שיותר עורכים מדווחים — הפלאגין הופך ל-100% מדויק ללא שום טעויות.</span>
-                        </div>
+                <div class="suggest-card">
+                    <div class="com-tabs" role="tablist">
+                        <button type="button" class="com-tab-btn active" id="btnTabFeedback" onclick="switchCommunityTab('feedback', this)">פידבק והצעות</button>
+                        <button type="button" class="com-tab-btn" id="btnTabTypo" onclick="switchCommunityTab('typo', this)">שגיאה בכתוביות</button>
                     </div>
 
-                    <form class="suggest-form" id="suggestForm" onsubmit="handleSuggestSubmit(event)">
-                        <div class="suggest-grid">
+                    <div id="paneFeedback" class="community-pane">
+                        <form class="suggest-form" id="webFeedbackForm" onsubmit="handleFeedbackSubmit(event)">
+                            <input type="text" name="website_trap" id="feedback_trap" style="display:none;" tabindex="-1" autocomplete="off">
+
                             <div class="form-group">
-                                <label for="wrongWord">המילה שיצאה בשגיאה <span class="req">*</span></label>
-                                <input type="text" id="wrongWord" name="wrongWord" placeholder="לדוגמה: מקאבי" required autocomplete="off">
+                                <span class="form-label">סוג הפנייה</span>
+                                <div class="web-fb-type-pills">
+                                    <label class="web-fb-pill active"><input type="radio" name="webFbType" value="improvement" checked onchange="updateWebFbTypePill(this)"><span>הצעה לשיפור</span></label>
+                                    <label class="web-fb-pill"><input type="radio" name="webFbType" value="bug" onchange="updateWebFbTypePill(this)"><span>באג</span></label>
+                                    <label class="web-fb-pill"><input type="radio" name="webFbType" value="general" onchange="updateWebFbTypePill(this)"><span>כללי</span></label>
+                                </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="correctWord">איך היא אמורה להיכתב <span class="req">*</span></label>
-                                <input type="text" id="correctWord" name="correctWord" placeholder="לדוגמה: מכבי" required autocomplete="off">
+                                <label class="form-label" for="webFbMessage">מה תרצו לספר לנו? <span class="req">*</span></label>
+                                <textarea id="webFbMessage" name="webFbMessage" rows="4" placeholder="למשל: הייתי רוצה אפשרות ל… / כשאני לוחץ על… קורה ש…" required></textarea>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="exampleSentence">משפט לדוגמה / הקשר (אופציונלי)</label>
-                            <input type="text" id="exampleSentence" name="exampleSentence" placeholder="לדוגמה: המשחק של מכבי תל אביב אתמול" autocomplete="off">
-                        </div>
+                            <div class="form-group">
+                                <label class="form-label" for="webFbContact">אימייל או טלפון <span class="optional">(לא חובה)</span></label>
+                                <input type="text" id="webFbContact" name="webFbContact" placeholder="כדי שנעדכן אותך כשזה מתוקן" autocomplete="off">
+                            </div>
 
-                        <button type="submit" class="btn btn-primary btn-submit-suggest" id="btnSubmitSuggest">
-                            <span>שלח מילה לתיקון במערכת</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </button>
+                            <button type="submit" class="btn btn-primary" id="btnSubmitFeedbackWeb"><span>שליחה</span></button>
+                            <div class="suggest-status" id="webFeedbackStatus" style="display:none;"></div>
+                        </form>
+                    </div>
 
-                        <div class="suggest-status" id="suggestStatus" style="display:none;"></div>
-                    </form>
+                    <div id="paneTypo" class="community-pane" style="display:none;">
+                        <p class="pane-note">מילה יצאה לא נכון בכתוביות? דווחו עליה, והיא תתוקן אוטומטית אצל כל המשתמשים.</p>
+                        <form class="suggest-form" id="suggestForm" onsubmit="handleSuggestSubmit(event)">
+                            <div class="suggest-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="wrongWord">מה יצא <span class="req">*</span></label>
+                                    <input type="text" id="wrongWord" name="wrongWord" placeholder="מקאבי" required autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="correctWord">מה היה צריך להיות <span class="req">*</span></label>
+                                    <input type="text" id="correctWord" name="correctWord" placeholder="מכבי" required autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="exampleSentence">משפט לדוגמה <span class="optional">(לא חובה)</span></label>
+                                <input type="text" id="exampleSentence" name="exampleSentence" placeholder="המשחק של מכבי תל אביב אתמול" autocomplete="off">
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="btnSubmitSuggest"><span>שליחת תיקון</span></button>
+                            <div class="suggest-status" id="suggestStatus" style="display:none;"></div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- Footer -->
     <footer class="site-footer">
-        <div class="container footer-container">
+        <div class="container">
             <div class="footer-top">
                 <div class="footer-brand">
-                    <img src="assets/logo.png" alt="CS Trim" style="width: 36px; height: 36px; border-radius: 8px; object-fit: contain;">
-                    <span class="brand-name">CS Trim</span>
-                    <span class="footer-desc">תוסף החיתוך, הכתוביות ואנימציות הטקסט החכם ל-Adobe Premiere Pro</span>
+                    <a href="#" class="brand">
+                        <img src="assets/logo-sm.png" alt="" width="28" height="32">
+                        <span class="brand-name">CS Trim</span>
+                    </a>
+                    <p>חיתוך שקט, כתוביות בעברית ואנימציות טקסט ל-Adobe Premiere Pro.</p>
                 </div>
-
-                <div class="footer-share">
-                    <span class="share-label">שתף עם עורכים נוספים:</span>
-                    <a href="https://api.whatsapp.com/send?text=היי! מצאתי תוסף מדהים לפרמייר פרו שחותך שקט, עושה כתוביות AI בעברית ואנימציות טקסט בחינם: https://cs-trim.com" target="_blank" rel="noopener" class="share-btn whatsapp" title="שתף בוואטסאפ">
-                        וואטסאפ
-                    </a>
-                    <a href="https://t.me/share/url?url=https://cs-trim.com&text=תוסף CS Trim לפרמייר פרו - חיתוך שקט, כתוביות AI ואנימציות טקסט בחינם" target="_blank" rel="noopener" class="share-btn telegram" title="שתף בטלגרם">
-                        טלגרם
-                    </a>
+                <div class="footer-col">
+                    <h5>התוסף</h5>
+                    <a href="#features">יכולות</a>
+                    <a href="#simulator">הדגמה</a>
+                    <a href="#download">הורדה</a>
+                </div>
+                <div class="footer-col">
+                    <h5>עזרה</h5>
+                    <a href="install-guide.html">מדריך התקנה</a>
+                    <a href="#faq">שאלות נפוצות</a>
+                    <a href="#suggest">פידבק</a>
+                </div>
+                <div class="footer-col">
+                    <h5>שיתוף</h5>
+                    <a href="https://api.whatsapp.com/send?text=%D7%AA%D7%95%D7%A1%D7%A3%20%D7%97%D7%99%D7%A0%D7%9E%D7%99%20%D7%9C%D7%A4%D7%A8%D7%9E%D7%99%D7%99%D7%A8%20%D7%A9%D7%97%D7%95%D7%AA%D7%9A%20%D7%A9%D7%A7%D7%98%20%D7%95%D7%9E%D7%95%D7%A1%D7%99%D7%A3%20%D7%9B%D7%AA%D7%95%D7%91%D7%99%D7%95%D7%AA%20%D7%91%D7%A2%D7%91%D7%A8%D7%99%D7%AA%3A%20https%3A%2F%2Fcstrim.site" target="_blank" rel="noopener">וואטסאפ</a>
+                    <a href="https://t.me/share/url?url=https%3A%2F%2Fcstrim.site&amp;text=CS%20Trim%20%E2%80%93%20%D7%97%D7%99%D7%AA%D7%95%D7%9A%20%D7%A9%D7%A7%D7%98%20%D7%95%D7%9B%D7%AA%D7%95%D7%91%D7%99%D7%95%D7%AA%20%D7%91%D7%A2%D7%91%D7%A8%D7%99%D7%AA%20%D7%9C%D7%A4%D7%A8%D7%9E%D7%99%D7%99%D7%A8" target="_blank" rel="noopener">טלגרם</a>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <div class="footer-bottom-info">
-                    <p>© 2026 CS Trim. פותח באהבה עבור קהילת עורכי הוידאו ויוצרי התוכן בישראל.</p>
-                    <div class="footer-disclaimer">
-                        Adobe, Premiere Pro ו-Creative Cloud הם סימנים מסחריים רשומים של Adobe Inc. תוסף זה פותח באופן עצמאי.
-                    </div>
-                </div>
-                <div class="footer-legal-links" style="display: flex; gap: 16px; margin-top: 8px;">
-                    <a href="install-guide.html" style="color: var(--cyan); font-weight: 500; text-decoration: underline;">מדריך התקנה</a>
-                    <span style="color: var(--text-muted);">•</span>
-                    <a href="terms.html" style="color: var(--cyan); font-weight: 500; text-decoration: underline;">תקנון ותנאי שימוש</a>
-                    <span style="color: var(--text-muted);">•</span>
-                    <a href="terms.html#privacy" style="color: var(--cyan); font-weight: 500; text-decoration: underline;">מדיניות פרטיות</a>
-                </div>
+                <p>© 2026 CS Trim &middot; <a href="terms.html">תקנון</a> &middot; <a href="terms.html#privacy">פרטיות</a></p>
+                <p class="footer-disclaimer">Adobe ו-Premiere Pro הם סימנים מסחריים של Adobe Inc. CS Trim אינו קשור ל-Adobe.</p>
             </div>
         </div>
     </footer>
@@ -1008,113 +459,87 @@
         <div class="guide-modal-box" onclick="event.stopPropagation()">
             <div class="guide-modal-header">
                 <span id="guideModalCaption" class="guide-modal-caption"></span>
-                <button class="guide-modal-close" onclick="closeGuideModal()" title="סגור">&times;</button>
+                <button class="guide-modal-close" onclick="closeGuideModal()" aria-label="סגירה">&times;</button>
             </div>
-            <img id="guideModalImg" src="" alt="תמונת מדריך התקנה" class="guide-modal-img">
+            <img id="guideModalImg" src="" alt="" class="guide-modal-img">
         </div>
     </div>
 
     <!-- Lead Capture Modal (Email Gate Before Download) -->
     <div id="leadModal" class="lead-modal-overlay" onclick="closeLeadModal(event)">
-        <div class="lead-modal-card" onclick="event.stopPropagation()">
-            <button type="button" class="lead-modal-close-btn" onclick="closeLeadModal()" title="סגור">&times;</button>
-            
-            <!-- Step 1: Form View -->
-            <div id="leadFormView">
-                <div class="lead-icon-bubble">
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                </div>
+        <div class="lead-modal-card" role="dialog" aria-modal="true" aria-labelledby="leadModalTitle" onclick="event.stopPropagation()">
+            <button type="button" class="lead-modal-close-btn" onclick="closeLeadModal()" aria-label="סגירה">&times;</button>
 
-                <h3 class="lead-modal-title">עוד רגע והתוסף אצלך בפרמייר!</h3>
-                <p class="lead-modal-subtitle">
-                    ההורדה של <strong>CS Trim</strong> היא 100% חינם.<br>
-                    הזן את כתובת האימייל שלך לקבלת עדכוני גרסה וקישורי הורדה ישירים:
-                </p>
+            <div id="leadFormView">
+                <h3 class="lead-modal-title" id="leadModalTitle">לאן לשלוח עדכונים?</h3>
+                <p class="lead-modal-subtitle">ההורדה חינמית. נשלח לך מייל רק כשיוצאת גרסה חדשה.</p>
 
                 <div id="leadTargetBadge" class="lead-target-badge">
-                    <span id="leadTargetIcon">💻</span>
+                    <span id="leadTargetIcon"></span>
                     <span id="leadTargetText">גרסה עבור המחשב שלך</span>
                 </div>
 
                 <form id="leadForm" onsubmit="handleLeadSubmit(event)">
                     <div class="lead-form-group">
-                        <div class="lead-input-wrap">
-                            <input type="email" id="leadEmailInput" class="lead-input" placeholder="your.name@gmail.com" required autocomplete="email" oninput="handleLeadEmailInput(this)" onblur="handleLeadEmailBlur(this)">
-                            <span class="lead-input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                                </svg>
-                            </span>
-                        </div>
+                        <input type="email" id="leadEmailInput" class="lead-input" placeholder="name@gmail.com" required autocomplete="email" dir="ltr" oninput="handleLeadEmailInput(this)" onblur="handleLeadEmailBlur(this)">
                         <div id="leadSuggestionBox" class="lead-suggestion-box" style="display: none;"></div>
                         <div id="leadErrorMsg" class="lead-error-msg">נא להזין כתובת אימייל תקינה</div>
 
-                        <label class="lead-consent-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-top: 10px; text-align: right; user-select: none;">
-                            <input type="checkbox" id="leadConsentCheckbox" checked style="width: 17px; height: 17px; accent-color: #2563eb; cursor: pointer;">
-                            <span>אני מאשר קבלת עדכונים על תכונות חדשות ושיפורים בתוכנה</span>
+                        <label class="lead-consent-label">
+                            <input type="checkbox" id="leadConsentCheckbox" checked>
+                            <span>אני מאשר/ת לקבל עדכונים על גרסאות חדשות</span>
                         </label>
                     </div>
 
                     <button type="submit" id="btnLeadSubmit" class="lead-btn-submit">
                         <span>המשך להורדה חינם</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
                     </button>
                 </form>
 
-                <div class="lead-footer-note">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                    <span>מתחייבים: לעולם לא נשלח ספאם. המידע נשמר באופן מאובטח.</span>
-                </div>
+                <p class="lead-footer-note">בלי ספאם. אפשר להסיר את עצמך בכל רגע.</p>
             </div>
 
-            <!-- Step 2: Confirmation / Success View -->
             <div id="leadSuccessView" style="display: none;">
-                <div class="lead-icon-bubble" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #10b981;">
-                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
-                <h3 class="lead-modal-title" style="color: #34d399;">האימייל נקלט בהצלחה! 🎉</h3>
-                <p class="lead-modal-subtitle" style="margin-bottom: 16px;">
-                    האימייל <strong id="leadConfirmedEmail" style="color: #38bdf8; direction: ltr; display: inline-block;"></strong> נרשם במערכת.<br>
-                    קובץ ההתקנה מתחיל לרדת כעת למחשב שלך!
+                <h3 class="lead-modal-title">ההורדה התחילה</h3>
+                <p class="lead-modal-subtitle">
+                    שמרנו את <strong id="leadConfirmedEmail" dir="ltr"></strong>.<br>
+                    הקובץ יורד עכשיו למחשב שלך.
                 </p>
-
-                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; margin-bottom: 18px; font-size: 0.88rem; color: #94a3b8;">
-                    <span>ההורדה לא התחילה אוטומטית?</span><br>
-                    <a href="javascript:void(0)" id="btnManualDownload" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-top: 4px; display: inline-block;">
-                        לחץ כאן להורדה ידנית ישירה
-                    </a>
-                </div>
-
-                <button type="button" class="lead-btn-submit" onclick="closeLeadModal()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; box-shadow: none;">
-                    <span>מעולה, תודה! (סגור חלון)</span>
-                </button>
+                <p class="lead-manual">
+                    לא התחיל? <a href="javascript:void(0)" id="btnManualDownload">הורדה ידנית</a>
+                </p>
+                <p class="lead-next">השלב הבא: <a href="install-guide.html">מדריך ההתקנה</a></p>
+                <button type="button" class="lead-btn-submit lead-btn-ghost" onclick="closeLeadModal()"><span>סגירה</span></button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="downloadToast" class="download-toast">
-        <span class="download-toast-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-        </span>
+    <div id="downloadToast" class="download-toast" role="status">
         <span id="downloadToastText">תודה! קובץ ההתקנה מתחיל לרדת כעת...</span>
     </div>
+
+    <!-- Play the demo only once it scrolls into view, so its 8MB don't block page load -->
+    <script>
+    (function () {
+        var video = document.getElementById("csTrimDemoVideo");
+        if (!video || !("IntersectionObserver" in window)) {
+            if (video) { video.preload = "auto"; video.play().catch(function () {}); }
+            return;
+        }
+        var started = false;
+        new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    if (!started) { video.preload = "auto"; started = true; }
+                    video.play().catch(function () {});
+                } else if (!video.paused) {
+                    video.pause();
+                }
+            });
+        }, { threshold: 0.35 }).observe(video);
+    })();
+    </script>
 
     <!-- Inline Lead Modal Logic -->
     <script id="inlineLeadLogic">
@@ -1673,8 +1098,8 @@
 
         var isMac = /macintosh|mac os x/i.test(navigator.userAgent);
         var url = isMac 
-            ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.7" 
-            : "download/CS-Trim-Setup.exe?v=1.0.7";
+            ? "download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" 
+            : "download/CS-Trim-Setup.exe?v=1.0.11";
         var filename = isMac ? "CS-Trim-v1.0.0-Mac.pkg" : "CS-Trim-Setup.exe";
         window.openLeadModal(url, filename, isMac ? "Mac" : "Windows");
         return false;
@@ -1744,6 +1169,6 @@
     </script>
 
     <!-- Scripts -->
-    <script src="js/main.js?v=1.4.4"></script>
+    <script src="js/main.js?v=2.0.0"></script>
 </body>
 </html>

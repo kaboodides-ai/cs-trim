@@ -1,6 +1,13 @@
 {
   "leads": [
     {
+      "email": "sagivald2021@gmail.com",
+      "platform": "Windows",
+      "fileName": "CS-Trim-Setup.exe",
+      "dateFormatted": "19.10.2026, 21:05:54",
+      "timestamp": "2026-10-19T18:05:54.780Z"
+    },
+    {
       "email": "ziv4580@gmail.com",
       "platform": "Windows",
       "fileName": "CS-Trim-Setup.exe",

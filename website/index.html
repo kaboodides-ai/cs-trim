@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=3.0.3">
+    <link rel="stylesheet" href="css/site.css?v=3.1.0">
 
     <script type="application/ld+json">
     {
@@ -50,6 +50,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+    <div class="fx-progress" aria-hidden="true"><i id="fxProgress"></i></div>
 
     <header class="site-header" id="navbar">
         <div class="container header-inner">
@@ -73,6 +74,7 @@
     <main>
         <!-- Hero -->
         <section class="h-hero" id="top">
+            <div class="fx-hero-bg" aria-hidden="true"><span class="fx-blob fx-blob-a"></span><span class="fx-blob fx-blob-b"></span><span class="fx-grid"></span></div>
             <div class="container h-hero-grid">
                 <div class="h-hero-copy">
                     <p class="free-badge"><strong>חינם</strong> תוסף ל-Adobe Premiere Pro</p>
@@ -196,7 +198,7 @@
                                 <li>עריכת טקסט מהירה מתוך הפאנל</li>
                             </ul>
                         </div>
-                        <figure class="h-feat-media h-card" role="img" aria-label="אנימציה: כתוביות בעברית מתחלפות לפי הדיבור, והמילה הנאמרת מודגשת בצהוב">
+                        <figure class="h-feat-media h-card" role="group" aria-label="הדגמה: כתוביות בעברית מתחלפות לפי הדיבור, והמילה הנאמרת מודגשת בצהוב">
                             <div class="h-track h-track-a h-track-md" dir="ltr">
                                 <i class="h-clip h-wave" style="flex-grow:1"></i>
                                 <span class="h-playhead"></span>
@@ -208,7 +210,7 @@
                             </div>
                             <div class="h-words-picker">
                                 <span>מילים בכל כתובית</span>
-                                <span class="h-pills" dir="ltr"><i>1</i><i class="is-on">2</i><i>3</i><i>…</i><i>8</i></span>
+                                <span class="h-pills" dir="ltr" id="fxWordPills"><button type="button" data-n="1">1</button><button type="button" data-n="2" class="is-on">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><i>…</i><button type="button" data-n="8">8</button></span>
                             </div>
                         </figure>
                     </article>
@@ -218,14 +220,18 @@
                             <span class="h-feat-num">03</span>
                             <h3>אנימציות טקסט <span class="tag">Beta</span></h3>
                             <p class="h-feat-lead">מסמנים שכבת טקסט, בוחרים סגנון ולוחצים "החל". הקיפריימים וה-Motion Blur נוצרים לבד, בלי אפטר אפקטס.</p>
-                            <p class="h-feat-note">ארבעה סגנונות מוכנים:</p>
+                            <p class="h-feat-note">ארבעה סגנונות מוכנים. כתבו משהו ולחצו על סגנון כדי לראות אותו שוב:</p>
+                            <label class="fx-try">
+                                <span class="sr-only">הטקסט שיונפש</span>
+                                <input type="text" id="fxWordInput" maxlength="14" placeholder="כתבו כאן טקסט…" autocomplete="off">
+                            </label>
                         </div>
-                        <figure class="h-feat-media" role="img" aria-label="אנימציה: ארבעה סגנונות תנועה לטקסט – Pop, Slide, Zoom ו-Fade">
+                        <figure class="h-feat-media" role="group" aria-label="הדגמה: ארבעה סגנונות תנועה לטקסט – Pop, Slide, Zoom ו-Fade">
                             <div class="h-fx-grid">
-                                <div class="h-card h-fx"><span class="h-fx-word h-fx-pop">כותרת</span><span class="h-fx-name">Pop</span></div>
-                                <div class="h-card h-fx"><span class="h-fx-word h-fx-slide">כותרת</span><span class="h-fx-name">Slide</span></div>
-                                <div class="h-card h-fx"><span class="h-fx-word h-fx-zoom">כותרת</span><span class="h-fx-name">Zoom</span></div>
-                                <div class="h-card h-fx"><span class="h-fx-word h-fx-fade">כותרת</span><span class="h-fx-name">Fade</span></div>
+                                <div class="h-card h-fx" role="button" tabindex="0"><span class="h-fx-word h-fx-pop">כותרת</span><span class="h-fx-name">Pop</span></div>
+                                <div class="h-card h-fx" role="button" tabindex="0"><span class="h-fx-word h-fx-slide">כותרת</span><span class="h-fx-name">Slide</span></div>
+                                <div class="h-card h-fx" role="button" tabindex="0"><span class="h-fx-word h-fx-zoom">כותרת</span><span class="h-fx-name">Zoom</span></div>
+                                <div class="h-card h-fx" role="button" tabindex="0"><span class="h-fx-word h-fx-fade">כותרת</span><span class="h-fx-name">Fade</span></div>
                             </div>
                         </figure>
                     </article>
@@ -1236,5 +1242,6 @@
 
     <!-- Scripts -->
     <script src="js/main.js?v=2.0.0"></script>
+    <script src="js/fx.js?v=1.0.0"></script>
 </body>
 </html>

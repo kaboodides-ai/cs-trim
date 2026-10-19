@@ -1573,6 +1573,39 @@ var AutoCutHost = {
                 return t;
             };
 
+            // Frame duration of the sequence (for per-frame baked easing)
+            var frameDur = 1 / 30;
+            try {
+                var tbTicks = Number(seq.timebase);
+                if (tbTicks > 0) frameDur = tbTicks / TICKS_PER_SECOND;
+            } catch (eTb) {}
+            if (!(frameDur > 0.001 && frameDur < 0.2)) frameDur = 1 / 30;
+
+            var easeOutQuart = function(p) { return 1 - Math.pow(1 - p, 4); };
+            var easeOutCubic = function(p) { return 1 - Math.pow(1 - p, 3); };
+            var easeInCubic = function(p) { return p * p * p; };
+
+            // Bake an easing curve into linear keyframes (~1 per frame).
+            // Premiere's default Bezier keys give a symmetric S-curve (slow start, rush, slow end);
+            // baking lets us use a true decelerating glide that ExtendScript can't express with handles.
+            var bakeEased = function(prop, t0, t1, from, to, easeFn) {
+                var span = t1 - t0;
+                if (span <= 0) return;
+                var steps = Math.max(2, Math.min(30, Math.round(span / frameDur)));
+                for (var s = 0; s <= steps; s++) {
+                    var p = s / steps;
+                    var e = easeFn(p);
+                    var v;
+                    if (from instanceof Array) {
+                        v = [];
+                        for (var d = 0; d < from.length; d++) v.push(from[d] + (to[d] - from[d]) * e);
+                    } else {
+                        v = from + (to - from) * e;
+                    }
+                    setKeyframe(prop, t0 + span * p, v, 0);
+                }
+            };
+
             var animatedCount = 0;
 
             for (var i = 0; i < clips.length; i++) {
@@ -1681,19 +1714,29 @@ var AutoCutHost = {
                         }
                     }
 
+                    // Travel distance as a fraction of frame size (shorter travel reads smoother)
+                    var travel = (intensity === "soft" ? 0.04 : (intensity === "punchy" ? 0.08 : 0.055));
                     var isPixel = (baseY > 10);
-                    var offY = isPixel ? 110 : 0.09;
-                    var offX = isPixel ? 150 : 0.12;
+                    var frameH = 1080, frameW = 1920;
+                    try {
+                        if (Number(seq.frameSizeVertical) > 0) frameH = Number(seq.frameSizeVertical);
+                        if (Number(seq.frameSizeHorizontal) > 0) frameW = Number(seq.frameSizeHorizontal);
+                    } catch (eFs) {}
+                    var offY = isPixel ? frameH * travel : travel;
+                    var offX = isPixel ? frameH * travel * 1.3 : travel * 1.3 * (frameH / frameW);
                     var startPos = [baseX, baseY + offY];
-                    var endPos = [baseX, baseY - offY * 0.5];
+                    var endPos = [baseX, baseY - offY * 0.6];
 
                     if (preset === "slide_down") {
                         startPos = [baseX, baseY - offY];
-                        endPos = [baseX, baseY + offY * 0.5];
+                        endPos = [baseX, baseY + offY * 0.6];
                     } else if (preset === "slide_side") {
                         startPos = [baseX + offX, baseY];
-                        endPos = [baseX - offX * 0.5, baseY];
+                        endPos = [baseX - offX * 0.6, baseY];
                     }
+                    var restPos = [baseX, baseY];
+                    // Exit is quicker than the entrance so captions don't linger while leaving
+                    var outDur = safeDur * 0.75;
 
                     try {
                         posProp.setTimeVarying(false);
@@ -1701,13 +1744,12 @@ var AutoCutHost = {
                         posProp.setTimeVarying(true);
                     } catch (eSlidePos) {}
 
+                    // Entrance: fast start, long soft landing. Exit: gentle start, accelerates away.
                     if (isScopeIn) {
-                        setKeyframe(posProp, inSec, startPos, 5);
-                        setKeyframe(posProp, inSec + safeDur, [baseX, baseY], 5);
+                        bakeEased(posProp, inSec, inSec + safeDur, startPos, restPos, easeOutQuart);
                     }
                     if (isScopeOut) {
-                        setKeyframe(posProp, outSec - safeDur, [baseX, baseY], 5);
-                        setKeyframe(posProp, outSec, endPos, 5);
+                        bakeEased(posProp, outSec - outDur, outSec, restPos, endPos, easeInCubic);
                     }
 
                     if (opacityProp) {
@@ -1716,12 +1758,10 @@ var AutoCutHost = {
                             opacityProp.setValue(100, 1);
                             opacityProp.setTimeVarying(true);
                             if (isScopeIn) {
-                                setKeyframe(opacityProp, inSec, 0, 5);
-                                setKeyframe(opacityProp, inSec + safeDur * 0.50, 100, 5);
+                                bakeEased(opacityProp, inSec, inSec + safeDur * 0.6, 0, 100, easeOutCubic);
                             }
                             if (isScopeOut) {
-                                setKeyframe(opacityProp, outSec - safeDur * 0.50, 100, 5);
-                                setKeyframe(opacityProp, outSec, 0, 5);
+                                bakeEased(opacityProp, outSec - outDur * 0.7, outSec, 100, 0, easeInCubic);
                             }
                         } catch (eSlideOp) {}
                     }
@@ -1880,8 +1920,10 @@ var AutoCutHost = {
                             }
 
                             if (isScopeOut) {
-                                setKeyframe(bp.amount, outSec - safeDur * 0.80, 0, 5);
-                                setKeyframe(bp.amount, outSec - safeDur * 0.40, peakBlur * 0.35, 5);
+                                var isSlidePreset = (preset === "slide_up" || preset === "slide_down" || preset === "slide_side");
+                                var blurOutDur = isSlidePreset ? safeDur * 0.75 : safeDur;
+                                setKeyframe(bp.amount, outSec - blurOutDur * 0.80, 0, 5);
+                                setKeyframe(bp.amount, outSec - blurOutDur * 0.40, peakBlur * 0.35, 5);
                                 setKeyframe(bp.amount, outSec, peakBlur, 5);
                             }
                         } else {

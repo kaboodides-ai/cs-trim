@@ -187,39 +187,8 @@ export default async function handler(req, res) {
     // 2. RECORD LEAD (Called on website download)
     // -------------------------------------------------------------------------
     if (action === "record-lead") {
-        try {
-            const body = req.body || {};
-            const email = (body.email || "").trim().toLowerCase();
-            const platform = body.platform || "Windows";
-            const fileName = body.fileName || "CS-Trim-Setup.exe";
-
-            if (!email || !email.includes("@")) {
-                return res.status(400).json({ error: "Invalid email" });
-            }
-
-            const newLead = {
-                email: email,
-                platform: platform,
-                fileName: fileName,
-                dateFormatted: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-                timestamp: new Date().toISOString()
-            };
-
-            // Save to website/leads.json on GitHub
-            await updateGitHubFile("website/leads.json", function(data) {
-                const leads = Array.isArray(data.leads) ? data.leads : [];
-                // Check if email already recorded recently to prevent duplicates
-                const exists = leads.find(l => l.email === email && Math.abs(new Date(l.timestamp || 0) - new Date()) < 60000);
-                if (!exists) {
-                    leads.unshift(newLead);
-                }
-                return { leads: leads, lastUpdated: new Date().toISOString().slice(0, 10) };
-            }, `New lead download: ${email} (${platform})`);
-
-            return res.status(200).json({ ok: true, lead: newLead });
-        } catch (err) {
-            return res.status(500).json({ error: err.message });
-        }
+        // Leads go to Google Sheets from the client; committing to GitHub triggered a Vercel deploy per lead.
+        return res.status(200).json({ ok: true });
     }
 
     // -------------------------------------------------------------------------

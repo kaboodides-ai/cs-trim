@@ -1026,13 +1026,11 @@ var AutoCutHost = {
     },
 
     /**
-     * Find Directional Blur or Gaussian Blur component on a clip
+     * List all blur effects on a clip as [{ index, kind: "directional" | "gaussian" }]
      */
-    /**
-     * Find Directional Blur or Gaussian Blur component on a clip
-     */
-    findBlurComponent: function(clip) {
-        if (!clip || !clip.components) return null;
+    listBlurComponents: function(clip) {
+        var list = [];
+        if (!clip || !clip.components) return list;
         for (var i = 0; i < clip.components.numItems; i++) {
             var comp = clip.components[i];
             if (!comp || !comp.properties) continue;
@@ -1045,13 +1043,22 @@ var AutoCutHost = {
 
             var isGaussian = (mn.indexOf("gaussian") !== -1 && mn.indexOf("blur") !== -1) ||
                              (dn.indexOf("gaussian") !== -1 && dn.indexOf("blur") !== -1) ||
-                             dn.indexOf("גאוסיאני") !== -1;
+                             dn.indexOf("גאוסיאני") !== -1 ||
+                             mn.indexOf("fast blur") !== -1 || dn.indexOf("fast blur") !== -1;
 
-            var isFastBlur = (mn.indexOf("fast blur") !== -1 || dn.indexOf("fast blur") !== -1);
+            if (isDirectional) list.push({ index: i, kind: "directional" });
+            else if (isGaussian) list.push({ index: i, kind: "gaussian" });
+        }
+        return list;
+    },
 
-            if (isDirectional || isGaussian || isFastBlur) {
-                return comp;
-            }
+    /**
+     * Find Directional Blur or Gaussian Blur component on a clip (optionally of a specific kind)
+     */
+    findBlurComponent: function(clip, kind) {
+        var list = this.listBlurComponents(clip);
+        for (var i = 0; i < list.length; i++) {
+            if (!kind || list[i].kind === kind) return clip.components[list[i].index];
         }
         return null;
     },
@@ -1246,6 +1253,7 @@ var AutoCutHost = {
 
             var isMatchingClip = function(qeItem) {
                 if (!qeItem) return false;
+                try { if (String(qeItem.type).toLowerCase() === "empty") return false; } catch (eTy) {}
                 var qStart = -999999;
                 if (qeItem.start) {
                     if (typeof qeItem.start.secs === "number") qStart = qeItem.start.secs;
@@ -1282,7 +1290,9 @@ var AutoCutHost = {
                 }
             }
 
-            // 2. Fallback scan across all video tracks
+            // 2. Fallback scan across all video tracks (only when no target track is known,
+            //    otherwise we could add blur to footage that starts at the same time)
+            if (preferredTrackIdx >= 0 && preferredTrackIdx < numTracks) return null;
             for (var v = 0; v < numTracks; v++) {
                 if (v === preferredTrackIdx) continue;
                 var trk2 = qeSeq.getVideoTrackAt(v);
@@ -1588,22 +1598,26 @@ var AutoCutHost = {
             // Bake an easing curve into linear keyframes (~1 per frame).
             // Premiere's default Bezier keys give a symmetric S-curve (slow start, rush, slow end);
             // baking lets us use a true decelerating glide that ExtendScript can't express with handles.
-            var bakeEased = function(prop, t0, t1, from, to, easeFn) {
+            var bakeCurve = function(prop, t0, t1, valueAt) {
                 var span = t1 - t0;
                 if (span <= 0) return;
                 var steps = Math.max(2, Math.min(30, Math.round(span / frameDur)));
                 for (var s = 0; s <= steps; s++) {
                     var p = s / steps;
-                    var e = easeFn(p);
-                    var v;
-                    if (from instanceof Array) {
-                        v = [];
-                        for (var d = 0; d < from.length; d++) v.push(from[d] + (to[d] - from[d]) * e);
-                    } else {
-                        v = from + (to - from) * e;
-                    }
-                    setKeyframe(prop, t0 + span * p, v, 0);
+                    setKeyframe(prop, t0 + span * p, valueAt(p), 0);
                 }
+            };
+
+            var bakeEased = function(prop, t0, t1, from, to, easeFn) {
+                bakeCurve(prop, t0, t1, function(p) {
+                    var e = easeFn(p);
+                    if (from instanceof Array) {
+                        var v = [];
+                        for (var d = 0; d < from.length; d++) v.push(from[d] + (to[d] - from[d]) * e);
+                        return v;
+                    }
+                    return from + (to - from) * e;
+                });
             };
 
             var animatedCount = 0;
@@ -1644,6 +1658,7 @@ var AutoCutHost = {
                 if (safeDur < 0.05) safeDur = 0.05;
 
                 var didAnimate = false;
+                var slideBlur = null;
 
                 // 1. POP / BOUNCE ANIMATION - Pure organic Bezier spring
                 if (preset === "pop" && scaleProp) {
@@ -1738,6 +1753,16 @@ var AutoCutHost = {
                     // Exit is quicker than the entrance so captions don't linger while leaving
                     var outDur = safeDur * 0.75;
 
+                    // Motion blur follows real on-screen speed (180-degree shutter: half the per-frame travel).
+                    // easeOutQuart starts at 4x average speed; easeInCubic ends at 3x average speed.
+                    var travelPx = (preset === "slide_side" ? 1.3 : 1.0) * frameH * travel;
+                    var clampBlur = function(v) { return Math.max(3, Math.min(30, v)); };
+                    slideBlur = {
+                        inPeak: clampBlur(0.5 * 4 * travelPx * frameDur / safeDur),
+                        outPeak: clampBlur(0.5 * 3 * 0.6 * travelPx * frameDur / outDur),
+                        outDur: outDur
+                    };
+
                     try {
                         posProp.setTimeVarying(false);
                         posProp.setValue([baseX, baseY], 1);
@@ -1828,109 +1853,94 @@ var AutoCutHost = {
                     didAnimate = true;
                 }
 
-                // 5. DYNAMIC MOTION BLUR KEYFRAMING - Clean cinematic blur, snaps crisp at rest
-                var blurComp = this.findBlurComponent(clip);
-                if (!blurComp && motionBlur && qeSeq) {
+                // 5. MOTION BLUR - directional for slides, gaussian for scale; none for fade (nothing moves)
+                var isSlidePreset = (preset === "slide_up" || preset === "slide_down" || preset === "slide_side");
+                var isScalePreset = (preset === "pop" || preset === "zoom_in" || preset === "zoom_out");
+                var wantBlur = motionBlur && didAnimate && (isSlidePreset || isScalePreset);
+                var wantKind = isSlidePreset ? "directional" : "gaussian";
+
+                if (wantBlur && !this.findBlurComponent(clip, wantKind) && qeSeq) {
                     var qeClip = this.findQEClip(qeSeq, clip, trackIdx);
-                    if (qeClip) {
-                        var isScalePreset = (preset === "pop" || preset === "zoom_in" || preset === "zoom_out");
-                        var preferredBlur = isScalePreset ? "gaussian" : "directional";
-                        var eff = this.getQeBlurEffect(preferredBlur);
-                        if (eff) {
-                            try {
-                                qeClip.addVideoEffect(eff);
-                            } catch (eAddFx1) {
-                                try {
-                                    qeClip.addVideoEffect(eff, true);
-                                } catch (eAddFx2) {
-                                    try {
-                                        var dEff = qe.project.getVideoEffectByName("Directional Blur");
-                                        if (dEff) qeClip.addVideoEffect(dEff);
-                                    } catch (eAddFx3) {}
-                                }
-                            }
-
-                            // Re-query component on clip
-                            blurComp = this.findBlurComponent(clip);
-
-                            // If not updated on existing reference, re-fetch clip from track to bypass cache
-                            if (!blurComp && trackIdx >= 0 && trackIdx < seq.videoTracks.numTracks) {
-                                var vTrk = seq.videoTracks[trackIdx];
-                                if (vTrk && vTrk.clips) {
-                                    for (var vc = 0; vc < vTrk.clips.numItems; vc++) {
-                                        var cClip = vTrk.clips[vc];
-                                        if (cClip && (cClip === clip || cClip.name === clip.name)) {
-                                            var foundComp = this.findBlurComponent(cClip);
-                                            if (foundComp) {
-                                                blurComp = foundComp;
-                                                clip = cClip;
-                                                break;
-                                            }
-                                        }
-                                    }
+                    var eff = qeClip ? this.getQeBlurEffect(wantKind) : null;
+                    if (eff) {
+                        try { qeClip.addVideoEffect(eff); } catch (eAddFx) {}
+                        // The TrackItem's component list can be stale after a QE add: re-fetch it
+                        // from the track by exact start time (caption names are often identical)
+                        if (!this.findBlurComponent(clip, wantKind) && trackIdx >= 0 && trackIdx < seq.videoTracks.numTracks) {
+                            var startTicks = "";
+                            try { startTicks = String(clip.start.ticks); } catch (eSt) {}
+                            var vTrk = seq.videoTracks[trackIdx];
+                            for (var vc = 0; startTicks && vc < vTrk.clips.numItems; vc++) {
+                                var cClip = vTrk.clips[vc];
+                                if (cClip && String(cClip.start.ticks) === startTicks) {
+                                    clip = cClip;
+                                    break;
                                 }
                             }
                         }
                     }
                 }
 
-                if (blurComp) {
-                    var bp = this.getBlurProperties(blurComp);
+                var blurList = this.listBlurComponents(clip);
+                var targetIdx = -1;
+                if (wantBlur) {
+                    for (var bl = 0; bl < blurList.length && targetIdx < 0; bl++) {
+                        if (blurList[bl].kind === wantKind) targetIdx = blurList[bl].index;
+                    }
+                    // Fall back to whatever blur Premiere had available
+                    if (targetIdx < 0 && blurList.length > 0) targetIdx = blurList[0].index;
+                }
+
+                // Clear blur keyframes left by a previous preset (static, user-set blurs are left alone)
+                for (var bz = 0; bz < blurList.length; bz++) {
+                    if (blurList[bz].index === targetIdx) continue;
+                    var zbp = this.getBlurProperties(clip.components[blurList[bz].index]);
+                    try {
+                        if (zbp.amount && zbp.amount.isTimeVarying()) {
+                            zbp.amount.setTimeVarying(false);
+                            zbp.amount.setValue(0, 1);
+                        }
+                    } catch (eZero) {}
+                }
+
+                if (targetIdx >= 0) {
+                    var bp = this.getBlurProperties(clip.components[targetIdx]);
                     if (bp.amount) {
-                        if (motionBlur) {
-                            var isDirectional = (bp.direction !== null);
-                            if (bp.direction) {
-                                var blurAngle = 0.0;
-                                if (preset === "slide_side") {
-                                    blurAngle = 90.0;
-                                } else if (preset === "slide_up" || preset === "slide_down") {
-                                    blurAngle = 0.0;
-                                } else {
-                                    // For pop or zoom with directional blur, keep angle diagonal (45 deg)
-                                    blurAngle = 45.0;
-                                }
-                                try {
-                                    bp.direction.setTimeVarying(false);
-                                    bp.direction.setValue(blurAngle, 1);
-                                } catch (eBDir) {}
-                            }
-
+                        if (bp.direction) {
+                            // Directional Blur: 0 = vertical streak, 90 = horizontal streak
                             try {
-                                bp.amount.setTimeVarying(false);
-                                bp.amount.setValue(0, 1);
-                                bp.amount.setTimeVarying(true);
-                            } catch (eBAmtTv) {}
+                                bp.direction.setTimeVarying(false);
+                                bp.direction.setValue(preset === "slide_side" ? 90.0 : 0.0, 1);
+                            } catch (eBDir) {}
+                        }
 
-                            // Tuned, high-quality cinematic blur amount
-                            var peakBlur = 13;
-                            if (isDirectional) {
-                                if (preset === "pop" || preset === "zoom_in" || preset === "zoom_out") {
-                                    peakBlur = (intensity === "punchy" ? 10 : (intensity === "soft" ? 5 : 7));
-                                } else {
-                                    peakBlur = (intensity === "punchy" ? 18 : (intensity === "soft" ? 9 : 13));
-                                }
-                            } else {
-                                peakBlur = (intensity === "punchy" ? 13 : (intensity === "soft" ? 6 : 9));
-                            }
+                        try {
+                            bp.amount.setTimeVarying(false);
+                            bp.amount.setValue(0, 1);
+                            bp.amount.setTimeVarying(true);
+                        } catch (eBAmtTv) {}
 
+                        if (isSlidePreset && slideBlur) {
+                            var sb = slideBlur;
                             if (isScopeIn) {
-                                setKeyframe(bp.amount, inSec, peakBlur, 5);
-                                setKeyframe(bp.amount, inSec + safeDur * 0.45, peakBlur * 0.25, 5);
-                                setKeyframe(bp.amount, inSec + safeDur * 0.80, 0, 5);
+                                bakeCurve(bp.amount, inSec, inSec + safeDur, function(p) { return sb.inPeak * Math.pow(1 - p, 3); });
                             }
-
                             if (isScopeOut) {
-                                var isSlidePreset = (preset === "slide_up" || preset === "slide_down" || preset === "slide_side");
-                                var blurOutDur = isSlidePreset ? safeDur * 0.75 : safeDur;
-                                setKeyframe(bp.amount, outSec - blurOutDur * 0.80, 0, 5);
-                                setKeyframe(bp.amount, outSec - blurOutDur * 0.40, peakBlur * 0.35, 5);
-                                setKeyframe(bp.amount, outSec, peakBlur, 5);
+                                bakeCurve(bp.amount, outSec - sb.outDur, outSec, function(p) { return sb.outPeak * p * p; });
                             }
                         } else {
-                            try {
-                                bp.amount.setTimeVarying(false);
-                                bp.amount.setValue(0, 1);
-                            } catch (eBOff) {}
+                            var peakBlur = (intensity === "punchy" ? 13 : (intensity === "soft" ? 6 : 9));
+                            if (bp.direction) peakBlur = (intensity === "punchy" ? 10 : (intensity === "soft" ? 5 : 7));
+                            if (isScopeIn) {
+                                setKeyframe(bp.amount, inSec, peakBlur, 0);
+                                setKeyframe(bp.amount, inSec + safeDur * 0.45, peakBlur * 0.25, 0);
+                                setKeyframe(bp.amount, inSec + safeDur * 0.80, 0, 0);
+                            }
+                            if (isScopeOut) {
+                                setKeyframe(bp.amount, outSec - safeDur * 0.80, 0, 0);
+                                setKeyframe(bp.amount, outSec - safeDur * 0.40, peakBlur * 0.35, 0);
+                                setKeyframe(bp.amount, outSec, peakBlur, 0);
+                            }
                         }
                     }
                 }
@@ -2015,9 +2025,9 @@ var AutoCutHost = {
                     } catch (e3) {}
                 }
 
-                var blurComp = this.findBlurComponent(clip);
-                if (blurComp) {
-                    var bp = this.getBlurProperties(blurComp);
+                var blurList = this.listBlurComponents(clip);
+                for (var b = 0; b < blurList.length; b++) {
+                    var bp = this.getBlurProperties(clip.components[blurList[b].index]);
                     if (bp.amount) {
                         try {
                             bp.amount.setTimeVarying(false);

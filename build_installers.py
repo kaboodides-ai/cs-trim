@@ -13,7 +13,7 @@ def build():
     # Ensure all installer icons & branding bitmaps are fresh
     generate_installer_assets.generate_assets()
 
-    extension_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "corrections.json"]
+    extension_items = ["CSXS", "css", "host", "img", "index.html", "js", ".debug", "bin-mac", "corrections.json"]
 
     # -------------------------------------------------------------
     # 1. Build Mac PKG Installer (native Apple Installer wizard)
@@ -41,6 +41,7 @@ def build():
     postinstall_script = """#!/bin/bash
 INSTALL_DIR="/Library/Application Support/Adobe/CEP/extensions/com.autocut.panel"
 chmod -R 755 "$INSTALL_DIR" 2>/dev/null
+chmod +x "$INSTALL_DIR/bin-mac/ffmpeg" 2>/dev/null
 # Let the logged-in user own the folder so the in-app updater can write to it
 INSTALL_USER=$(stat -f "%Su" /dev/console 2>/dev/null)
 if [ -n "$INSTALL_USER" ] && [ "$INSTALL_USER" != "root" ]; then

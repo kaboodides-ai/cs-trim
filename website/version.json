@@ -1,12 +1,12 @@
 {
-  "version": "1.0.17",
-  "versionCode": 117,
+  "version": "1.0.18",
+  "versionCode": 118,
   "releaseDate": "2026-10-20",
-  "title": "עדכון גרסה 1.0.17: תיקון עדכון אוטומטי ב-Mac",
+  "title": "עדכון גרסה 1.0.18: כתוביות לכל פורמט וידאו ב-Mac",
   "changelog": [
-    "תוקן: העדכון האוטומטי ב-Mac נכשל בגלל הרשאות תיקייה - עכשיו מתבקשת סיסמת מנהל אם צריך",
-    "ההתקנה ב-Mac מגדירה את התיקייה כך שעדכונים עתידיים יעבדו בלי סיסמה",
-    "תוקן: חילוץ אודיו ב-Mac בקבצים לא נתמכים, גיבוי ל-ffmpeg והודעות שגיאה גלויות"
+    "ffmpeg מצורף לחבילת ה-Mac: כתוביות עובדות עכשיו גם על MKV, AVI, TS ופורמטים נוספים, בלי התקנות",
+    "חילוץ האודיו ב-Mac עובר אוטומטית ל-ffmpeg כש-macOS לא מזהה את הקובץ",
+    "התקנה מחדש של ה-pkg נדרשת כדי לקבל את ffmpeg (העדכון האוטומטי לא כולל אותו)"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",

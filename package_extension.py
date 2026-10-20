@@ -23,6 +23,7 @@ def package():
         "js",
         ".debug",
         "bin",
+        "bin-mac",
         "corrections.json"
     ]
 

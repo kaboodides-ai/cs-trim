@@ -303,7 +303,28 @@ var CaptionGenerator = {
         var fs = nodeReq("fs");
         var os = nodeReq("os");
 
-        if (os.platform() !== "win32") return "ffmpeg";
+        if (os.platform() !== "win32") {
+            // macOS: bundled universal ffmpeg (bin-mac/ffmpeg) first, then Homebrew / system installs
+            var macDirs = [];
+            try {
+                if (typeof csInterface !== "undefined" && csInterface && csInterface.getSystemPath) {
+                    var macExt = csInterface.getSystemPath("extension") || "";
+                    try { macExt = decodeURIComponent(macExt); } catch (e) {}
+                    macExt = macExt.replace(/^file:\/\/\/?/i, "");
+                    if (macExt && macExt.charAt(0) !== "/") macExt = "/" + macExt;
+                    if (macExt) macDirs.push(macExt);
+                }
+            } catch (e) {}
+            macDirs.push("/Library/Application Support/Adobe/CEP/extensions/com.autocut.panel");
+            try { macDirs.push(path.join(os.homedir(), "Library", "Application Support", "Adobe", "CEP", "extensions", "com.autocut.panel")); } catch (e) {}
+            var macCandidates = [];
+            for (var mi = 0; mi < macDirs.length; mi++) macCandidates.push(path.join(macDirs[mi], "bin-mac", "ffmpeg"));
+            macCandidates.push("/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg");
+            for (var mc = 0; mc < macCandidates.length; mc++) {
+                try { if (fs.existsSync(macCandidates[mc])) return macCandidates[mc]; } catch (e) {}
+            }
+            return null;
+        }
 
         var normalizeWinDir = function (rawDir) {
             if (!rawDir) return "";
@@ -522,15 +543,11 @@ var CaptionGenerator = {
                         cp.execFile("/usr/bin/afconvert", argsWav, function (err2, out2, errStr2) {
                             if (!err2) return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
 
-                            // Fallback: ffmpeg (Homebrew / system) for containers afconvert can't open (mkv, avi, mxf, some mov/mp4 codecs)
-                            var ffmpegCandidates = ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"];
-                            var ffmpegMac = null;
-                            for (var fi = 0; fi < ffmpegCandidates.length; fi++) {
-                                try { if (fs.existsSync(ffmpegCandidates[fi])) { ffmpegMac = ffmpegCandidates[fi]; break; } } catch (e) {}
-                            }
+                            // Fallback: bundled ffmpeg (or Homebrew / system) for containers afconvert can't open (mkv, avi, ts, mxf, some mov/mp4 codecs)
+                            var ffmpegMac = self.getFfmpegPath();
                             var failMsg = "חילוץ אודיו נכשל ב-macOS (קובץ " + (ext || "ללא סיומת") + " לא נתמך): " + (errStr2 || err2.message);
                             if (!ffmpegMac) {
-                                return reject(new Error(failMsg + ". התקן ffmpeg (brew install ffmpeg) או המר את הקליפ ל-MP4/MOV ונסה שוב."));
+                                return reject(new Error(failMsg + ". ffmpeg המצורף לא נמצא - התקן מחדש את התוסף, או המר את הקליפ ל-MP4/MOV ונסה שוב."));
                             }
                             var tempWavFf = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + "_ff.wav");
                             cp.execFile(ffmpegMac, ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWavFf, "-y"], function (err3, out3, errStr3) {

@@ -1108,3 +1108,5 @@ button, input, textarea { font: inherit; color: inherit; }
 .footer-brand .brand img { width: 52px; height: 52px; }
 @media (max-width: 880px) { .hero-logo { justify-content: flex-start; } .hero-logo img { width: 56px; height: 56px; } .download-watermark, .footer-watermark { width: 200px; height: 200px; } }
 @media (prefers-reduced-motion: reduce) { .hero-logo img { animation: none; } }
+
+a[data-href]{cursor:pointer;-webkit-user-drag:none;user-select:none}

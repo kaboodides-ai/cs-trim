@@ -103,7 +103,7 @@
                                 <span>תואם מעבדי Apple Silicon (M1/M2/M3/M4) ואינטל</span>
                             </div>
                         </div>
-                        <a href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download>
+                        <a data-href="download/CS-Trim-v1.0.0-Mac.pkg?v=1.0.11" draggable="false" role="button" tabindex="0" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download>
                             <span>הורדת קובץ ל-Mac</span>
                         </a>
                     </div>
@@ -201,7 +201,7 @@
                                 <span>תואם Windows 10 ו-Windows 11</span>
                             </div>
                         </div>
-                        <a href="download/CS-Trim-Setup.exe?v=1.0.11" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
+                        <a data-href="download/CS-Trim-Setup.exe?v=1.0.11" draggable="false" role="button" tabindex="0" class="btn btn-primary" onclick="handleDownloadLinkClick(event, this); return false;" download="CS-Trim-Setup.exe">
                             <span>הורדת קובץ ל-Windows</span>
                         </a>
                     </div>
@@ -1013,12 +1013,21 @@
             return false;
         };
 
+            // Download links carry their URL in data-href (no real href), so dragging them to the tab bar can't bypass the email gate.
+    document.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        var el = e.target && e.target.closest ? e.target.closest("a[data-href]") : null;
+        if (el) { e.preventDefault(); el.click(); }
+    });
+    document.addEventListener("dragstart", function (e) {
+        if (e.target && e.target.closest && e.target.closest("a[data-href]")) e.preventDefault();
+    });
         window.handleDownloadLinkClick = function(e, element) {
             if (e && e.preventDefault) e.preventDefault();
             if (e && e.stopPropagation) e.stopPropagation();
 
             if (!element) return false;
-            var url = element.getAttribute("href") || "";
+            var url = element.getAttribute("data-href") || "";
             var filename = element.getAttribute("download") || "";
             var platformName = "Windows";
             if (url.includes("Mac") || url.includes(".pkg")) {

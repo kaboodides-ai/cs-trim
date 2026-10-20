@@ -19,3 +19,11 @@ bin/
 CS-Trim-Reel-Explainer.mp4
 CS-Trim-Reel-Player.html
 
+
+# Local-only work, not part of the extension
+ig-autoreply/
+motion-cstrim-promo/
+motion-cstrim-promo-16x9/
+reports/
+research_notes/
+instagram-profile.png

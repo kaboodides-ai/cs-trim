@@ -561,7 +561,7 @@ var AutoCutHost = {
     /**
      * Import an SRT subtitle file into Premiere Pro and place it directly on the active sequence
      */
-    importSubtitles: function(srtPath, startOffset) {
+    importSubtitles: function(srtPath, startOffset, replacePrevious) {
         try {
             if (!app.project) {
                 return JSON.stringify({ error: "No project open" });
@@ -629,6 +629,26 @@ var AutoCutHost = {
 
             var inTimeline = false;
             var seq = app.project.activeSequence;
+            if (seq && replacePrevious) {
+                // Editing captions: remove caption clips created earlier by this plugin (captions_*.srt) so they don't stack
+                try {
+                    var capTracks = seq.captionTracks;
+                    if (capTracks) {
+                        for (var ct = capTracks.numTracks - 1; ct >= 0; ct--) {
+                            var capTrk = capTracks[ct];
+                            if (!capTrk || !capTrk.clips) continue;
+                            for (var cc = capTrk.clips.numItems - 1; cc >= 0; cc--) {
+                                var capClip = capTrk.clips[cc];
+                                var capName = "";
+                                try { capName = capClip.name || ""; } catch (nmErr) {}
+                                if (capName.indexOf("captions_") === 0) {
+                                    try { capClip.remove(false, false); } catch (rmErr) {}
+                                }
+                            }
+                        }
+                    }
+                } catch (capErr) {}
+            }
             if (seq) {
                 var format = (typeof Sequence !== "undefined" && Sequence.CAPTION_FORMAT_SUBTITLE) ? Sequence.CAPTION_FORMAT_SUBTITLE : "Subtitle";
                 // 1. Try createCaptionTrack with seconds number
@@ -749,21 +769,36 @@ var AutoCutHost = {
                 mapBinChildren(rootBin);
             }
 
-            // Check if a Video Track already has previous CS Trim highlight clips (hl_*) and clean them up for seamless re-apply
+            // Remove previous CS Trim highlight clips (matched by clip name, project item name or media path) for seamless re-apply
+            var isHlClip = function(clip) {
+                var nm = "";
+                try { nm = clip.name || ""; } catch (e1) {}
+                if (nm.indexOf("hl_") === 0) return true;
+                try {
+                    var pi = clip.projectItem;
+                    if (pi) {
+                        var pn = pi.name || "";
+                        if (pn.indexOf("hl_") === 0) return true;
+                        var mp = pi.getMediaPath ? (pi.getMediaPath() || "") : "";
+                        if (mp.indexOf("autocut_hl_") !== -1) return true;
+                    }
+                } catch (e2) {}
+                return false;
+            };
             var targetTrack = null;
-            if (seq.videoTracks && seq.videoTracks.numTracks > 1) {
-                for (var checkVt = seq.videoTracks.numTracks - 1; checkVt >= 1; checkVt--) {
+            var removedOld = 0;
+            if (seq.videoTracks) {
+                for (var checkVt = seq.videoTracks.numTracks - 1; checkVt >= 0; checkVt--) {
                     var trk = seq.videoTracks[checkVt];
                     if (!trk || !trk.clips || trk.clips.numItems === 0) continue;
                     var hasHlClips = false;
                     for (var hc = trk.clips.numItems - 1; hc >= 0; hc--) {
-                        var clipName = trk.clips[hc].name || "";
-                        if (clipName.indexOf("hl_") === 0) {
+                        if (isHlClip(trk.clips[hc])) {
                             hasHlClips = true;
-                            try { trk.clips[hc].remove(false, false); } catch (remErr) {}
+                            try { trk.clips[hc].remove(false, false); removedOld++; } catch (remErr) {}
                         }
                     }
-                    if (hasHlClips && !targetTrack) {
+                    if (hasHlClips && !targetTrack && checkVt >= 1) {
                         targetTrack = trk;
                     }
                 }
@@ -833,7 +868,8 @@ var AutoCutHost = {
             return JSON.stringify({
                 success: true,
                 inTimeline: placedCount > 0,
-                placedCount: placedCount
+                placedCount: placedCount,
+                removedOld: removedOld
             });
         } catch (e) {
             return JSON.stringify({ error: "importHighlightedSubtitles error: " + e.toString() });
@@ -2094,8 +2130,8 @@ function buildCutSequence(mediaPath, segmentsJson) {
     return safeBridgeEncode(AutoCutHost.buildCutSequence(mediaPath, segmentsJson));
 }
 
-function importSubtitles(srtPath, startOffset) {
-    return safeBridgeEncode(AutoCutHost.importSubtitles(srtPath, startOffset));
+function importSubtitles(srtPath, startOffset, replacePrevious) {
+    return safeBridgeEncode(AutoCutHost.importSubtitles(srtPath, startOffset, replacePrevious));
 }
 
 function importHighlightedSubtitles(manifestPath) {

@@ -83,6 +83,7 @@ var AutoUpdater = {
                     var nodeReq = self.getNodeRequire();
                     if (!nodeReq) return reject(new Error("Node require not available"));
                     var https = nodeReq("https");
+                var crypto = nodeReq("crypto");
                     var req = https.get(url, {
                         headers: {
                             "User-Agent": "CSTrim-AutoUpdater",
@@ -154,6 +155,7 @@ var AutoUpdater = {
                         title: (data && data.title) || ("גרסה " + remoteVer),
                         changelog: (data && data.changelog) || [],
                         bundleUrl: (data && data.bundleUrl) || "",
+                        bundleSha256: ((data && data.bundleSha256) || "").toLowerCase(),
                         winSetupUrl: (data && data.winSetupUrl) || "",
                         macPkgUrl: (data && data.macPkgUrl) || ""
                     });
@@ -254,6 +256,14 @@ var AutoUpdater = {
 
                 downloadBundle(0)
                     .then(function () {
+                        // Integrity check: the zip must match the hash published in version.json
+                        if (updateInfo.bundleSha256) {
+                            var actual = crypto.createHash("sha256").update(fs.readFileSync(tmpZipPath)).digest("hex");
+                            if (actual !== updateInfo.bundleSha256) {
+                                try { fs.unlinkSync(tmpZipPath); } catch (delErr) {}
+                                throw new Error("קובץ העדכון לא עבר בדיקת תקינות. העדכון בוטל.");
+                            }
+                        }
                         if (onProgress) onProgress(65, "מחלץ ומעדכן את קבצי התוסף...");
 
                         var isWin = (os.platform() === "win32");

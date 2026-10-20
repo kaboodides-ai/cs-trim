@@ -112,7 +112,7 @@ export default async function handler(req, res) {
         );
         const token = (tokenCandidates.find(t => typeof t === "string" && t.trim().length > 0) || (caseInsensitiveKey ? process.env[caseInsensitiveKey] : "") || "").trim();
         const repo = (process.env.GITHUB_REPO || process.env.github_repo || "kaboodides-ai/cs-trim").trim();
-        const filePath = "website/feedbacks.json";
+        const filePath = "data/feedbacks.json";
 
         let savedToGitHub = false;
         if (token) {

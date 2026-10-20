@@ -264,5 +264,18 @@ pause >nul
                         uzf.write(full_path, rel_path)
     print(f"Created In-App Auto-Update Bundle: {update_zip} ({os.path.getsize(update_zip)} bytes)")
 
+    # Publish the bundle's SHA-256 in version.json so the in-app updater can verify the download
+    import hashlib, json
+    with open(update_zip, "rb") as bf:
+        bundle_sha = hashlib.sha256(bf.read()).hexdigest()
+    version_path = os.path.join(base, "website", "version.json")
+    with open(version_path, "r", encoding="utf-8") as vf:
+        v_data = json.load(vf)
+    v_data["bundleSha256"] = bundle_sha
+    with open(version_path, "w", encoding="utf-8") as vf:
+        json.dump(v_data, vf, ensure_ascii=False, indent=2)
+        vf.write("\n")
+    print(f"Wrote bundleSha256 to version.json: {bundle_sha}")
+
 if __name__ == "__main__":
     build()

@@ -2,36 +2,41 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 
-// Default admin password if not provided in Vercel environment variables
-const DEFAULT_ADMIN_PASSWORD = "LiamAdmin2026!";
-
 // In-memory live sessions map: installId -> { installId, platform, version, lastPing, isConnected }
 const liveSessions = new Map();
 
-// Generate a daily rolling secret for token signing
-const SECRET_SALT = process.env.ADMIN_SECRET || "cstrim_salt_" + new Date().toISOString().slice(0, 7);
-
+// The admin password must come from the ADMIN_PASSWORD env var (no default in code).
+// ADMIN_SECRET is an optional extra key for signing tokens.
 function getAdminPassword() {
-    return (process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD).trim();
+    return (process.env.ADMIN_PASSWORD || "").trim();
+}
+
+function getSigningKey() {
+    return (process.env.ADMIN_SECRET || getAdminPassword()).trim();
+}
+
+function sign(expiresAt) {
+    return crypto.createHmac("sha256", getSigningKey()).update(String(expiresAt)).digest("hex");
+}
+
+function safeEqual(a, b) {
+    const ba = Buffer.from(String(a));
+    const bb = Buffer.from(String(b));
+    return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
 }
 
 function generateToken() {
     const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
-    const payload = `${expiresAt}:${getAdminPassword()}:${SECRET_SALT}`;
-    const hash = crypto.createHash("sha256").update(payload).digest("hex");
-    return Buffer.from(JSON.stringify({ expiresAt, hash })).toString("base64");
+    return Buffer.from(JSON.stringify({ expiresAt, hash: sign(expiresAt) })).toString("base64");
 }
 
 function verifyToken(token) {
-    if (!token) return false;
+    if (!token || !getAdminPassword()) return false;
     try {
         const decoded = JSON.parse(Buffer.from(token, "base64").toString("utf8"));
         if (!decoded || !decoded.expiresAt || !decoded.hash) return false;
         if (Date.now() > decoded.expiresAt) return false;
-
-        const expectedPayload = `${decoded.expiresAt}:${getAdminPassword()}:${SECRET_SALT}`;
-        const expectedHash = crypto.createHash("sha256").update(expectedPayload).digest("hex");
-        return crypto.timingSafeEqual(Buffer.from(decoded.hash), Buffer.from(expectedHash));
+        return safeEqual(decoded.hash, sign(decoded.expiresAt));
     } catch (e) {
         return false;
     }
@@ -40,14 +45,24 @@ function verifyToken(token) {
 function isAuthorized(req) {
     const authHeader = req.headers["authorization"] || "";
     if (authHeader.startsWith("Bearer ")) {
-        const token = authHeader.substring(7).trim();
-        if (verifyToken(token)) return true;
-        // Also allow passing direct password as Bearer token
-        if (token === getAdminPassword()) return true;
+        return verifyToken(authHeader.substring(7).trim());
     }
-    const queryPass = req.query.pass || req.query.password || "";
-    if (queryPass && queryPass === getAdminPassword()) return true;
     return false;
+}
+
+// Slow down password guessing (per warm instance)
+const loginFails = new Map();
+function loginBlocked(ip) {
+    const now = Date.now();
+    const recent = (loginFails.get(ip) || []).filter(t => now - t < 15 * 60 * 1000);
+    loginFails.set(ip, recent);
+    return recent.length >= 5;
+}
+function noteLoginFail(ip) {
+    const list = loginFails.get(ip) || [];
+    list.push(Date.now());
+    loginFails.set(ip, list);
+    if (loginFails.size > 1000) loginFails.clear();
 }
 
 // GitHub API helper for persisting JSON files
@@ -128,7 +143,7 @@ async function updateGitHubFile(filePath, updateCallback, commitMessage) {
 
 function readLocalJson(filename, fallback) {
     try {
-        const fullPath = path.join(process.cwd(), "website", filename);
+        const fullPath = path.join(process.cwd(), "data", filename);
         if (fs.existsSync(fullPath)) {
             return JSON.parse(fs.readFileSync(fullPath, "utf8"));
         }
@@ -195,8 +210,15 @@ export default async function handler(req, res) {
     // 3. ADMIN AUTHENTICATION (Login)
     // -------------------------------------------------------------------------
     if (action === "login") {
-        const providedPassword = (req.body?.password || req.query.password || "").trim();
-        if (providedPassword === getAdminPassword()) {
+        if (!getAdminPassword()) {
+            return res.status(503).json({ success: false, error: "ADMIN_PASSWORD לא מוגדר בשרת." });
+        }
+        const ip = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || "").split(",")[0].trim();
+        if (loginBlocked(ip)) {
+            return res.status(429).json({ success: false, error: "יותר מדי ניסיונות. נסה שוב בעוד כמה דקות." });
+        }
+        const providedPassword = String(req.body?.password || "").trim();
+        if (providedPassword && safeEqual(providedPassword, getAdminPassword())) {
             const token = generateToken();
             return res.status(200).json({
                 success: true,
@@ -204,6 +226,7 @@ export default async function handler(req, res) {
                 message: "התחברת בהצלחה לאדמין פאנל"
             });
         }
+        noteLoginFail(ip);
         return res.status(401).json({
             success: false,
             error: "סיסמת מנהל שגויה. אנא נסה שנית."

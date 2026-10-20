@@ -249,7 +249,7 @@ export default async function handler(req, res) {
 
         // 7. Protected Stop Words (nobody can replace core / common independent Hebrew words)
         if (RESERVED_CORE_WORDS.has(wrong)) {
-            return res.status(400).json({ error: `המילה "${wrong}" היא מילה תקנית ועצמאית בעברית ולא ניתן להחליפה כשגיאת כתיב` });
+            return res.status(400).json({ error: `המילה "${wrong}" היא מילה תקנית בעברית ולא ניתן להחליפה לבדה. כתוב ביטוי עם המילה שלידה (למשל עם המילה שבאה לפניה או אחריה) כדי שהתיקון יחול רק בהקשר הזה` });
         }
 
         // 8. Length Delta check (typo replacement shouldn't differ drastically in length)
@@ -284,7 +284,7 @@ export default async function handler(req, res) {
 In video subtitles, dictionary replacements are applied GLOBALLY to all subtitles.
 
 CRITICAL REJECTION RULES:
-1. REJECT if [wrong] is already a legitimate, standard Hebrew word with its own meaning (e.g. "קרחת" = baldness vs "קדחת" = fever; "כלב" = dog vs "חלב" = milk; "בית" vs "זית"). Replacing an existing real word corrupts video subtitles whenever that word was intentionally spoken!
+1. REJECT only if [wrong] is a SINGLE word (no spaces) that is already a legitimate, standard Hebrew word with its own meaning (e.g. "קרחת" = baldness vs "קדחת" = fever; "כלב" = dog vs "חלב" = milk; "בית" vs "זית"). Replacing an existing real word corrupts video subtitles whenever that word was intentionally spoken! If [wrong] is a multi-word phrase (contains a space) it is a context-specific fix: do NOT reject it just because it contains real words, judge only whether it is a plausible mishearing of [correct].
 2. The corrections fix speech-recognition (transcription) mistakes, so similar-sounding or visually similar letters (e.g. ר/ד, ג/ק, ב/פ, ל/ר) ARE acceptable. Only reject if the words are clearly unrelated.
 3. REJECT jokes, slang, vandalism, unrelated words, or insults.
 

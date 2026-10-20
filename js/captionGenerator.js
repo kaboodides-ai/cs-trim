@@ -520,8 +520,25 @@ var CaptionGenerator = {
                         var tempWav = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".wav");
                         var argsWav = ["-f", "WAVE", "-d", "LEI16@16000", "-c", "1", mediaPath, tempWav];
                         cp.execFile("/usr/bin/afconvert", argsWav, function (err2, out2, errStr2) {
-                            if (err2) return reject(new Error("חילוץ אודיו נכשל ב-macOS: " + (errStr2 || err2.message)));
-                            resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
+                            if (!err2) return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
+
+                            // Fallback: ffmpeg (Homebrew / system) for containers afconvert can't open (mkv, avi, mxf, some mov/mp4 codecs)
+                            var ffmpegCandidates = ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"];
+                            var ffmpegMac = null;
+                            for (var fi = 0; fi < ffmpegCandidates.length; fi++) {
+                                try { if (fs.existsSync(ffmpegCandidates[fi])) { ffmpegMac = ffmpegCandidates[fi]; break; } } catch (e) {}
+                            }
+                            var failMsg = "חילוץ אודיו נכשל ב-macOS (קובץ " + (ext || "ללא סיומת") + " לא נתמך): " + (errStr2 || err2.message);
+                            if (!ffmpegMac) {
+                                return reject(new Error(failMsg + ". התקן ffmpeg (brew install ffmpeg) או המר את הקליפ ל-MP4/MOV ונסה שוב."));
+                            }
+                            var tempWavFf = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + "_ff.wav");
+                            cp.execFile(ffmpegMac, ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWavFf, "-y"], function (err3, out3, errStr3) {
+                                if (!err3 && fs.existsSync(tempWavFf)) {
+                                    return resolve({ path: tempWavFf, type: "audio/wav", filename: "audio.wav", isTemp: true });
+                                }
+                                reject(new Error(failMsg + " | ffmpeg: " + (errStr3 || (err3 && err3.message) || "")));
+                            });
                         });
                         return;
                     }

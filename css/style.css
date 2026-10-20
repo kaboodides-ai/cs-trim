@@ -1385,3 +1385,11 @@ input[type="range"]#captionWordCount:hover::-webkit-slider-thumb { transform: sc
     .slider-control-wrap { flex-basis: 130px; }
     .color-swatch, .custom-color-picker-btn { width: 16px; height: 16px; }
 }
+
+/* ---------- Error toast ---------- */
+.error-toast {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 1000;
+    display: none; padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    background: #7f1d1d; color: #fff; font-size: 12px; line-height: 1.4;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}

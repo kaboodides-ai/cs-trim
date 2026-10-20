@@ -1,12 +1,12 @@
 {
-  "version": "1.0.15",
-  "versionCode": 115,
+  "version": "1.0.16",
+  "versionCode": 116,
   "releaseDate": "2026-10-20",
-  "title": "עדכון גרסה 1.0.15: תיקון כפילות כתוביות בעריכת מילים",
+  "title": "עדכון גרסה 1.0.16: תיקון יצירת כתוביות ב-Mac והודעות שגיאה גלויות",
   "changelog": [
-    "תוקן באג: תיקון מילה בעריכת הטקסט הוסיף כתוביות חדשות מעל הקיימות",
-    "כשמחילים תיקון, הכתוביות והמרקרים הישנים נמחקים ומוחלפים בגרסה המתוקנת",
-    "זיהוי משופר של שכבות המרקר הישנות בטיים-ליין"
+    "תוקן: חילוץ אודיו ב-Mac נכשל בקבצים ש-afconvert לא מזהה (MKV, AVI, MXF ועוד) - נוסף גיבוי ל-ffmpeg",
+    "הודעות שגיאה מוצגות עכשיו בהודעה אדומה בתחתית הפאנל ולא רק ביומן",
+    "הודעת שגיאה ברורה יותר כשסוג הקובץ לא נתמך"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",

@@ -289,6 +289,25 @@ function log(message, type) {
         if (type === "error") hasLogError = true;
     }
     updateLogBadge();
+    if (type === "error" && !isLogOpen) showErrorToast(message);
+}
+
+var errorToastTimer = null;
+function showErrorToast(message) {
+    var toast = document.getElementById("errorToast");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "errorToast";
+        toast.className = "error-toast";
+        toast.dir = "rtl";
+        toast.setAttribute("role", "alert");
+        toast.addEventListener("click", function () { toast.style.display = "none"; });
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.display = "block";
+    if (errorToastTimer) clearTimeout(errorToastTimer);
+    errorToastTimer = setTimeout(function () { toast.style.display = "none"; }, 8000);
 }
 
 function updateProgress(percent, text) {

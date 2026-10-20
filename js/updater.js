@@ -3,7 +3,7 @@
  * Cross-platform (macOS & Windows)
  */
 var AutoUpdater = {
-    CURRENT_VERSION: "1.0.16",
+    CURRENT_VERSION: "1.0.17",
     PRIMARY_URL: "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/version.json",
     FALLBACK_URL: "https://cstrim.vercel.app/version.json",
 
@@ -325,7 +325,20 @@ var AutoUpdater = {
                             // macOS
                             var extractCmd = '/usr/bin/unzip -o "' + tmpZipPath + '" -d "' + extDir + '"';
                             cp.exec(extractCmd, function (execErr, stdout, stderr) {
-                                onExtractFinished(execErr ? (execErr.message || stderr) : null);
+                                if (!execErr) return onExtractFinished(null);
+
+                                // The pkg installs into /Library (root-owned): retry with an admin password prompt.
+                                if (onProgress) onProgress(70, "נדרשת הרשאת מנהל - הזן סיסמת Mac בחלון שנפתח...");
+                                var shQuote = function (x) { return "'" + String(x).replace(/'/g, "'\\''") + "'"; };
+                                var shell = "/usr/bin/unzip -o " + shQuote(tmpZipPath) + " -d " + shQuote(extDir) +
+                                    " && /usr/sbin/chown -R " + shQuote(os.userInfo().username) + " " + shQuote(extDir);
+                                var asScript = 'do shell script "' + shell.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '" with administrator privileges';
+                                cp.execFile("/usr/bin/osascript", ["-e", asScript], function (adminErr, out2, err2) {
+                                    if (adminErr) {
+                                        return onExtractFinished(new Error("אין הרשאת כתיבה לתיקיית התוסף. הורד והתקן מחדש מהאתר. (" + ((err2 || adminErr.message || "").toString().trim()) + ")"));
+                                    }
+                                    onExtractFinished(null);
+                                });
                             });
                         }
                     })

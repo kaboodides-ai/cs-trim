@@ -41,6 +41,11 @@ def build():
     postinstall_script = """#!/bin/bash
 INSTALL_DIR="/Library/Application Support/Adobe/CEP/extensions/com.autocut.panel"
 chmod -R 755 "$INSTALL_DIR" 2>/dev/null
+# Let the logged-in user own the folder so the in-app updater can write to it
+INSTALL_USER=$(stat -f "%Su" /dev/console 2>/dev/null)
+if [ -n "$INSTALL_USER" ] && [ "$INSTALL_USER" != "root" ]; then
+    chown -R "$INSTALL_USER" "$INSTALL_DIR" 2>/dev/null
+fi
 xattr -d -r com.apple.quarantine "$INSTALL_DIR" 2>/dev/null
 
 # Set PlayerDebugMode for all CSXS versions 7 through 17

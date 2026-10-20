@@ -73,12 +73,14 @@ function containsProfanity(text) {
 
 // Hebrew homophone groups (letters with identical/almost identical sounds in modern Hebrew)
 const HOMOPHONE_GROUPS = [
-    new Set(["ט", "ת"]),
-    new Set(["כ", "ק"]),
+    new Set(["ט", "ת", "ד"]),
+    new Set(["כ", "ק", "ג", "ח"]),
     new Set(["א", "ע", "ה"]),
-    new Set(["ח", "כ"]),
-    new Set(["ס", "ש"]),
-    new Set(["ב", "ו"])
+    new Set(["ס", "ש", "צ", "ז"]),
+    new Set(["ב", "ו", "פ"]),
+    new Set(["ד", "ר"]),
+    new Set(["ל", "ר", "נ"]),
+    new Set(["מ", "נ"])
 ];
 
 const FINAL_LETTERS_MAP = {
@@ -138,11 +140,11 @@ function validateHebrewTypoSimilarity(wrong, correct) {
 
     for (let i = 1; i <= n; i++) {
         const ch = wClean[i - 1];
-        dp[i][0] = dp[i - 1][0] + (MATRES_LECTIONIS.has(ch) ? 1 : 10);
+        dp[i][0] = dp[i - 1][0] + (MATRES_LECTIONIS.has(ch) ? 1 : 2);
     }
     for (let j = 1; j <= m; j++) {
         const ch = cClean[j - 1];
-        dp[0][j] = dp[0][j - 1] + (MATRES_LECTIONIS.has(ch) ? 1 : 10);
+        dp[0][j] = dp[0][j - 1] + (MATRES_LECTIONIS.has(ch) ? 1 : 2);
     }
 
     for (let i = 1; i <= n; i++) {
@@ -155,11 +157,11 @@ function validateHebrewTypoSimilarity(wrong, correct) {
             } else if (arePhoneticHomophones(ch1, ch2)) {
                 subCost = 1; // Valid phonetic substitution (e.g. ט/ת, ק/כ)
             } else {
-                subCost = 10; // Non-homophonic root consonant mismatch heavily penalized
+                subCost = 2; // Non-homophonic consonant mismatch (common in speech-recognition errors)
             }
 
-            const delCost = MATRES_LECTIONIS.has(ch1) ? 1 : 10;
-            const insCost = MATRES_LECTIONIS.has(ch2) ? 1 : 10;
+            const delCost = MATRES_LECTIONIS.has(ch1) ? 1 : 2;
+            const insCost = MATRES_LECTIONIS.has(ch2) ? 1 : 2;
 
             dp[i][j] = Math.min(
                 dp[i - 1][j - 1] + subCost,
@@ -171,7 +173,7 @@ function validateHebrewTypoSimilarity(wrong, correct) {
 
     const dist = dp[n][m];
     // Max allowed phonetic edits
-    const maxAllowed = Math.max(n, m) >= 6 ? 3 : 2;
+    const maxAllowed = Math.max(3, Math.round(Math.max(n, m) * 0.9));
 
     if (dist <= maxAllowed) {
         return { valid: true };
@@ -283,10 +285,10 @@ In video subtitles, dictionary replacements are applied GLOBALLY to all subtitle
 
 CRITICAL REJECTION RULES:
 1. REJECT if [wrong] is already a legitimate, standard Hebrew word with its own meaning (e.g. "קרחת" = baldness vs "קדחת" = fever; "כלב" = dog vs "חלב" = milk; "בית" vs "זית"). Replacing an existing real word corrupts video subtitles whenever that word was intentionally spoken!
-2. REJECT if the difference involves non-homophonic consonants (e.g. ר and ד sound completely different and are NOT a phonetic transcription error).
+2. The corrections fix speech-recognition (transcription) mistakes, so similar-sounding or visually similar letters (e.g. ר/ד, ג/ק, ב/פ, ל/ר) ARE acceptable. Only reject if the words are clearly unrelated.
 3. REJECT jokes, slang, vandalism, unrelated words, or insults.
 
-ACCEPT ONLY:
+ACCEPT:
 - Genuine phonetic spelling mistakes in Hebrew (e.g. ט/ת, כ/ק, א/ע, ח/כ, ס/ש, ב/ו like "מקאבי" -> "מכבי", "הצירה" -> "עצירה").
 - Foreign brand or loanword transliteration errors (e.g. "ספוטיפי" -> "ספוטיפיי", "וואצאפ" -> "וואטסאפ").
 - Split / joined compound words (e.g. "טיק טוק" -> "טיקטוק", "יו טיוב" -> "יוטיוב").

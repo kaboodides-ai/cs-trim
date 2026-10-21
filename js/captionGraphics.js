@@ -190,7 +190,7 @@ var CaptionGraphics = {
     /**
      * Write a .mogrt whose text layer holds `text` with the given style
      */
-    buildMogrt: function (text, style, outPath) {
+    buildMogrt: function (text, style, outPath, durationSec) {
         var nodeReq = this.getNodeRequire();
         var fs = nodeReq("fs");
         var zlib = nodeReq("zlib");
@@ -228,6 +228,14 @@ var CaptionGraphics = {
 
         var def = JSON.parse(JSON.stringify(tpl.definition));
         def.capsuleName = "CS Trim Caption";
+        // Default clip length = the line's length, so placing it never overwrites the next caption on the track
+        if (durationSec > 0) {
+            try {
+                for (var loc in def.sourceInfoLocalized) {
+                    def.sourceInfoLocalized[loc].duration = { scale: 12000, value: Math.max(1, Math.round(durationSec * 12000)) };
+                }
+            } catch (dErr) {}
+        }
         var controls = def.clientControls || [];
         for (var c = 0; c < controls.length; c++) {
             if (controls[c].type === 6) controls[c].value = { strDB: [{ localeString: "en_US", str: text }] };
@@ -319,9 +327,11 @@ var CaptionGraphics = {
                     if (!text) continue;
                     var num = ("0000" + (items.length + 1)).slice(-4);
                     var mogrtPath = path.join(outDir, "cap_" + num + ".mogrt");
-                    self.buildMogrt(text, style, mogrtPath);
+                    self.buildMogrt(text, style, mogrtPath, Number(cue.end) - Number(cue.start));
+                    // The name carries a fingerprint of text + style so an edit can keep lines that did not change
+                    var key = ("00000000" + self.crc32(Buffer.from(text + "|" + JSON.stringify(style), "utf8")).toString(16)).slice(-8);
                     items.push({
-                        clipName: self.CLIP_PREFIX + num,
+                        clipName: self.CLIP_PREFIX + num + "_" + key,
                         mogrtPath: mogrtPath,
                         start: Number(Number(cue.start).toFixed(3)),
                         end: Number(Number(cue.end).toFixed(3))

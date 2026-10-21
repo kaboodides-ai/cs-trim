@@ -1650,7 +1650,11 @@ function initApp() {
                             try {
                                 var hlData = JSON.parse(hlRes);
                                 if (hlData.success) {
-                                    log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
+                                    if (typeof hlData.keptCount === "number") {
+                                        log("הטקסט עודכן בהצלחה בטיים-ליין (עודכנו " + (hlData.placedCount || 0) + " שורות, " + hlData.keptCount + " שורות ללא שינוי נשארו כמו שהן)!", "success");
+                                    } else {
+                                        log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
+                                    }
                                 } else {
                                     log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
                                 }

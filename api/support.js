@@ -22,7 +22,21 @@ function isRateLimited(ip) {
     return false;
 }
 
-const MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+const PREFERRED_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+const NOT_CHAT = /whisper|guard|tts|playai|orpheus|embed|distil/i;
+let modelCache = { at: 0, list: [] };
+
+// Ask Groq which chat models exist, so a retired model name doesn't break the bot
+async function listModels(apiKey) {
+    if (Date.now() - modelCache.at < 60 * 60 * 1000 && modelCache.list.length) return modelCache.list;
+    const res = await fetch("https://api.groq.com/openai/v1/models", { headers: { "Authorization": `Bearer ${apiKey}` } });
+    if (!res.ok) throw new Error("Groq models HTTP " + res.status);
+    const ids = ((await res.json()).data || []).map(m => m.id).filter(id => id && !NOT_CHAT.test(id));
+    const score = id => (/70b|versatile|large|120b/i.test(id) ? 0 : /llama|gpt-oss|qwen/i.test(id) ? 1 : 2);
+    ids.sort((a, b) => score(a) - score(b));
+    modelCache = { at: Date.now(), list: ids };
+    return ids;
+}
 
 async function askGroq(apiKey, model, messages) {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -89,7 +103,9 @@ export default async function handler(req, res) {
 
         let reply = "";
         let lastError = "";
-        for (const model of MODELS) {
+        let candidates = [...PREFERRED_MODELS];
+        for (let round = 0; round < 2 && !reply; round++) {
+        for (const model of candidates) {
             try {
                 reply = await askGroq(apiKey, model, [...systemMessages, ...history]);
                 if (reply) break;
@@ -97,6 +113,17 @@ export default async function handler(req, res) {
                 lastError = e.message;
                 console.warn("Support bot model failed:", model, e.message);
             }
+        }
+        if (reply || round === 1) break;
+        // Preferred models failed: fall back to whatever chat models the account has now
+        try {
+            const available = await listModels(apiKey);
+            candidates = available.filter(id => !PREFERRED_MODELS.includes(id)).slice(0, 3);
+        } catch (e) {
+            lastError = e.message;
+            break;
+        }
+        if (candidates.length === 0) break;
         }
 
         if (!reply) {

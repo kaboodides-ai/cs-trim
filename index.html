@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS Trim</title>
-    <link rel="stylesheet" href="css/style.css?v=12">
+    <link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
     <!-- Header -->
@@ -46,7 +46,7 @@
             <div class="update-banner-info">
                 <div class="update-title-line">
                     <span class="update-main-title">גרסה חדשה זמינה</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.33</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.34</span>
                 </div>
                 <div id="updateNotesPreview" class="update-notes-preview">עדכון בלחיצה אחת</div>
             </div>
@@ -101,9 +101,20 @@
     <!-- View: AI Captions -->
     <div id="view-captions" class="tab-view" style="display:none;">
         <section class="section">
-            <div class="section-title">חיבור</div>
+            <div class="section-title">מנוע תמלול</div>
             <div class="card">
-                <div class="field api-row">
+                <div class="engine-picker" id="captionEngineSelector" role="radiogroup" aria-label="מנוע תמלול">
+                    <button type="button" class="engine-btn active" data-engine="local" role="radio" aria-checked="true" title="מודל העברית של ivrit.ai, רץ במחשב שלך">
+                        <span class="engine-title">במחשב <span class="engine-tag">מומלץ</span></span>
+                        <span class="engine-sub">מדויק יותר בעברית, חינם, בלי מפתח</span>
+                        <span class="engine-status" id="engineLocalStatus"></span>
+                    </button>
+                    <button type="button" class="engine-btn" data-engine="groq" role="radio" aria-checked="false">
+                        <span class="engine-title">Groq בענן</span>
+                        <span class="engine-sub">מהיר גם במחשב חלש, צריך מפתח API</span>
+                    </button>
+                </div>
+                <div class="field api-row" id="groqKeyRow">
                     <div class="field-head">
                         <label for="groqApiKey">מפתח Groq API</label>
                         <a href="#" id="linkGetApiKey" class="link-groq-hint">קבלת מפתח חינם</a>
@@ -416,7 +427,7 @@
         <span class="footer-credit">by Kaboodi</span>
         <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="handleFooterVersionClick(event)" title="בדיקת עדכונים">
             <span id="footerUpdatePing" class="version-update-ping" style="display:none;"></span>
-            <span id="footerVersionText">v1.0.33</span>
+            <span id="footerVersionText">v1.0.34</span>
             <svg id="footerCheckSpin" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         </button>
     </footer>
@@ -509,8 +520,9 @@
     <script src="js/CSInterface.js?v=5"></script>
     <script src="js/updater.js?v=5"></script>
     <script src="js/audioAnalyzer.js?v=5"></script>
-    <script src="js/captionGenerator.js?v=8"></script>
+    <script src="js/captionGenerator.js?v=9"></script>
+    <script src="js/localTranscriber.js?v=1"></script>
     <script src="js/textAnimator.js?v=5"></script>
-    <script src="js/main.js?v=13"></script>
+    <script src="js/main.js?v=15"></script>
 </body>
 </html>

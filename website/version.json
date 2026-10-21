@@ -1,16 +1,16 @@
 {
-  "version": "1.0.33",
-  "versionCode": 133,
+  "version": "1.0.34",
+  "versionCode": 134,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.33: תמלול מדויק יותר וזיהוי סלנג",
+  "title": "עדכון גרסה 1.0.34: תמלול עברית במחשב, מדויק יותר וחינם",
   "changelog": [
-    "התמלול שומר על סלנג ודיבור יומיומי (אמאלה, אחשלי, וואלה) במקום להחליף למילים תקניות",
-    "מילים קצרות כמו אבל וזה שנעלמו מהכתוביות חוזרות למקומן",
-    "המילים שתיקנת בעורך הכתוביות עוזרות לתמלול לזהות אותן בפעם הבאה",
-    "סינון טקסט שהומצא בקטעי שקט, והסרת תיקונים אוטומטיים שפגעו במילים תקינות"
+    "מנוע תמלול חדש שרץ במחשב: מודל העברית של ivrit.ai, מדויק יותר מ-Groq, חינם ובלי מפתח",
+    "בתמלול הראשון יורד מודל עברית חד־פעמי (1.6GB). אחרי זה התמלול עובד גם בלי אינטרנט",
+    "אפשר לבחור בין \"במחשב\" ל-\"Groq בענן\" בראש לשונית הכתוביות",
+    "אם התמלול במחשב לא מצליח ויש מפתח Groq, התמלול עובר ל-Groq לבד"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "b4b035bf55912aec2f8ab0e1f37fbfc1387685138c0e5a4288e421ac5ad88b3e"
+  "bundleHash": "6f9217392810e12c6398f46f68d165f71fe09e39158c92696edeee0214a39348"
 }

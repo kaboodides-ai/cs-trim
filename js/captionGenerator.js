@@ -560,7 +560,7 @@ var CaptionGenerator = {
      * - macOS: uses native /usr/bin/afconvert (AAC M4A or WAV)
      * - Windows: uses bundled ffmpeg with native WinRT MediaTranscoder fallback
      */
-    extractAudio: function (mediaPath, onProgress) {
+    extractAudio: function (mediaPath, onProgress, wavOnly) {
         var self = this;
         return new Promise(function (resolve, reject) {
             var nodeReq = self.getNodeRequire();
@@ -584,7 +584,8 @@ var CaptionGenerator = {
             var isDirectAudio = directAudioExts.indexOf(ext) !== -1;
             var isDirectVideo = (ext === ".mp4" || ext === ".webm" || ext === ".mpeg" || ext === ".mpga") && stats && stats.size < 24 * 1024 * 1024;
 
-            if (stats && (isDirectAudio || isDirectVideo) && stats.size < 24 * 1024 * 1024) {
+            // The local engine reads only 16 kHz WAV, so it always gets a fresh conversion
+            if (!wavOnly && stats && (isDirectAudio || isDirectVideo) && stats.size < 24 * 1024 * 1024) {
                 var mime = "audio/wav";
                 if (ext === ".mp3" || ext === ".mpga" || ext === ".mpeg") mime = "audio/mp3";
                 else if (ext === ".m4a") mime = "audio/m4a";
@@ -612,6 +613,10 @@ var CaptionGenerator = {
                 cp.execFile(ffmpegBin, argsWin, { windowsHide: true }, function (err, stdout, stderr) {
                     if (!err && fs.existsSync(tempWav)) {
                         return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
+                    }
+
+                    if (wavOnly) {
+                        return reject(new Error("חילוץ אודיו נכשל ב-Windows (ffmpeg). " + (stderr ? String(stderr).slice(-300) : (err && err.message) || "")));
                     }
 
                     // Fallback 1: Native Windows 10/11 MediaTranscoder (CreateM4a) via PowerShell
@@ -663,34 +668,37 @@ var CaptionGenerator = {
                     });
                 });
             } else {
-                // macOS extraction via afconvert (built-in)
+                // 16kHz mono WAV via afconvert, then bundled ffmpeg for containers afconvert can't open
+                var macWav = function () {
+                    var tempWav = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".wav");
+                    var argsWav = ["-f", "WAVE", "-d", "LEI16@16000", "-c", "1", mediaPath, tempWav];
+                    cp.execFile("/usr/bin/afconvert", argsWav, function (err2, out2, errStr2) {
+                        if (!err2) return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
+
+                        // Fallback: bundled ffmpeg (or Homebrew / system) for containers afconvert can't open (mkv, avi, ts, mxf, some mov/mp4 codecs)
+                        var ffmpegMac = self.getFfmpegPath();
+                        var failMsg = "חילוץ אודיו נכשל ב-macOS (קובץ " + (ext || "ללא סיומת") + " לא נתמך): " + (errStr2 || err2.message);
+                        if (!ffmpegMac) {
+                            return reject(new Error(failMsg + ". ffmpeg המצורף לא נמצא - התקן מחדש את התוסף, או המר את הקליפ ל-MP4/MOV ונסה שוב."));
+                        }
+                        var tempWavFf = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + "_ff.wav");
+                        cp.execFile(ffmpegMac, ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWavFf, "-y"], function (err3, out3, errStr3) {
+                            if (!err3 && fs.existsSync(tempWavFf)) {
+                                return resolve({ path: tempWavFf, type: "audio/wav", filename: "audio.wav", isTemp: true });
+                            }
+                            reject(new Error(failMsg + " | ffmpeg: " + (errStr3 || (err3 && err3.message) || "")));
+                        });
+                    });
+                };
+
+                if (wavOnly) return macWav();
+
+                // macOS extraction via afconvert (built-in): compact AAC for the Groq upload limit
                 var tempAudio = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".m4a");
                 var argsMac = ["-f", "m4af", "-d", "aac", "-c", "1", "-b", "64000", mediaPath, tempAudio];
 
                 cp.execFile("/usr/bin/afconvert", argsMac, function (err, stdout, stderr) {
-                    if (err) {
-                        // Fallback to 16kHz mono WAV if m4af isn't supported for this source format
-                        var tempWav = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".wav");
-                        var argsWav = ["-f", "WAVE", "-d", "LEI16@16000", "-c", "1", mediaPath, tempWav];
-                        cp.execFile("/usr/bin/afconvert", argsWav, function (err2, out2, errStr2) {
-                            if (!err2) return resolve({ path: tempWav, type: "audio/wav", filename: "audio.wav", isTemp: true });
-
-                            // Fallback: bundled ffmpeg (or Homebrew / system) for containers afconvert can't open (mkv, avi, ts, mxf, some mov/mp4 codecs)
-                            var ffmpegMac = self.getFfmpegPath();
-                            var failMsg = "חילוץ אודיו נכשל ב-macOS (קובץ " + (ext || "ללא סיומת") + " לא נתמך): " + (errStr2 || err2.message);
-                            if (!ffmpegMac) {
-                                return reject(new Error(failMsg + ". ffmpeg המצורף לא נמצא - התקן מחדש את התוסף, או המר את הקליפ ל-MP4/MOV ונסה שוב."));
-                            }
-                            var tempWavFf = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + "_ff.wav");
-                            cp.execFile(ffmpegMac, ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWavFf, "-y"], function (err3, out3, errStr3) {
-                                if (!err3 && fs.existsSync(tempWavFf)) {
-                                    return resolve({ path: tempWavFf, type: "audio/wav", filename: "audio.wav", isTemp: true });
-                                }
-                                reject(new Error(failMsg + " | ffmpeg: " + (errStr3 || (err3 && err3.message) || "")));
-                            });
-                        });
-                        return;
-                    }
+                    if (err) return macWav();
                     resolve({ path: tempAudio, type: "audio/m4a", filename: "audio.m4a", isTemp: true });
                 });
             }
@@ -1366,7 +1374,9 @@ var CaptionGenerator = {
     generateCaptionsForSequence: function (timelineClips, apiKey, language, options, onProgress) {
         var self = this;
         return new Promise(function (resolve, reject) {
-            if (!apiKey || !apiKey.trim()) {
+            var useLocal = Boolean(options && options.engine === "local") && typeof LocalTranscriber !== "undefined" && LocalTranscriber.isSupported();
+            var engineNote = null;
+            if (!useLocal && (!apiKey || !apiKey.trim())) {
                 return reject(new Error("נא להזין מפתח Groq API חינמי."));
             }
             if (!timelineClips || timelineClips.length === 0) {
@@ -1455,6 +1465,8 @@ var CaptionGenerator = {
                         onProgress(86, hlOn ? "מייצר שכבות מרקר (הייליט) לכל מילה..." : "מייצר שכבת כתוביות...");
                         self.buildCaptionLayer(cues, options, srtPath, onProgress).then(function (layer) {
                             onProgress(100, (hlOn ? "כתוביות המרקר " : "הכתוביות ") + targetLabel + " מוכנות!");
+                            layer.engine = useLocal ? "local" : "groq";
+                            layer.engineNote = engineNote;
                             layer.srtPath = srtPath;
                             layer.blocksCount = cues.length;
                             layer.cues = cues;
@@ -1473,7 +1485,23 @@ var CaptionGenerator = {
 
                 self.extractAudio(mediaPath, function (p, msg) {
                     onProgress(pctBase + Math.round(p * 0.3), msg);
-                }).then(function (audioInfo) {
+                }, useLocal).then(function (audioInfo) {
+                    if (useLocal) {
+                        onProgress(pctBase + 35, "מתמלל במחשב (" + (currentPathIdx + 1) + "/" + uniquePaths.length + ")...");
+                        return LocalTranscriber.transcribe(audioInfo, function (p, msg) {
+                            onProgress(Math.min(84, pctBase + 35 + Math.round(p * 0.45)), msg);
+                        }).catch(function (localErr) {
+                            // The engine can't run on this machine: with a Groq key, finish the job there instead
+                            if (!apiKey || !apiKey.trim()) throw localErr;
+                            useLocal = false;
+                            engineNote = "התמלול המקומי נכשל (" + localErr.message + "), לכן התמלול נעשה ב-Groq.";
+                            return self.extractAudio(mediaPath, function () {}).then(function (groqAudio) {
+                                return self.transcribe(groqAudio, apiKey, language, function (p, msg) {
+                                    onProgress(pctBase + 35 + Math.round(p * 0.4), msg);
+                                });
+                            });
+                        });
+                    }
                     onProgress(pctBase + 35, "מתמלל ב-Groq AI (" + (currentPathIdx + 1) + "/" + uniquePaths.length + ")...");
                     return self.transcribe(audioInfo, apiKey, language, function (p, msg) {
                         onProgress(pctBase + 35 + Math.round(p * 0.4), msg);
@@ -1489,10 +1517,20 @@ var CaptionGenerator = {
                 }).catch(reject);
             };
 
+            // The local engine and model download once; if that fails, a Groq key (when there is one) takes over
+            var prepareEngine = function () {
+                if (!useLocal) return Promise.resolve();
+                return LocalTranscriber.ensureInstalled(onProgress).catch(function (err) {
+                    if (!apiKey || !apiKey.trim()) throw err;
+                    useLocal = false;
+                    engineNote = "התמלול המקומי לא זמין (" + err.message + "), לכן התמלול נעשה ב-Groq.";
+                });
+            };
+
             // Ensure fresh remote corrections are loaded from cloud before transcription starts
-            self.fetchRemoteCorrections().catch(function () {}).then(function () {
+            self.fetchRemoteCorrections().catch(function () {}).then(prepareEngine).then(function () {
                 processNextPath();
-            });
+            }).catch(reject);
         });
     },
 

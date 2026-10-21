@@ -499,6 +499,47 @@ function updateCaptionScopeUI(scope) {
     }
 }
 
+var selectedCaptionEngine = "local";
+try {
+    selectedCaptionEngine = localStorage.getItem("autocut_caption_engine") || "local";
+} catch (e) {}
+
+function isLocalEngineAvailable() {
+    return typeof LocalTranscriber !== "undefined" && LocalTranscriber.isSupported();
+}
+
+function updateCaptionEngineUI(engine) {
+    selectedCaptionEngine = (engine === "groq" || !isLocalEngineAvailable()) ? "groq" : "local";
+    try {
+        localStorage.setItem("autocut_caption_engine", selectedCaptionEngine);
+    } catch (e) {}
+
+    var engineButtons = document.querySelectorAll(".engine-btn");
+    for (var i = 0; i < engineButtons.length; i++) {
+        var b = engineButtons[i];
+        var isOn = b.getAttribute("data-engine") === selectedCaptionEngine;
+        b.classList.toggle("active", isOn);
+        b.setAttribute("aria-checked", isOn ? "true" : "false");
+        if (b.getAttribute("data-engine") === "local") b.disabled = !isLocalEngineAvailable();
+    }
+
+    var keyRow = document.getElementById("groqKeyRow");
+    if (keyRow) keyRow.style.display = (selectedCaptionEngine === "groq") ? "" : "none";
+
+    var status = document.getElementById("engineLocalStatus");
+    if (!status) return;
+    if (!isLocalEngineAvailable()) {
+        status.textContent = "לא זמין במחשב הזה";
+        status.className = "engine-status";
+    } else if (LocalTranscriber.isReady()) {
+        status.textContent = "✓ מותקן";
+        status.className = "engine-status ok";
+    } else {
+        status.textContent = "הורדה חד־פעמית 1.6GB";
+        status.className = "engine-status";
+    }
+}
+
 
 
 function initAdminHeartbeat(isConnected) {
@@ -645,6 +686,15 @@ function initApp() {
                 }
             });
         }
+
+        // Transcription engine selector (local ivrit.ai model vs Groq)
+        var engineButtons = document.querySelectorAll(".engine-btn");
+        for (var eb = 0; eb < engineButtons.length; eb++) {
+            engineButtons[eb].addEventListener("click", function () {
+                updateCaptionEngineUI(this.getAttribute("data-engine"));
+            });
+        }
+        updateCaptionEngineUI(selectedCaptionEngine);
 
         // Caption Scope Selector (Entire Sequence vs In/Out)
         var scopeButtons = document.querySelectorAll(".scope-btn");
@@ -1649,7 +1699,8 @@ function initApp() {
         if (btnCaptions) {
             btnCaptions.addEventListener("click", function () {
             var apiKey = apiKeyInput ? apiKeyInput.value.trim() : "";
-            if (!apiKey) {
+            var engine = selectedCaptionEngine;
+            if (engine !== "local" && !apiKey) {
                 log("נא להזין מפתח Groq API חינמי. לחץ על הקישור למעלה לקבלת מפתח ב-30 שניות.", "error");
                 if (apiKeyInput) apiKeyInput.focus();
                 return;
@@ -1734,7 +1785,8 @@ function initApp() {
                             seqHeight: Number(data.frameHeight) || 1920,
                             scope: scope,
                             rangeStart: rangeStart,
-                            rangeEnd: rangeEnd
+                            rangeEnd: rangeEnd,
+                            engine: engine
                         };
 
                         var markerOpts = getMarkerStyleOptions();
@@ -1744,6 +1796,8 @@ function initApp() {
                             updateProgress(pct, msg);
                         }).then(function (capResult) {
                             var destDesc = (scope === "inout") ? "לטווח In/Out" : "לכל הסיקוונס";
+                            if (capResult.engineNote) log(capResult.engineNote, "warn");
+                            if (engine === "local") updateCaptionEngineUI("local");
 
                             // Plain captions are a native caption track the plugin cannot replace, so they are edited in Premiere itself
                             var btnEdit = document.getElementById("btnEditCaptions");

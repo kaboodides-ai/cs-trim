@@ -45,7 +45,7 @@ async function askGroq(apiKey, model, messages) {
             "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ model, temperature: 0.1, max_tokens: 200, messages })
+        body: JSON.stringify({ model, temperature: 0.1, max_tokens: 350, messages })
     });
     if (!res.ok) {
         let reason = "";

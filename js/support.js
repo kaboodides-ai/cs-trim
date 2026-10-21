@@ -57,6 +57,53 @@ function handleSupportOverlayClick(e) {
     if (e && e.target && e.target.id === "supportChatModal") closeSupportChat(e);
 }
 
+// POST JSON to the support endpoint. Prefers Node's https (the panel runs with --enable-nodejs):
+// Vercel's system mitigation can challenge the embedded Chromium's fetch with a 403 HTML page,
+// while Node requests pass. Falls back to fetch when Node isn't available.
+function supportPost(payload) {
+    var body = JSON.stringify(payload);
+    var nodeReq = null;
+    try {
+        nodeReq = (window.cep_node && window.cep_node.require) ? window.cep_node.require : (typeof require === "function" ? require : null);
+    } catch (e) { nodeReq = null; }
+
+    function parse(status, text) {
+        var data = null;
+        try { data = JSON.parse(text); } catch (e) { /* non-JSON (e.g. blocked page) */ }
+        return { ok: status >= 200 && status < 300, status: status, data: data };
+    }
+
+    if (nodeReq) {
+        return new Promise(function (resolve, reject) {
+            var u = new URL(SUPPORT_ENDPOINT);
+            var req = nodeReq("https").request({
+                hostname: u.hostname,
+                path: u.pathname,
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+                timeout: 30000
+            }, function (res) {
+                var chunks = "";
+                res.setEncoding("utf8");
+                res.on("data", function (c) { chunks += c; });
+                res.on("end", function () { resolve(parse(res.statusCode, chunks)); });
+            });
+            req.on("timeout", function () { req.destroy(new Error("timeout")); });
+            req.on("error", reject);
+            req.write(body);
+            req.end();
+        });
+    }
+
+    return fetch(SUPPORT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body
+    }).then(function (res) {
+        return res.text().then(function (t) { return parse(res.status, t); });
+    });
+}
+
 function sendSupportMessage(e) {
     if (e && e.preventDefault) e.preventDefault();
     if (supportBusy) return;
@@ -82,17 +129,11 @@ function sendSupportMessage(e) {
         if (box) box.scrollTop = box.scrollHeight;
     }
 
-    fetch(SUPPORT_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: supportHistory, context: supportContext() })
-    })
-    .then(function (res) {
-        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
-    })
+    supportPost({ messages: supportHistory, context: supportContext() })
     .then(function (r) {
         if (r.ok && r.data && r.data.reply) finish(r.data.reply, true);
-        else finish((r.data && r.data.error) || "משהו השתבש. נסה שוב.", false);
+        else if (r.data && r.data.error) finish(r.data.error, false);
+        else finish("השרת לא החזיר תשובה תקינה (קוד " + r.status + "). נסה שוב.", false);
     })
     .catch(function () {
         finish("אין חיבור לשרת. בדוק אינטרנט ונסה שוב.", false);

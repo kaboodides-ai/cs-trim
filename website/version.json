@@ -1,15 +1,14 @@
 {
-  "version": "1.0.26",
-  "versionCode": 126,
+  "version": "1.0.27",
+  "versionCode": 127,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.26: עריכת כתוביות מהירה יותר",
+  "title": "עדכון גרסה 1.0.27: תיקון עדכון אוטומטי",
   "changelog": [
-    "עריכת טקסט בתוסף מעדכנת רק את השורות שהשתנו, במקום ליצור מחדש את כל הכתוביות",
-    "ב-Windows: הרבה פחות חלונות טעינה בזמן עריכה",
-    "שינויים ידניים בשורות שלא נערכו בתוסף נשמרים"
+    "תוקנה שגיאת \"קובץ העדכון לא עבר בדיקת תקינות\" שהופיעה בעדכון אוטומטי (בעיקר ב-Windows) מיד אחרי שחרור גרסה",
+    "הוסר כפתור העזרה (?) מכותרת הפאנל"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "469d6428263c04dcd25fd7d79b754ba87bf2e24faeb3462aaf37d04b524504a7"
+  "bundleHash": "10bfba110309812c6971cc6f9d28baf62600d3b3852438dc45c045dfdb38bd52"
 }

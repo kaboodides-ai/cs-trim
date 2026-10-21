@@ -1,14 +1,15 @@
 {
-  "version": "1.0.27",
-  "versionCode": 127,
+  "version": "1.0.28",
+  "versionCode": 128,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.27: תיקון עדכון אוטומטי",
+  "title": "עדכון גרסה 1.0.28: כתוביות רגילות של פרמייר",
   "changelog": [
-    "תוקנה שגיאת \"קובץ העדכון לא עבר בדיקת תקינות\" שהופיעה בעדכון אוטומטי (בעיקר ב-Windows) מיד אחרי שחרור גרסה",
-    "הוסר כפתור העזרה (?) מכותרת הפאנל"
+    "כתוביות בלי מרקר נוצרות שוב כשכבת Captions רגילה של פרמייר: מהיר יותר ובלי חלונות טעינה",
+    "עריכת כתוביות רגילות: בפרמייר, Window > Text, לשונית Captions",
+    "כפתור עריכת הטקסט בתוסף זמין למצב המרקר"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "10bfba110309812c6971cc6f9d28baf62600d3b3852438dc45c045dfdb38bd52"
+  "bundleHash": "17f67dadce81d88dab21e392252b9c1926600c22d457f7558791aaf472d410ed"
 }

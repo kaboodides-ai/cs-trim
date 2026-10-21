@@ -22,7 +22,7 @@ var LocalTranscriber = {
 
     ENGINE_BASE_URLS: [
         "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/engine/",
-        "https://cstrim.vercel.app/download/engine/"
+        "https://cstrim.site/download/engine/"
     ],
 
     // ivrit.ai whisper-large-v3-turbo (ggml), pinned to a commit so the hash below always matches

@@ -2559,7 +2559,7 @@ function submitPluginFeedback(e) {
 
     var targetUrl = (typeof window !== "undefined" && window.location && window.location.protocol.startsWith("http"))
         ? "/api/feedback"
-        : "https://cstrim.vercel.app/api/feedback";
+        : "https://cstrim.site/api/feedback";
 
     // Direct Google Sheets Webhook backup
     var sheetsDirectUrl = "https://script.google.com/macros/s/AKfycbxKrwUzhMHd4k9sztgsB3zn6GCW5hgNa39R1P8Dj7Vic-pmlVc2kcDuCxTqzilraTSNeQ/exec";

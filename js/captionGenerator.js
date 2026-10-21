@@ -181,7 +181,7 @@ var CaptionGenerator = {
 
     REMOTE_URLS: [
         "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/corrections.json",
-        "https://cstrim.vercel.app/corrections.json"
+        "https://cstrim.site/corrections.json"
     ],
 
     getExtensionDir: function () {

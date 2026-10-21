@@ -1,16 +1,14 @@
 {
-  "version": "1.0.34",
-  "versionCode": 134,
+  "version": "1.0.35",
+  "versionCode": 135,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.34: תמלול עברית במחשב, מדויק יותר וחינם",
+  "title": "עדכון גרסה 1.0.35: תיקון כתובות גיבוי",
   "changelog": [
-    "מנוע תמלול חדש שרץ במחשב: מודל העברית של ivrit.ai, מדויק יותר מ-Groq, חינם ובלי מפתח",
-    "בתמלול הראשון יורד מודל עברית חד־פעמי (1.6GB). אחרי זה התמלול עובד גם בלי אינטרנט",
-    "אפשר לבחור בין \"במחשב\" ל-\"Groq בענן\" בראש לשונית הכתוביות",
-    "אם התמלול במחשב לא מצליח ויש מפתח Groq, התמלול עובר ל-Groq לבד"
+    "משוב שנשלח מתוך הפאנל מגיע שוב לשרת",
+    "כתובות הגיבוי להורדת עדכונים, מנוע התמלול ורשימת התיקונים עודכנו לאתר הנוכחי"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "6f9217392810e12c6398f46f68d165f71fe09e39158c92696edeee0214a39348"
+  "bundleHash": "cbecaf465fc8f7e26f5746f3ce7329f2e29411cd1f4f6cdea84f21f389a21705"
 }

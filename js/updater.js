@@ -190,6 +190,10 @@ var AutoUpdater = {
                 if (!extDir || !fs.existsSync(extDir)) {
                     return reject(new Error("תיקיית התוסף לא נמצאה: " + (extDir || "ריק")));
                 }
+                // Development install (extension folder is the git repo): extracting the bundle would overwrite the source
+                if (fs.existsSync(path.join(extDir, ".git"))) {
+                    return reject(new Error("זו תיקיית פיתוח (git), העדכון האוטומטי מבוטל כדי לא לדרוס את הקוד."));
+                }
 
                 var bundleCandidateUrls = [
                     updateInfo.bundleUrl,

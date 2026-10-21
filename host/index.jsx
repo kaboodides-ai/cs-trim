@@ -678,6 +678,148 @@ var AutoCutHost = {
     },
 
     /**
+     * Remove every caption clip CS Trim placed earlier (marker PNGs "hl_*" and text graphics "cstrim_cap_*")
+     * and return the track to place the new ones on: the track they were on, else an empty track above V1, else a new track
+     */
+    prepareCaptionTrack: function(seq) {
+        var isCaptionClip = function(clip) {
+            var nm = "";
+            try { nm = clip.name || ""; } catch (e1) {}
+            if (nm.indexOf("hl_") === 0 || nm.indexOf("cstrim_cap_") === 0) return true;
+            try {
+                var pi = clip.projectItem;
+                if (pi) {
+                    var pn = pi.name || "";
+                    if (pn.indexOf("hl_") === 0) return true;
+                    var mp = pi.getMediaPath ? (pi.getMediaPath() || "") : "";
+                    if (mp.indexOf("autocut_hl_") !== -1) return true;
+                }
+            } catch (e2) {}
+            return false;
+        };
+        var targetTrack = null;
+        var targetIndex = -1;
+        var removedOld = 0;
+        if (seq.videoTracks) {
+            for (var checkVt = seq.videoTracks.numTracks - 1; checkVt >= 0; checkVt--) {
+                var trk = seq.videoTracks[checkVt];
+                if (!trk || !trk.clips || trk.clips.numItems === 0) continue;
+                var hasOld = false;
+                for (var hc = trk.clips.numItems - 1; hc >= 0; hc--) {
+                    if (isCaptionClip(trk.clips[hc])) {
+                        hasOld = true;
+                        try { trk.clips[hc].remove(false, false); removedOld++; } catch (remErr) {}
+                    }
+                }
+                if (hasOld && !targetTrack && checkVt >= 1) {
+                    targetTrack = trk;
+                    targetIndex = checkVt;
+                }
+            }
+        }
+
+        if (!targetTrack && seq.videoTracks && seq.videoTracks.numTracks > 1) {
+            for (var vt = seq.videoTracks.numTracks - 1; vt >= 1; vt--) {
+                var candidate = seq.videoTracks[vt];
+                if (candidate && candidate.clips && candidate.clips.numItems === 0) {
+                    targetTrack = candidate;
+                    targetIndex = vt;
+                    break;
+                }
+            }
+        }
+
+        if (!targetTrack) {
+            try {
+                app.enableQE();
+                var qeSeq = qe.project.getActiveSequence();
+                if (qeSeq && typeof qeSeq.addTracks === "function") {
+                    qeSeq.addTracks(1, seq.videoTracks.numTracks, 0, 0);
+                }
+            } catch (qeErr) {}
+
+            if (seq.videoTracks && seq.videoTracks.numTracks > 0) {
+                targetIndex = seq.videoTracks.numTracks - 1;
+                targetTrack = seq.videoTracks[targetIndex];
+            }
+        }
+
+        return { track: targetTrack, index: targetIndex, removedOld: removedOld };
+    },
+
+    /**
+     * Place caption lines as native Premiere text graphics (.mogrt built from Basic Title), replacing earlier CS Trim captions
+     */
+    importCaptionGraphics: function(manifestPath) {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence open" });
+            }
+            var seq = app.project.activeSequence;
+            var mFile = new File((manifestPath || "").replace(/\\/g, "/"));
+            if (!mFile.exists) mFile = new File(manifestPath);
+            if (!mFile.exists) {
+                return JSON.stringify({ error: "Manifest file not found: " + manifestPath });
+            }
+            mFile.encoding = "UTF-8";
+            mFile.open("r");
+            var manifest = JSON.parse(mFile.read());
+            mFile.close();
+            var items = (manifest && manifest.items) ? manifest.items : [];
+            if (items.length === 0) {
+                return JSON.stringify({ error: "No caption items found in manifest" });
+            }
+            var posY = Number(manifest.posY) || 0.8;
+
+            var prep = AutoCutHost.prepareCaptionTrack(seq);
+            if (!prep.track || prep.index < 0) {
+                return JSON.stringify({ error: "No video track available for captions" });
+            }
+
+            var placedCount = 0;
+            var lastError = "";
+            for (var k = 0; k < items.length; k++) {
+                var entry = items[k];
+                var startSec = Math.max(0, Number(entry.start) || 0);
+                var endSec = Math.max(startSec + 0.05, Number(entry.end) || (startSec + 0.5));
+                var mgPath = new File(entry.mogrtPath).fsName || entry.mogrtPath;
+                try {
+                    var ti = seq.importMGT(mgPath, startSec, prep.index, 0);
+                    if (!ti) { lastError = "importMGT returned null"; continue; }
+                    try { ti.name = entry.clipName; } catch (nmErr) {}
+                    var endTime = new Time();
+                    endTime.seconds = endSec;
+                    try { ti.end = endTime; } catch (endErr) {}
+                    for (var c = 0; c < ti.components.numItems; c++) {
+                        var comp = ti.components[c];
+                        if (comp.displayName !== "Text") continue;
+                        for (var p = 0; p < comp.properties.numItems; p++) {
+                            if (comp.properties[p].displayName === "Position") {
+                                try { comp.properties[p].setValue([0.5, posY], true); } catch (posErr) {}
+                            }
+                        }
+                    }
+                    placedCount++;
+                } catch (placeErr) {
+                    lastError = placeErr.toString();
+                }
+            }
+
+            if (placedCount === 0) {
+                return JSON.stringify({ error: "Failed to place caption graphics: " + lastError });
+            }
+            return JSON.stringify({
+                success: true,
+                inTimeline: true,
+                placedCount: placedCount,
+                removedOld: prep.removedOld
+            });
+        } catch (e) {
+            return JSON.stringify({ error: "importCaptionGraphics error: " + e.toString() });
+        }
+    },
+
+    /**
      * Import rendered word-highlight marker PNG clips and place them on a dedicated top Video Track
      */
     importHighlightedSubtitles: function(manifestPath) {
@@ -749,65 +891,9 @@ var AutoCutHost = {
                 mapBinChildren(rootBin);
             }
 
-            // Remove previous CS Trim highlight clips (matched by clip name, project item name or media path) for seamless re-apply
-            var isHlClip = function(clip) {
-                var nm = "";
-                try { nm = clip.name || ""; } catch (e1) {}
-                if (nm.indexOf("hl_") === 0) return true;
-                try {
-                    var pi = clip.projectItem;
-                    if (pi) {
-                        var pn = pi.name || "";
-                        if (pn.indexOf("hl_") === 0) return true;
-                        var mp = pi.getMediaPath ? (pi.getMediaPath() || "") : "";
-                        if (mp.indexOf("autocut_hl_") !== -1) return true;
-                    }
-                } catch (e2) {}
-                return false;
-            };
-            var targetTrack = null;
-            var removedOld = 0;
-            if (seq.videoTracks) {
-                for (var checkVt = seq.videoTracks.numTracks - 1; checkVt >= 0; checkVt--) {
-                    var trk = seq.videoTracks[checkVt];
-                    if (!trk || !trk.clips || trk.clips.numItems === 0) continue;
-                    var hasHlClips = false;
-                    for (var hc = trk.clips.numItems - 1; hc >= 0; hc--) {
-                        if (isHlClip(trk.clips[hc])) {
-                            hasHlClips = true;
-                            try { trk.clips[hc].remove(false, false); removedOld++; } catch (remErr) {}
-                        }
-                    }
-                    if (hasHlClips && !targetTrack && checkVt >= 1) {
-                        targetTrack = trk;
-                    }
-                }
-            }
-
-            // Otherwise find an empty top Video Track (above V1), or add a new Video Track via QE if all tracks have clips
-            if (!targetTrack && seq.videoTracks && seq.videoTracks.numTracks > 1) {
-                for (var vt = seq.videoTracks.numTracks - 1; vt >= 1; vt--) {
-                    var candidate = seq.videoTracks[vt];
-                    if (candidate && candidate.clips && candidate.clips.numItems === 0) {
-                        targetTrack = candidate;
-                        break;
-                    }
-                }
-            }
-
-            if (!targetTrack) {
-                try {
-                    app.enableQE();
-                    var qeSeq = qe.project.getActiveSequence();
-                    if (qeSeq && typeof qeSeq.addTracks === "function") {
-                        qeSeq.addTracks(1, seq.videoTracks.numTracks, 0, 0);
-                    }
-                } catch (qeErr) {}
-
-                if (seq.videoTracks && seq.videoTracks.numTracks > 0) {
-                    targetTrack = seq.videoTracks[seq.videoTracks.numTracks - 1];
-                }
-            }
+            var prep = AutoCutHost.prepareCaptionTrack(seq);
+            var targetTrack = prep.track;
+            var removedOld = prep.removedOld;
 
             if (!targetTrack) {
                 return JSON.stringify({ error: "No video track available for highlight overlays" });
@@ -2116,6 +2202,10 @@ function importSubtitles(srtPath, startOffset) {
 
 function importHighlightedSubtitles(manifestPath) {
     return safeBridgeEncode(AutoCutHost.importHighlightedSubtitles(manifestPath));
+}
+
+function importCaptionGraphics(manifestPath) {
+    return safeBridgeEncode(AutoCutHost.importCaptionGraphics(manifestPath));
 }
 
 function undoLastCut() {

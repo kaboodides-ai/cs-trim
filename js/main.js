@@ -1408,10 +1408,11 @@ function initApp() {
                                 btnEdit.innerHTML = "<span>עריכת טקסט הכתוביות · " + capResult.cues.length + " שורות</span>";
                             }
 
-                            if (capResult.highlightManifestPath) {
+                            var layerManifest = capResult.graphicsManifestPath || capResult.highlightManifestPath;
+                            if (layerManifest) {
                                 updateProgress(95, (capResult.highlightWords ? "מניח שכבות מרקר מילים " : "מניח שכבת כתוביות ") + destDesc + " בטיים-ליין...");
-                                var manifestEsc = escapeForEval(capResult.highlightManifestPath);
-                                csInterface.evalScript('importHighlightedSubtitles("' + manifestEsc + '")', function (hlRes) {
+                                var hostFn = capResult.graphicsManifestPath ? "importCaptionGraphics" : "importHighlightedSubtitles";
+                                csInterface.evalScript(hostFn + '("' + escapeForEval(layerManifest) + '")', function (hlRes) {
                                     updateProgress(100, "הושלם!");
                                     setBusy(false);
                                     try {
@@ -1419,6 +1420,8 @@ function initApp() {
                                         if (hlData.success) {
                                             if (capResult.highlightWords) {
                                                 log("נוצרו " + capResult.highlightClipsCount + " הדגשות מרקר מילים (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
+                                            } else if (capResult.graphicsManifestPath) {
+                                                log("נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") כטקסט של פרמייר בערוץ וידאו עליון! אפשר לערוך כל שורה ב-Essential Graphics, או את כל הטקסט בכפתור 'עריכת טקסט הכתוביות'.", "success");
                                             } else {
                                                 log("נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
                                             }
@@ -1637,10 +1640,11 @@ function initApp() {
                 CaptionGenerator.regenerateFromEditedCues(updatedCues, savedOpts, function (pct, msg) {
                     updateProgress(pct, msg);
                 }).then(function (capResult) {
-                    if (capResult.highlightManifestPath) {
+                    var layerManifest = capResult.graphicsManifestPath || capResult.highlightManifestPath;
+                    if (layerManifest) {
                         updateProgress(92, "מחליף את שכבת הכתוביות בטיים-ליין עם הטקסט המתוקן...");
-                        var manifestEsc = escapeForEval(capResult.highlightManifestPath);
-                        csInterface.evalScript('importHighlightedSubtitles("' + manifestEsc + '")', function (hlRes) {
+                        var hostFn = capResult.graphicsManifestPath ? "importCaptionGraphics" : "importHighlightedSubtitles";
+                        csInterface.evalScript(hostFn + '("' + escapeForEval(layerManifest) + '")', function (hlRes) {
                             updateProgress(100, "הושלם!");
                             setBusy(false);
                             try {

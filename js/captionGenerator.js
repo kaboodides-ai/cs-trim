@@ -1105,6 +1105,48 @@ var CaptionGenerator = {
     },
 
     /**
+     * Build the caption layer the host places on a managed video track (replaced on every edit, never stacked):
+     * plain captions become editable Premiere text graphics; marker mode (or a missing Basic Title template) uses PNG frames.
+     * Resolves { highlightWords, graphicsManifestPath | highlightManifestPath, highlightClipsCount }
+     */
+    buildCaptionLayer: function (cues, options, srtPath, onProgress) {
+        var self = this;
+        options = options || {};
+        var hlOn = Boolean(options.highlightWords);
+
+        var renderFrames = function () {
+            return self.renderHighlightFrames(cues, options, onProgress).then(function (hlData) {
+                var nodeReq = self.getNodeRequire();
+                var fs = nodeReq("fs");
+                var path = nodeReq("path");
+                var manifestPath = path.join(hlData.outDir, "manifest.json");
+                fs.writeFileSync(manifestPath, JSON.stringify({
+                    srtPath: srtPath,
+                    highlightColor: options.highlightColor || "#FACC15",
+                    items: hlData.items
+                }), "utf8");
+                return {
+                    highlightWords: hlOn,
+                    highlightManifestPath: manifestPath,
+                    highlightClipsCount: hlData.items.length
+                };
+            });
+        };
+
+        if (hlOn || typeof CaptionGraphics === "undefined") return renderFrames();
+        return CaptionGraphics.buildForCues(cues, options, onProgress).then(function (g) {
+            return {
+                highlightWords: false,
+                graphicsManifestPath: g.manifestPath,
+                highlightClipsCount: g.count
+            };
+        }).catch(function (err) {
+            console.warn("Caption graphics unavailable, using image frames: " + err.message);
+            return renderFrames();
+        });
+    },
+
+    /**
      * Generate captions for the ENTIRE active sequence across all its clips
      */
     generateCaptionsForSequence: function (timelineClips, apiKey, language, options, onProgress) {
@@ -1185,28 +1227,14 @@ var CaptionGenerator = {
                         var bom = "\uFEFF";
                         fs.writeFileSync(srtPath, bom + srtContent, "utf8");
 
-                        // Always render managed overlay frames: Premiere's scripting API cannot delete caption tracks,
-                        // so a native caption track would stack a new copy on every edit
                         var hlOn = Boolean(options && options.highlightWords);
                         onProgress(86, hlOn ? "מייצר שכבות מרקר (הייליט) לכל מילה..." : "מייצר שכבת כתוביות...");
-                        self.renderHighlightFrames(cues, options, onProgress).then(function (hlData) {
-                            var manifestPath = path.join(hlData.outDir, "manifest.json");
-                            var manifestObj = {
-                                srtPath: srtPath,
-                                highlightColor: (options && options.highlightColor) || "#FACC15",
-                                items: hlData.items
-                            };
-                            fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
-
+                        self.buildCaptionLayer(cues, options, srtPath, onProgress).then(function (layer) {
                             onProgress(100, (hlOn ? "כתוביות המרקר " : "הכתוביות ") + targetLabel + " מוכנות!");
-                            resolve({
-                                srtPath: srtPath,
-                                blocksCount: cues.length,
-                                highlightWords: hlOn,
-                                highlightManifestPath: manifestPath,
-                                highlightClipsCount: hlData.items.length,
-                                cues: cues
-                            });
+                            layer.srtPath = srtPath;
+                            layer.blocksCount = cues.length;
+                            layer.cues = cues;
+                            resolve(layer);
                         }).catch(reject);
                     } catch (e) {
                         reject(e);
@@ -1277,29 +1305,16 @@ var CaptionGenerator = {
                 var bom = "\uFEFF";
                 fs.writeFileSync(srtPath, bom + srtContent, "utf8");
 
-                // Always re-render the managed overlay track so the edit replaces the previous one instead of stacking
                 options = options || {};
                 var hlOn = Boolean(options.highlightWords);
                 if (onProgress) onProgress(30, hlOn ? "מייצר מחדש שכבות מרקר עם הטקסט המתוקן..." : "מייצר מחדש את שכבת הכתוביות עם הטקסט המתוקן...");
-                self.renderHighlightFrames(cues, options, function (p, msg) {
+                self.buildCaptionLayer(cues, options, srtPath, function (p, msg) {
                     if (onProgress) onProgress(p, msg);
-                }).then(function (hlData) {
-                    var manifestPath = path.join(hlData.outDir, "manifest.json");
-                    var manifestObj = {
-                        srtPath: srtPath,
-                        highlightColor: options.highlightColor || "#FACC15",
-                        items: hlData.items
-                    };
-                    fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
-
-                    resolve({
-                        srtPath: srtPath,
-                        blocksCount: cues.length,
-                        highlightWords: hlOn,
-                        highlightManifestPath: manifestPath,
-                        highlightClipsCount: hlData.items.length,
-                        cues: cues
-                    });
+                }).then(function (layer) {
+                    layer.srtPath = srtPath;
+                    layer.blocksCount = cues.length;
+                    layer.cues = cues;
+                    resolve(layer);
                 }).catch(reject);
             } catch (e) {
                 reject(e);

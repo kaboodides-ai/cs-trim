@@ -43,8 +43,140 @@ var CaptionGenerator = {
         "ספוטיפי": "ספוטיפיי",
         "הצירה": "עצירה",
         "מצחונות": "נצחונות",
-        "דגדק": "דגדג",
-        "מערכת": "מארחת"
+        "דגדק": "דגדג"
+    },
+
+    // Whisper reads the prompt as the transcript that came before the audio and copies its style.
+    // A formal prompt makes it "clean up" speech: slang gets swapped for standard words and short words
+    // like אבל / זה get dropped. A verbatim, colloquial sample keeps it writing what was actually said.
+    SPEECH_STYLE_PROMPT: "אמאלה, אחשלי, זה היה מטורף. אבל רגע, תקשיב אחי, וואלה תכלס זה אשכרה עובד. יאללה סבבה, כפרה עליך, נו באמת, חבל על הזמן.",
+
+    // Groq caps the prompt at 224 tokens; a Hebrew character is at most one Whisper token
+    PROMPT_MAX_CHARS: 220,
+
+    /**
+     * Whisper prompt: the user's own corrected words (so it learns their names and terms), then the style sample last,
+     * since the text closest to the audio steers it most.
+     */
+    buildPrompt: function () {
+        var style = this.SPEECH_STYLE_PROMPT;
+        var budget = this.PROMPT_MAX_CHARS - style.length - 1;
+        var custom = this.getCustomCorrections();
+        var seen = {};
+        var vocab = [];
+        var used = 0;
+        for (var key in custom) {
+            if (!Object.prototype.hasOwnProperty.call(custom, key)) continue;
+            var term = String(custom[key] || "").trim();
+            if (!term || seen[term] || style.indexOf(term) !== -1) continue;
+            if (used + term.length + 2 > budget) break;
+            seen[term] = true;
+            vocab.push(term);
+            used += term.length + 2;
+        }
+        return vocab.length ? vocab.join(", ") + ". " + style : style;
+    },
+
+    normalizeToken: function (str) {
+        return String(str || "").replace(/[.,!?;:"'״׳—…\-()\[\]]/g, "").trim().toLowerCase();
+    },
+
+    /**
+     * Whisper's word list sometimes leaves out words that are in the segment text (often short ones like אבל / זה).
+     * Rebuild the word list per segment: keep every timed word, add the segment words it skipped with timings
+     * spread over the gap they were spoken in, and drop segments that are silence hallucinations.
+     */
+    reconcileWords: function (whisperData) {
+        var self = this;
+        var words = whisperData.words || [];
+        var segs = whisperData.segments || [];
+        if (words.length === 0 || segs.length === 0) return words;
+
+        var styleNorm = self.normalizeToken(self.SPEECH_STYLE_PROMPT).replace(/\s+/g, " ");
+        var out = [];
+        var wi = 0;
+
+        for (var s = 0; s < segs.length; s++) {
+            var seg = segs[s];
+            var segWords = [];
+            while (wi < words.length && (words[wi].start + words[wi].end) / 2 <= seg.end + 0.05) {
+                segWords.push(words[wi++]);
+            }
+
+            // Silence that Whisper filled in: its own no-speech rule, or a long stretch of the prompt echoed back
+            // (short slang phrases from the prompt are real speech too, so those stay)
+            var segNorm = self.normalizeToken(seg.text).replace(/\s+/g, " ");
+            var isSilence = seg.no_speech_prob > 0.6 && seg.avg_logprob < -1.0;
+            var isPromptEcho = segNorm.split(" ").length >= 6 && styleNorm.indexOf(segNorm) !== -1;
+            if (isSilence || isPromptEcho) continue;
+
+            var tokens = String(seg.text || "").split(/\s+/).filter(function (t) { return self.normalizeToken(t); });
+            if (tokens.length <= segWords.length) {
+                for (var k = 0; k < segWords.length; k++) out.push(segWords[k]);
+                continue;
+            }
+
+            // Align segment text to the timed words (longest common subsequence)
+            var a = segWords.map(function (w) { return self.normalizeToken(w.word); });
+            var b = tokens.map(function (t) { return self.normalizeToken(t); });
+            var dp = [];
+            for (var i = 0; i <= a.length; i++) {
+                dp.push([]);
+                for (var j = 0; j <= b.length; j++) {
+                    if (i === 0 || j === 0) dp[i][j] = 0;
+                    else if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+                    else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+
+            // Different tokenization (numbers, English, hyphens) rather than missing words: keep the timed words as-is
+            if (dp[a.length][b.length] < Math.ceil(a.length * 0.7)) {
+                for (var k2 = 0; k2 < segWords.length; k2++) out.push(segWords[k2]);
+                continue;
+            }
+
+            // Walk back through the alignment: entries are a timed word, or a segment token with no timing yet
+            var merged = [];
+            var ai = a.length, bj = b.length;
+            while (ai > 0 || bj > 0) {
+                if (ai > 0 && bj > 0 && a[ai - 1] === b[bj - 1]) {
+                    merged.unshift({ word: segWords[ai - 1] });
+                    ai--; bj--;
+                } else if (bj > 0 && (ai === 0 || dp[ai][bj - 1] >= dp[ai - 1][bj])) {
+                    merged.unshift({ token: tokens[bj - 1].replace(/^[.,!?;:"'״׳—…()\[\]]+|[.,!?;:"'״׳—…()\[\]]+$/g, "") });
+                    bj--;
+                } else {
+                    merged.unshift({ word: segWords[ai - 1] });
+                    ai--;
+                }
+            }
+
+            var prevEnd = Math.max(seg.start, 0);
+            for (var m = 0; m < merged.length; m++) {
+                if (merged[m].word) {
+                    out.push(merged[m].word);
+                    prevEnd = Math.max(prevEnd, merged[m].word.end);
+                    continue;
+                }
+                // A run of missing tokens: spread them across the gap up to the next timed word
+                var run = [];
+                while (m < merged.length && !merged[m].word) {
+                    if (merged[m].token) run.push(merged[m].token);
+                    m++;
+                }
+                m--;
+                var nextStart = (m + 1 < merged.length) ? merged[m + 1].word.start : Math.max(seg.end, prevEnd);
+                var step = Math.max(0.01, (nextStart - prevEnd) / Math.max(1, run.length));
+                for (var r = 0; r < run.length; r++) {
+                    var rs = Math.min(prevEnd + r * step, nextStart - 0.001 * (run.length - r));
+                    out.push({ word: run[r], start: rs, end: rs + step });
+                }
+                prevEnd = Math.max(prevEnd, nextStart);
+            }
+        }
+
+        while (wi < words.length) out.push(words[wi++]);
+        return out;
     },
 
     REMOTE_URLS: [
@@ -597,8 +729,7 @@ var CaptionGenerator = {
                 formData.append("language", language);
             }
 
-            // Guiding prompt in Hebrew for Whisper to maintain correct spelling, ktiv male and technical terminology
-            var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, מכבי, כריש, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
+            var hebrewPrompt = self.buildPrompt();
             formData.append("prompt", hebrewPrompt);
 
             var cleanup = function () {
@@ -739,8 +870,10 @@ var CaptionGenerator = {
             if (!whisperData) continue;
 
             if (whisperData.words && whisperData.words.length > 0) {
-                for (var w = 0; w < whisperData.words.length; w++) {
-                    var wordObj = whisperData.words[w];
+                if (!whisperData._reconciledWords) whisperData._reconciledWords = self.reconcileWords(whisperData);
+                var timedWords = whisperData._reconciledWords;
+                for (var w = 0; w < timedWords.length; w++) {
+                    var wordObj = timedWords[w];
                     var mid = (wordObj.start + wordObj.end) / 2;
 
                     // If word's position in the source media falls within this clip's inPoint/outPoint

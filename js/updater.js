@@ -3,7 +3,7 @@
  * Cross-platform (macOS & Windows)
  */
 var AutoUpdater = {
-    CURRENT_VERSION: "1.0.21",
+    CURRENT_VERSION: "1.0.22",
     PRIMARY_URL: "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/version.json",
     FALLBACK_URL: "https://cstrim.vercel.app/version.json",
 
@@ -83,7 +83,6 @@ var AutoUpdater = {
                     var nodeReq = self.getNodeRequire();
                     if (!nodeReq) return reject(new Error("Node require not available"));
                     var https = nodeReq("https");
-                var crypto = nodeReq("crypto");
                     var req = https.get(url, {
                         headers: {
                             "User-Agent": "CSTrim-AutoUpdater",
@@ -155,7 +154,8 @@ var AutoUpdater = {
                         title: (data && data.title) || ("גרסה " + remoteVer),
                         changelog: (data && data.changelog) || [],
                         bundleUrl: (data && data.bundleUrl) || "",
-                        bundleSha256: ((data && data.bundleSha256) || "").toLowerCase(),
+                        // "bundleHash", not "bundleSha256": v1.0.20/1.0.21 crash when verifying that key, so it is no longer published
+                        bundleHash: ((data && data.bundleHash) || "").toLowerCase(),
                         winSetupUrl: (data && data.winSetupUrl) || "",
                         macPkgUrl: (data && data.macPkgUrl) || ""
                     });
@@ -184,6 +184,7 @@ var AutoUpdater = {
                 var os = nodeReq("os");
                 var cp = nodeReq("child_process");
                 var https = nodeReq("https");
+                var crypto = nodeReq("crypto");
 
                 var extDir = self.getExtensionDir();
                 if (!extDir || !fs.existsSync(extDir)) {
@@ -257,9 +258,9 @@ var AutoUpdater = {
                 downloadBundle(0)
                     .then(function () {
                         // Integrity check: the zip must match the hash published in version.json
-                        if (updateInfo.bundleSha256) {
+                        if (updateInfo.bundleHash) {
                             var actual = crypto.createHash("sha256").update(fs.readFileSync(tmpZipPath)).digest("hex");
-                            if (actual !== updateInfo.bundleSha256) {
+                            if (actual !== updateInfo.bundleHash) {
                                 try { fs.unlinkSync(tmpZipPath); } catch (delErr) {}
                                 throw new Error("קובץ העדכון לא עבר בדיקת תקינות. העדכון בוטל.");
                             }

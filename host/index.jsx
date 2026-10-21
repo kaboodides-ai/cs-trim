@@ -678,11 +678,10 @@ var AutoCutHost = {
     },
 
     /**
-     * Remove every caption clip CS Trim placed earlier (marker PNGs "hl_*" and text graphics "cstrim_cap_*"),
-     * except those `keep(clip)` accepts, and return the track to place the new ones on:
-     * the track they were on, else an empty track above V1, else a new track
+     * Remove every caption clip CS Trim placed earlier (marker PNGs "hl_*", and text graphics "cstrim_cap_*" from v1.0.24-1.0.27)
+     * and return the track to place the new ones on: the track they were on, else an empty track above V1, else a new track
      */
-    prepareCaptionTrack: function(seq, keep) {
+    prepareCaptionTrack: function(seq) {
         var isCaptionClip = function(clip) {
             var nm = "";
             try { nm = clip.name || ""; } catch (e1) {}
@@ -709,7 +708,6 @@ var AutoCutHost = {
                 for (var hc = trk.clips.numItems - 1; hc >= 0; hc--) {
                     if (isCaptionClip(trk.clips[hc])) {
                         hasOld = true;
-                        if (keep && keep(trk.clips[hc])) continue;
                         try { trk.clips[hc].remove(false, false); removedOld++; } catch (remErr) {}
                     }
                 }
@@ -747,105 +745,6 @@ var AutoCutHost = {
         }
 
         return { track: targetTrack, index: targetIndex, removedOld: removedOld };
-    },
-
-    /**
-     * Place caption lines as native Premiere text graphics (.mogrt built from Basic Title), replacing earlier CS Trim captions
-     */
-    importCaptionGraphics: function(manifestPath) {
-        try {
-            if (!app.project || !app.project.activeSequence) {
-                return JSON.stringify({ error: "No active sequence open" });
-            }
-            var seq = app.project.activeSequence;
-            var mFile = new File((manifestPath || "").replace(/\\/g, "/"));
-            if (!mFile.exists) mFile = new File(manifestPath);
-            if (!mFile.exists) {
-                return JSON.stringify({ error: "Manifest file not found: " + manifestPath });
-            }
-            mFile.encoding = "UTF-8";
-            mFile.open("r");
-            var manifest = JSON.parse(mFile.read());
-            mFile.close();
-            var items = (manifest && manifest.items) ? manifest.items : [];
-            if (items.length === 0) {
-                return JSON.stringify({ error: "No caption items found in manifest" });
-            }
-            var posY = Number(manifest.posY) || 0.8;
-
-            // Keep graphics whose name (line number + text/style fingerprint) and timing are unchanged:
-            // each importMGT shows a loading dialog on Windows, so an edit should only place the lines that changed
-            var wanted = {};
-            for (var w = 0; w < items.length; w++) {
-                wanted[items[w].clipName] = items[w];
-            }
-            var frameSec = 1 / 30;
-            try { frameSec = Number(seq.timebase) / 254016000000; } catch (fbErr) {}
-            var tolerance = frameSec + 0.001;
-            var keptNames = {};
-            var keepClip = function(clip) {
-                var nm = "";
-                try { nm = clip.name || ""; } catch (e1) {}
-                var want = wanted[nm];
-                if (!want || keptNames[nm]) return false;
-                try {
-                    // Premiere snaps placed clips to frames, so compare within one frame
-                    if (Math.abs(clip.start.seconds - Number(want.start)) > tolerance) return false;
-                    if (Math.abs(clip.end.seconds - Number(want.end)) > tolerance) return false;
-                } catch (e2) { return false; }
-                keptNames[nm] = true;
-                return true;
-            };
-
-            var prep = AutoCutHost.prepareCaptionTrack(seq, keepClip);
-            if (!prep.track || prep.index < 0) {
-                return JSON.stringify({ error: "No video track available for captions" });
-            }
-
-            var placedCount = 0;
-            var keptCount = 0;
-            var lastError = "";
-            for (var k = 0; k < items.length; k++) {
-                var entry = items[k];
-                if (keptNames[entry.clipName]) { keptCount++; continue; }
-                var startSec = Math.max(0, Number(entry.start) || 0);
-                var endSec = Math.max(startSec + 0.05, Number(entry.end) || (startSec + 0.5));
-                var mgPath = new File(entry.mogrtPath).fsName || entry.mogrtPath;
-                try {
-                    var ti = seq.importMGT(mgPath, startSec, prep.index, 0);
-                    if (!ti) { lastError = "importMGT returned null"; continue; }
-                    try { ti.name = entry.clipName; } catch (nmErr) {}
-                    var endTime = new Time();
-                    endTime.seconds = endSec;
-                    try { ti.end = endTime; } catch (endErr) {}
-                    for (var c = 0; c < ti.components.numItems; c++) {
-                        var comp = ti.components[c];
-                        if (comp.displayName !== "Text") continue;
-                        for (var p = 0; p < comp.properties.numItems; p++) {
-                            if (comp.properties[p].displayName === "Position") {
-                                try { comp.properties[p].setValue([0.5, posY], true); } catch (posErr) {}
-                            }
-                        }
-                    }
-                    placedCount++;
-                } catch (placeErr) {
-                    lastError = placeErr.toString();
-                }
-            }
-
-            if (placedCount === 0 && keptCount === 0) {
-                return JSON.stringify({ error: "Failed to place caption graphics: " + lastError });
-            }
-            return JSON.stringify({
-                success: true,
-                inTimeline: true,
-                placedCount: placedCount,
-                keptCount: keptCount,
-                removedOld: prep.removedOld
-            });
-        } catch (e) {
-            return JSON.stringify({ error: "importCaptionGraphics error: " + e.toString() });
-        }
     },
 
     /**
@@ -2231,10 +2130,6 @@ function importSubtitles(srtPath, startOffset) {
 
 function importHighlightedSubtitles(manifestPath) {
     return safeBridgeEncode(AutoCutHost.importHighlightedSubtitles(manifestPath));
-}
-
-function importCaptionGraphics(manifestPath) {
-    return safeBridgeEncode(AutoCutHost.importCaptionGraphics(manifestPath));
 }
 
 function undoLastCut() {

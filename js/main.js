@@ -1402,29 +1402,26 @@ function initApp() {
                         }).then(function (capResult) {
                             var destDesc = (scope === "inout") ? "לטווח In/Out" : "לכל הסיקוונס";
 
+                            // Plain captions are a native caption track the plugin cannot replace, so they are edited in Premiere itself
                             var btnEdit = document.getElementById("btnEditCaptions");
-                            if (btnEdit && capResult.cues && capResult.cues.length > 0) {
-                                btnEdit.style.display = "flex";
-                                btnEdit.innerHTML = "<span>עריכת טקסט הכתוביות · " + capResult.cues.length + " שורות</span>";
+                            if (btnEdit) {
+                                if (capResult.highlightWords && capResult.cues && capResult.cues.length > 0) {
+                                    btnEdit.style.display = "flex";
+                                    btnEdit.innerHTML = "<span>עריכת טקסט הכתוביות · " + capResult.cues.length + " שורות</span>";
+                                } else {
+                                    btnEdit.style.display = "none";
+                                }
                             }
 
-                            var layerManifest = capResult.graphicsManifestPath || capResult.highlightManifestPath;
-                            if (layerManifest) {
-                                updateProgress(95, (capResult.highlightWords ? "מניח שכבות מרקר מילים " : "מניח שכבת כתוביות ") + destDesc + " בטיים-ליין...");
-                                var hostFn = capResult.graphicsManifestPath ? "importCaptionGraphics" : "importHighlightedSubtitles";
-                                csInterface.evalScript(hostFn + '("' + escapeForEval(layerManifest) + '")', function (hlRes) {
+                            if (capResult.highlightManifestPath) {
+                                updateProgress(95, "מניח שכבות מרקר מילים " + destDesc + " בטיים-ליין...");
+                                csInterface.evalScript('importHighlightedSubtitles("' + escapeForEval(capResult.highlightManifestPath) + '")', function (hlRes) {
                                     updateProgress(100, "הושלם!");
                                     setBusy(false);
                                     try {
                                         var hlData = JSON.parse(hlRes);
                                         if (hlData.success) {
-                                            if (capResult.highlightWords) {
-                                                log("נוצרו " + capResult.highlightClipsCount + " הדגשות מרקר מילים (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
-                                            } else if (capResult.graphicsManifestPath) {
-                                                log("נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") כטקסט של פרמייר בערוץ וידאו עליון! אפשר לערוך כל שורה ב-Essential Graphics, או את כל הטקסט בכפתור 'עריכת טקסט הכתוביות'.", "success");
-                                            } else {
-                                                log("נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
-                                            }
+                                            log("נוצרו " + capResult.highlightClipsCount + " הדגשות מרקר מילים (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
                                         } else {
                                             log("שגיאה בהנחת שכבות המרקר בטיים-ליין: " + (hlData.error || hlRes), "error");
                                         }
@@ -1443,7 +1440,7 @@ function initApp() {
                                 try {
                                     var hData = JSON.parse(hostRes);
                                     if (hData.success) {
-                                        var subMsg = "נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") והונחו ישירות בסיקוונס בטיים-ליין!";
+                                        var subMsg = "נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") והונחו ישירות בסיקוונס בטיים-ליין! לעריכת הטקסט והעיצוב: בפרמייר, Window > Text, לשונית Captions.";
                                         if (hData.inTimeline === false) {
                                             subMsg = "נוצרו " + capResult.blocksCount + " כתוביות ויובאו לחלונית הפרויקט.";
                                         }
@@ -1486,7 +1483,7 @@ function initApp() {
                         if (savedOptsRaw) {
                             try { CaptionGenerator.lastGeneratedOptions = JSON.parse(savedOptsRaw) || {}; } catch (e2) {}
                         }
-                        if (btnEditCaptions) {
+                        if (btnEditCaptions && CaptionGenerator.lastGeneratedOptions && CaptionGenerator.lastGeneratedOptions.highlightWords) {
                             btnEditCaptions.style.display = "flex";
                             btnEditCaptions.innerHTML = "<span>עריכת טקסט הכתוביות · " + parsedCues.length + " שורות</span>";
                         }
@@ -1629,8 +1626,8 @@ function initApp() {
                 }
 
                 var savedOpts = (CaptionGenerator.lastGeneratedOptions) ? CaptionGenerator.lastGeneratedOptions : {};
-                var hlEl = document.getElementById("captionWordHighlight");
-                savedOpts.highlightWords = hlEl ? hlEl.checked : Boolean(savedOpts.highlightWords);
+                // The editor only exists for marker captions (a managed track it can replace)
+                savedOpts.highlightWords = true;
                 savedOpts.highlightColor = selectedHighlightColor || savedOpts.highlightColor || "#FACC15";
 
                 setBusy(true);
@@ -1640,37 +1637,20 @@ function initApp() {
                 CaptionGenerator.regenerateFromEditedCues(updatedCues, savedOpts, function (pct, msg) {
                     updateProgress(pct, msg);
                 }).then(function (capResult) {
-                    var layerManifest = capResult.graphicsManifestPath || capResult.highlightManifestPath;
-                    if (layerManifest) {
-                        updateProgress(92, "מחליף את שכבת הכתוביות בטיים-ליין עם הטקסט המתוקן...");
-                        var hostFn = capResult.graphicsManifestPath ? "importCaptionGraphics" : "importHighlightedSubtitles";
-                        csInterface.evalScript(hostFn + '("' + escapeForEval(layerManifest) + '")', function (hlRes) {
-                            updateProgress(100, "הושלם!");
-                            setBusy(false);
-                            try {
-                                var hlData = JSON.parse(hlRes);
-                                if (hlData.success) {
-                                    if (typeof hlData.keptCount === "number") {
-                                        log("הטקסט עודכן בהצלחה בטיים-ליין (עודכנו " + (hlData.placedCount || 0) + " שורות, " + hlData.keptCount + " שורות ללא שינוי נשארו כמו שהן)!", "success");
-                                    } else {
-                                        log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
-                                    }
-                                } else {
-                                    log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
-                                }
-                            } catch (e) {
-                                log("הכתוביות המתוקנות עודכנו בהצלחה!", "success");
-                            }
-                        });
-                        return;
-                    }
-
-                    updateProgress(92, "מעדכן כתוביות בטיים-ליין...");
-                    var srtEsc = escapeForEval(capResult.srtPath);
-                    csInterface.evalScript('importSubtitles("' + srtEsc + '", 0)', function () {
+                    updateProgress(92, "מחליף את שכבת הכתוביות בטיים-ליין עם הטקסט המתוקן...");
+                    csInterface.evalScript('importHighlightedSubtitles("' + escapeForEval(capResult.highlightManifestPath) + '")', function (hlRes) {
                         updateProgress(100, "הושלם!");
                         setBusy(false);
-                        log("הכתוביות המתוקנות עודכנו בהצלחה בטיים-ליין!", "success");
+                        try {
+                            var hlData = JSON.parse(hlRes);
+                            if (hlData.success) {
+                                log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
+                            } else {
+                                log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
+                            }
+                        } catch (e) {
+                            log("הכתוביות המתוקנות עודכנו בהצלחה!", "success");
+                        }
                     });
                 }).catch(function (err) {
                     updateProgress(0, "");

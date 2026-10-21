@@ -1105,9 +1105,9 @@ var CaptionGenerator = {
     },
 
     /**
-     * Build the caption layer the host places on a managed video track (replaced on every edit, never stacked):
-     * plain captions become editable Premiere text graphics; marker mode (or a missing Basic Title template) uses PNG frames.
-     * Resolves { highlightWords, graphicsManifestPath | highlightManifestPath, highlightClipsCount }
+     * Marker mode: render PNG frames for the managed video track the host replaces on every edit.
+     * Plain captions need no layer here: they are placed as a native caption track from the SRT.
+     * Resolves { highlightWords, highlightManifestPath?, highlightClipsCount? }
      */
     buildCaptionLayer: function (cues, options, srtPath, onProgress) {
         var self = this;
@@ -1133,17 +1133,8 @@ var CaptionGenerator = {
             });
         };
 
-        if (hlOn || typeof CaptionGraphics === "undefined") return renderFrames();
-        return CaptionGraphics.buildForCues(cues, options, onProgress).then(function (g) {
-            return {
-                highlightWords: false,
-                graphicsManifestPath: g.manifestPath,
-                highlightClipsCount: g.count
-            };
-        }).catch(function (err) {
-            console.warn("Caption graphics unavailable, using image frames: " + err.message);
-            return renderFrames();
-        });
+        if (!hlOn) return Promise.resolve({ highlightWords: false });
+        return renderFrames();
     },
 
     /**

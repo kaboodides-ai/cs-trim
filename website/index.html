@@ -28,6 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/live-demo.css">
     <link rel="stylesheet" href="css/site.css?v=3.1.0">
 
     <script type="application/ld+json">
@@ -60,6 +61,7 @@
             </a>
 
             <nav class="nav-links" aria-label="ניווט ראשי">
+                <a href="#live-demo">נסו בעצמכם</a>
                 <a href="#glance">בקצרה</a>
                 <a href="#features">איך זה עובד</a>
                 <a href="#compare">השוואה</a>
@@ -132,6 +134,73 @@
                     </div>
                     <figcaption class="h-figcap">השתיקות מסומנות, נחתכות, והכתוביות מדגישות כל מילה בזמן הדיבור.</figcaption>
                 </figure>
+            </div>
+        </section>
+
+        <!-- Live demo: the real panel in a simulated Premiere window -->
+        <section class="section" id="live-demo">
+            <div class="container">
+                <header class="section-head">
+                    <p class="eyebrow">נסו בעצמכם</p>
+                    <h2 class="section-title">הפאנל האמיתי, ישר בדפדפן</h2>
+                    <p class="section-sub">זה אותו ממשק בדיוק שתקבלו בתוך פרמייר. לחצו על הכפתורים והסתכלו מה קורה בטיימליין ובמוניטור.</p>
+                </header>
+                <div class="ld-wrap" id="liveDemo">
+                    <div class="ld-chips" role="tablist" aria-label="בחירת כלי">
+                        <button type="button" class="ld-chip is-on">1 · חיתוך שקט</button>
+                        <button type="button" class="ld-chip">2 · כתוביות</button>
+                        <button type="button" class="ld-chip">3 · אנימציות</button>
+                    </div>
+                    <div class="ld-win">
+                        <div class="ld-bar">
+                            <span class="ld-dot" style="background:#ff5f57"></span><span class="ld-dot" style="background:#febc2e"></span><span class="ld-dot" style="background:#28c840"></span>
+                            <span class="ld-title-t">Adobe Premiere Pro — Reel_Edit_01</span>
+                            <button type="button" class="ld-reset" id="ldReset">איפוס הדמיה</button>
+                        </div>
+                        <div class="ld-top">
+                            <div class="ld-monitor-col">
+                                <div class="ld-monitor" role="img" aria-label="מוניטור התוכנית עם כתוביות ואנימציית טקסט">
+                                    <div class="ld-scene"></div>
+                                    <div class="ld-title" id="ldTitle">הכותרת שלך</div>
+                                    <div class="ld-caption" id="ldCaption"></div>
+                                    <span class="ld-tc" id="ldTC">00:00:00:00</span>
+                                </div>
+                                <div class="ld-transport">
+                                    <button type="button" class="ld-play" id="ldPlay" aria-label="השהיה">
+                                        <svg class="ic-pause" viewBox="0 0 12 12"><rect x="1.5" y="1" width="3" height="10"/><rect x="7.5" y="1" width="3" height="10"/></svg>
+                                        <svg class="ic-play" viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z"/></svg>
+                                    </button>
+                                    <span>Program</span>
+                                    <span class="ld-saved" id="ldSaved"></span>
+                                </div>
+                            </div>
+                            <div class="ld-panel-col">
+                                <iframe class="ld-panel-frame" src="demo/panel.html" title="הפאנל של CS Trim" loading="lazy"></iframe>
+                            </div>
+                        </div>
+                        <div class="ld-tl" id="ldTimeline">
+                            <div class="ld-gridwrap">
+                                <div class="ld-labels">
+                                    <div class="ld-lbl" style="height:16px;margin-bottom:4px"></div>
+                                    <div class="ld-lbl">V4</div><div class="ld-lbl">V3</div><div class="ld-lbl">V2</div><div class="ld-lbl">V1</div><div class="ld-lbl">CC</div><div class="ld-lbl" style="height:34px;line-height:34px">A1</div>
+                                </div>
+                                <div class="ld-tracks" id="ldTracks">
+                                    <div class="ld-row ld-ruler" id="ldRuler"></div>
+                                    <div class="ld-row" id="ldRowV4"></div>
+                                    <div class="ld-row" id="ldRowV3"></div>
+                                    <div class="ld-row" id="ldRowV2"></div>
+                                    <div class="ld-row" id="ldRowV1"></div>
+                                    <div class="ld-row" id="ldRowCC"></div>
+                                    <div class="ld-row ld-a" id="ldRowA"></div>
+                                    <div class="ld-inout" id="ldInOut"></div>
+                                    <div class="ld-markers" id="ldMarkers"></div>
+                                    <div class="ld-playhead" id="ldPlayhead"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="ld-hint" id="ldHint"></p>
+                </div>
             </div>
         </section>
 
@@ -1247,5 +1316,6 @@
     <!-- Scripts -->
     <script src="js/main.js?v=2.0.0"></script>
     <script src="js/fx.js?v=1.0.0"></script>
+    <script src="js/live-demo.js?v=1.0.0"></script>
 </body>
 </html>

@@ -601,6 +601,81 @@ var CaptionGenerator = {
             var hebrewPrompt = "כתוביות בעברית תקנית, כתיב מלא, פיסוק נכון, מכבי, כריש, עריכת וידאו, פרמייר פרו, טיקטוק, אינסטגרם, יוטיוב, רילס, פודקאסט.";
             formData.append("prompt", hebrewPrompt);
 
+            var cleanup = function () {
+                if (audioInfo && audioInfo.isTemp !== false) {
+                    try { fs.unlinkSync(audioPath); } catch (e) {}
+                }
+            };
+
+            var httpError = function (status, errData) {
+                var msg = (errData && errData.error && errData.error.message) ? errData.error.message : ("HTTP " + status);
+                if (status === 401) {
+                    msg = "מפתח Groq API שגוי או לא בתוקף. אנא בדוק את המפתח שהזנת.";
+                }
+                return new Error(msg);
+            };
+
+            // Fallback: Node https with a hand-built multipart body. Used when Chromium's fetch
+            // fails at the network level ("Failed to fetch") - seen on some Macs (proxy/VPN/security software).
+            var nodeTranscribe = function (fetchErr) {
+                var nodeHttps;
+                try { nodeHttps = nodeReq("https"); } catch (e) { nodeHttps = null; }
+                if (!nodeHttps) { cleanup(); return reject(fetchErr); }
+
+                var boundary = "----cstrim" + Date.now().toString(16) + Math.random().toString(16).slice(2);
+                var parts = [];
+                var addField = function (name, value) {
+                    parts.push(Buffer.from("--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + name + "\"\r\n\r\n" + value + "\r\n", "utf8"));
+                };
+                parts.push(Buffer.from("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"\r\nContent-Type: " + mimeType + "\r\n\r\n", "utf8"));
+                parts.push(fileBuffer);
+                parts.push(Buffer.from("\r\n", "utf8"));
+                addField("model", "whisper-large-v3");
+                addField("response_format", "verbose_json");
+                addField("temperature", "0.0");
+                addField("timestamp_granularities[]", "word");
+                addField("timestamp_granularities[]", "segment");
+                if (language && language !== "auto") addField("language", language);
+                addField("prompt", hebrewPrompt);
+                parts.push(Buffer.from("--" + boundary + "--\r\n", "utf8"));
+                var body = Buffer.concat(parts);
+
+                var req = nodeHttps.request({
+                    method: "POST",
+                    hostname: "api.groq.com",
+                    path: "/openai/v1/audio/transcriptions",
+                    headers: {
+                        "Authorization": "Bearer " + apiKey.trim(),
+                        "Content-Type": "multipart/form-data; boundary=" + boundary,
+                        "Content-Length": body.length
+                    }
+                }, function (res) {
+                    var chunks = [];
+                    res.on("data", function (c) { chunks.push(c); });
+                    res.on("end", function () {
+                        var text = Buffer.concat(chunks).toString("utf8");
+                        var json = null;
+                        try { json = JSON.parse(text); } catch (e) {}
+                        if (res.statusCode >= 200 && res.statusCode < 300 && json) {
+                            cleanup();
+                            resolve(json);
+                        } else {
+                            cleanup();
+                            reject(httpError(res.statusCode, json));
+                        }
+                    });
+                });
+                req.on("error", function (e) {
+                    cleanup();
+                    reject(new Error("אין חיבור ל-Groq (" + (e && e.message ? e.message : "שגיאת רשת") + "). בדוק אינטרנט, VPN או חומת אש."));
+                });
+                req.setTimeout(300000, function () {
+                    req.abort();
+                });
+                req.write(body);
+                req.end();
+            };
+
             fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
                 method: "POST",
                 headers: {
@@ -610,29 +685,24 @@ var CaptionGenerator = {
             })
             .then(function (res) {
                 if (!res.ok) {
-                    return res.json().then(function (errData) {
-                        var msg = (errData && errData.error && errData.error.message) ? errData.error.message : ("HTTP " + res.status);
-                        if (res.status === 401) {
-                            msg = "מפתח Groq API שגוי או לא בתוקף. אנא בדוק את המפתח שהזנת.";
-                        }
-                        throw new Error(msg);
-                    }).catch(function (e) {
-                        throw new Error(e.message || ("HTTP " + res.status));
+                    return res.json().catch(function () { return null; }).then(function (errData) {
+                        var e = httpError(res.status, errData);
+                        e.isHttp = true;
+                        throw e;
                     });
                 }
                 return res.json();
             })
             .then(function (data) {
-                if (audioInfo && audioInfo.isTemp !== false) {
-                    try { fs.unlinkSync(audioPath); } catch (e) {}
-                }
+                cleanup();
                 resolve(data);
             })
             .catch(function (err) {
-                if (audioInfo && audioInfo.isTemp !== false) {
-                    try { fs.unlinkSync(audioPath); } catch (e) {}
+                if (err && err.isHttp) {
+                    cleanup();
+                    return reject(err);
                 }
-                reject(err);
+                nodeTranscribe(err);
             });
         });
     },

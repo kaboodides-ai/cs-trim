@@ -1,6 +1,6 @@
 {
-  "version": "1.0.28",
-  "versionCode": 128,
+  "version": "1.0.29",
+  "versionCode": 129,
   "releaseDate": "2026-10-21",
   "title": "עדכון גרסה 1.0.28: כתוביות רגילות של פרמייר",
   "changelog": [
@@ -11,5 +11,5 @@
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "17f67dadce81d88dab21e392252b9c1926600c22d457f7558791aaf472d410ed"
+  "bundleHash": "97235b00f9c35e1a6dbb202ee7f14649c9872bae93c2dffeb6a8edb197817c12"
 }

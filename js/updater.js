@@ -70,10 +70,11 @@ var AutoUpdater = {
      */
     fetchVersionMetadata: function () {
         var self = this;
+        // GitHub raw first: it is also where the bundle is downloaded from, and it updates instantly after a push.
+        // Vercel lags a minute or two behind, so its version.json can carry the previous release's bundle hash.
         var urls = [
-            "https://cstrim.vercel.app/version.json?t=" + Date.now(),
-            "https://cstrim.site/version.json?t=" + Date.now(),
             self.PRIMARY_URL + "?t=" + Date.now(),
+            "https://cstrim.site/version.json?t=" + Date.now(),
             self.FALLBACK_URL + "?t=" + Date.now()
         ];
 
@@ -226,7 +227,7 @@ var AutoUpdater = {
                         })
                         .then(function (ab) {
                             fs.writeFileSync(tmpZipPath, Buffer.from(ab));
-                            return true;
+                            return idx;
                         })
                         .catch(function () {
                             // Try downloading with Node.js https
@@ -244,7 +245,7 @@ var AutoUpdater = {
                                         res.pipe(fileStream);
                                         fileStream.on("finish", function () {
                                             fileStream.close();
-                                            resNode(true);
+                                            resNode(idx);
                                         });
                                     });
                                     req.on("error", function (err) {
@@ -261,16 +262,21 @@ var AutoUpdater = {
                         });
                 };
 
-                downloadBundle(0)
+                // Download, then verify against the hash published in version.json. A source that serves a
+                // different file (stale CDN cache, blocked page) is skipped in favour of the next one.
+                var downloadVerified = function (startIdx) {
+                    return downloadBundle(startIdx).then(function (usedIdx) {
+                        if (!updateInfo.bundleHash) return true;
+                        var actual = crypto.createHash("sha256").update(fs.readFileSync(tmpZipPath)).digest("hex");
+                        if (actual === updateInfo.bundleHash) return true;
+                        try { fs.unlinkSync(tmpZipPath); } catch (delErr) {}
+                        if (usedIdx + 1 < bundleCandidateUrls.length) return downloadVerified(usedIdx + 1);
+                        throw new Error("קובץ העדכון לא עבר בדיקת תקינות. העדכון בוטל.");
+                    });
+                };
+
+                downloadVerified(0)
                     .then(function () {
-                        // Integrity check: the zip must match the hash published in version.json
-                        if (updateInfo.bundleHash) {
-                            var actual = crypto.createHash("sha256").update(fs.readFileSync(tmpZipPath)).digest("hex");
-                            if (actual !== updateInfo.bundleHash) {
-                                try { fs.unlinkSync(tmpZipPath); } catch (delErr) {}
-                                throw new Error("קובץ העדכון לא עבר בדיקת תקינות. העדכון בוטל.");
-                            }
-                        }
                         if (onProgress) onProgress(65, "מחלץ ומעדכן את קבצי התוסף...");
 
                         var isWin = (os.platform() === "win32");

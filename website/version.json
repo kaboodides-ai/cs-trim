@@ -1,15 +1,15 @@
 {
-  "version": "1.0.20",
-  "versionCode": 120,
-  "releaseDate": "2026-10-20",
-  "title": "עדכון גרסה 1.0.20: שחזור בדיקת תקינות לעדכון אוטומטי",
+  "version": "1.0.21",
+  "versionCode": 121,
+  "releaseDate": "2026-10-21",
+  "title": "עדכון גרסה 1.0.21: עריכת כתוביות בלי שכבות כפולות",
   "changelog": [
-    "שוחזרה בדיקת תקינות (hash) של קובץ העדכון לפני התקנתו",
-    "ההתקנה ב-Mac מנקה עותק ישן של התוסף ומצרפת ffmpeg לכתוביות על MKV, AVI, TS ועוד",
-    "התקנה מחדש של ה-pkg נדרשת כדי לקבל את שינויי ההתקנה (העדכון האוטומטי לא כולל אותם)"
+    "עריכת מילה בכתוביות מחליפה את שכבת הכתוביות בטיים-ליין במקום להוסיף שכבה חדשה",
+    "הכתוביות מונחות כשכבת וידאו עליונה (גם בלי מרקר), כך שכל עדכון מחליף אותן בצורה נקייה",
+    "שכבת Captions ישנה שנוצרה לפני העדכון יש למחוק ידנית פעם אחת"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleSha256": "170d3c6334309afafe8830a63e6a43b40c6abadab09a098a758837659ac13afa"
+  "bundleSha256": "f6d867016406efb2646e3b12aa887815a748587ca2d22fbcbc71a4d429b7beaf"
 }

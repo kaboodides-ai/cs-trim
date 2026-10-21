@@ -897,7 +897,8 @@ var CaptionGenerator = {
     },
 
     /**
-     * Render transparent PNG overlay frames for each spoken word with a colored marker highlight box
+     * Render transparent PNG overlay frames: one per spoken word with a colored marker highlight box,
+     * or (highlightWords off) one plain frame per caption line. Placed on a managed video track so edits replace them.
      */
     renderHighlightFrames: function (cues, options, onProgress) {
         var self = this;
@@ -913,6 +914,7 @@ var CaptionGenerator = {
                 var seqWidth = parseInt(options.seqWidth, 10) || 1080;
                 var seqHeight = parseInt(options.seqHeight, 10) || 1920;
                 var highlightColor = options.highlightColor || "#FACC15";
+                var highlightOn = Boolean(options.highlightWords);
 
                 var outDir = path.join(os.tmpdir(), "autocut_hl_" + Date.now());
                 if (!fs.existsSync(outDir)) {
@@ -947,6 +949,11 @@ var CaptionGenerator = {
                     for (var cIdx = 0; cIdx < cues.length; cIdx++) {
                         var cue = cues[cIdx];
                         var wordsArr = cue.words || [];
+                        if (wordsArr.length === 0 && !highlightOn) {
+                            wordsArr = String(cue.text || "").split(/\s+/).filter(Boolean).map(function (wt) {
+                                return { word: wt, start: cue.start, end: cue.end };
+                            });
+                        }
                         if (wordsArr.length === 0) continue;
 
                         ctx.font = "900 " + fontSize + "px 'Heebo', 'Arial', sans-serif";
@@ -1006,9 +1013,10 @@ var CaptionGenerator = {
                             }
                         }
 
-                        // Render one PNG state per active word in this cue
-                        for (var activeIdx = 0; activeIdx < wordsArr.length; activeIdx++) {
-                            var wTiming = wordsArr[activeIdx];
+                        // Render one PNG state per active word in this cue (or a single plain frame for the whole line)
+                        var stateCount = highlightOn ? wordsArr.length : 1;
+                        for (var activeIdx = 0; activeIdx < stateCount; activeIdx++) {
+                            var wTiming = highlightOn ? wordsArr[activeIdx] : { start: cue.start, end: cue.end, word: cue.text };
                             var activeLayout = wordLayouts[activeIdx];
                             if (!activeLayout) continue;
 
@@ -1019,20 +1027,22 @@ var CaptionGenerator = {
                             ctx.textAlign = "center";
 
                             // 1. Draw the colored Marker Highlight box behind the active word
-                            var boxX = activeLayout.left - padX;
-                            var boxY = activeLayout.centerY - Math.round(fontSize * 0.52) - padY;
-                            var boxW = activeLayout.width + padX * 2;
-                            var boxH = Math.round(fontSize * 1.04) + padY * 2;
+                            if (highlightOn) {
+                                var boxX = activeLayout.left - padX;
+                                var boxY = activeLayout.centerY - Math.round(fontSize * 0.52) - padY;
+                                var boxW = activeLayout.width + padX * 2;
+                                var boxH = Math.round(fontSize * 1.04) + padY * 2;
 
-                            ctx.save();
-                            ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-                            ctx.shadowBlur = Math.round(fontSize * 0.2);
-                            ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = Math.round(fontSize * 0.06);
-                            ctx.fillStyle = highlightColor;
-                            self.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, cornerRadius);
-                            ctx.fill();
-                            ctx.restore();
+                                ctx.save();
+                                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                                ctx.shadowBlur = Math.round(fontSize * 0.2);
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = Math.round(fontSize * 0.06);
+                                ctx.fillStyle = highlightColor;
+                                self.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, cornerRadius);
+                                ctx.fill();
+                                ctx.restore();
+                            }
 
                             // 2. Draw all words of the sentence in their locked positions
                             for (var dIdx = 0; dIdx < wordLayouts.length; dIdx++) {
@@ -1079,7 +1089,7 @@ var CaptionGenerator = {
 
                         if (onProgress && cIdx % 4 === 0) {
                             var renderPct = 86 + Math.round(((cIdx + 1) / cues.length) * 8);
-                            onProgress(renderPct, "מייצר מרקר על המילים (" + (cIdx + 1) + "/" + cues.length + ")...");
+                            onProgress(renderPct, (highlightOn ? "מייצר מרקר על המילים (" : "מייצר שכבת כתוביות (") + (cIdx + 1) + "/" + cues.length + ")...");
                         }
                     }
 
@@ -1175,38 +1185,29 @@ var CaptionGenerator = {
                         var bom = "\uFEFF";
                         fs.writeFileSync(srtPath, bom + srtContent, "utf8");
 
-                        if (options && options.highlightWords) {
-                            onProgress(86, "מייצר שכבות מרקר (הייליט) לכל מילה...");
-                            self.renderHighlightFrames(cues, options, onProgress).then(function (hlData) {
-                                var manifestPath = path.join(hlData.outDir, "manifest.json");
-                                var manifestObj = {
-                                    srtPath: srtPath,
-                                    highlightColor: options.highlightColor || "#FACC15",
-                                    items: hlData.items
-                                };
-                                fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
+                        // Always render managed overlay frames: Premiere's scripting API cannot delete caption tracks,
+                        // so a native caption track would stack a new copy on every edit
+                        var hlOn = Boolean(options && options.highlightWords);
+                        onProgress(86, hlOn ? "מייצר שכבות מרקר (הייליט) לכל מילה..." : "מייצר שכבת כתוביות...");
+                        self.renderHighlightFrames(cues, options, onProgress).then(function (hlData) {
+                            var manifestPath = path.join(hlData.outDir, "manifest.json");
+                            var manifestObj = {
+                                srtPath: srtPath,
+                                highlightColor: (options && options.highlightColor) || "#FACC15",
+                                items: hlData.items
+                            };
+                            fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
 
-                                onProgress(100, "כתוביות המרקר " + targetLabel + " מוכנות!");
-                                resolve({
-                                    srtPath: srtPath,
-                                    blocksCount: cues.length,
-                                    highlightWords: true,
-                                    highlightManifestPath: manifestPath,
-                                    highlightClipsCount: hlData.items.length,
-                                    cues: cues
-                                });
-                            }).catch(reject);
-                            return;
-                        }
-
-                        onProgress(100, "הכתוביות " + targetLabel + " מוכנות!");
-
-                        resolve({
-                            srtPath: srtPath,
-                            blocksCount: cues.length,
-                            highlightWords: false,
-                            cues: cues
-                        });
+                            onProgress(100, (hlOn ? "כתוביות המרקר " : "הכתוביות ") + targetLabel + " מוכנות!");
+                            resolve({
+                                srtPath: srtPath,
+                                blocksCount: cues.length,
+                                highlightWords: hlOn,
+                                highlightManifestPath: manifestPath,
+                                highlightClipsCount: hlData.items.length,
+                                cues: cues
+                            });
+                        }).catch(reject);
                     } catch (e) {
                         reject(e);
                     }
@@ -1276,37 +1277,30 @@ var CaptionGenerator = {
                 var bom = "\uFEFF";
                 fs.writeFileSync(srtPath, bom + srtContent, "utf8");
 
-                if (options && options.highlightWords) {
-                    if (onProgress) onProgress(30, "מייצר מחדש שכבות מרקר עם הטקסט המתוקן...");
-                    self.renderHighlightFrames(cues, options, function (p, msg) {
-                        if (onProgress) onProgress(p, msg);
-                    }).then(function (hlData) {
-                        var manifestPath = path.join(hlData.outDir, "manifest.json");
-                        var manifestObj = {
-                            srtPath: srtPath,
-                            highlightColor: options.highlightColor || "#FACC15",
-                            items: hlData.items
-                        };
-                        fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
+                // Always re-render the managed overlay track so the edit replaces the previous one instead of stacking
+                options = options || {};
+                var hlOn = Boolean(options.highlightWords);
+                if (onProgress) onProgress(30, hlOn ? "מייצר מחדש שכבות מרקר עם הטקסט המתוקן..." : "מייצר מחדש את שכבת הכתוביות עם הטקסט המתוקן...");
+                self.renderHighlightFrames(cues, options, function (p, msg) {
+                    if (onProgress) onProgress(p, msg);
+                }).then(function (hlData) {
+                    var manifestPath = path.join(hlData.outDir, "manifest.json");
+                    var manifestObj = {
+                        srtPath: srtPath,
+                        highlightColor: options.highlightColor || "#FACC15",
+                        items: hlData.items
+                    };
+                    fs.writeFileSync(manifestPath, JSON.stringify(manifestObj), "utf8");
 
-                        resolve({
-                            srtPath: srtPath,
-                            blocksCount: cues.length,
-                            highlightWords: true,
-                            highlightManifestPath: manifestPath,
-                            highlightClipsCount: hlData.items.length,
-                            cues: cues
-                        });
-                    }).catch(reject);
-                    return;
-                }
-
-                resolve({
-                    srtPath: srtPath,
-                    blocksCount: cues.length,
-                    highlightWords: false,
-                    cues: cues
-                });
+                    resolve({
+                        srtPath: srtPath,
+                        blocksCount: cues.length,
+                        highlightWords: hlOn,
+                        highlightManifestPath: manifestPath,
+                        highlightClipsCount: hlData.items.length,
+                        cues: cues
+                    });
+                }).catch(reject);
             } catch (e) {
                 reject(e);
             }

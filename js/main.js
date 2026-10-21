@@ -1408,8 +1408,8 @@ function initApp() {
                                 btnEdit.innerHTML = "<span>עריכת טקסט הכתוביות · " + capResult.cues.length + " שורות</span>";
                             }
 
-                            if (capResult.highlightWords && capResult.highlightManifestPath) {
-                                updateProgress(95, "מניח שכבות מרקר מילים " + destDesc + " בטיים-ליין...");
+                            if (capResult.highlightManifestPath) {
+                                updateProgress(95, (capResult.highlightWords ? "מניח שכבות מרקר מילים " : "מניח שכבת כתוביות ") + destDesc + " בטיים-ליין...");
                                 var manifestEsc = escapeForEval(capResult.highlightManifestPath);
                                 csInterface.evalScript('importHighlightedSubtitles("' + manifestEsc + '")', function (hlRes) {
                                     updateProgress(100, "הושלם!");
@@ -1417,7 +1417,11 @@ function initApp() {
                                     try {
                                         var hlData = JSON.parse(hlRes);
                                         if (hlData.success) {
-                                            log("נוצרו " + capResult.highlightClipsCount + " הדגשות מרקר מילים (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
+                                            if (capResult.highlightWords) {
+                                                log("נוצרו " + capResult.highlightClipsCount + " הדגשות מרקר מילים (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
+                                            } else {
+                                                log("נוצרו " + capResult.blocksCount + " כתוביות (" + destDesc + ") והונחו בערוץ וידאו עליון בטיים-ליין! ניתן לערוך כל מילה בכפתור 'עריכת טקסט הכתוביות'.", "success");
+                                            }
                                         } else {
                                             log("שגיאה בהנחת שכבות המרקר בטיים-ליין: " + (hlData.error || hlRes), "error");
                                         }
@@ -1633,8 +1637,8 @@ function initApp() {
                 CaptionGenerator.regenerateFromEditedCues(updatedCues, savedOpts, function (pct, msg) {
                     updateProgress(pct, msg);
                 }).then(function (capResult) {
-                    if (capResult.highlightWords && capResult.highlightManifestPath) {
-                        updateProgress(92, "מחליף שכבות מרקר בטיים-ליין עם הטקסט המתוקן...");
+                    if (capResult.highlightManifestPath) {
+                        updateProgress(92, "מחליף את שכבת הכתוביות בטיים-ליין עם הטקסט המתוקן...");
                         var manifestEsc = escapeForEval(capResult.highlightManifestPath);
                         csInterface.evalScript('importHighlightedSubtitles("' + manifestEsc + '")', function (hlRes) {
                             updateProgress(100, "הושלם!");
@@ -1642,7 +1646,7 @@ function initApp() {
                             try {
                                 var hlData = JSON.parse(hlRes);
                                 if (hlData.success) {
-                                    log("הטקסט והמרקרים עודכנו בהצלחה בטיים-ליין (" + capResult.highlightClipsCount + " מילים, נמחקו " + (hlData.removedOld || 0) + " קליפים ישנים)!", "success");
+                                    log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
                                 } else {
                                     log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
                                 }
@@ -1655,7 +1659,7 @@ function initApp() {
 
                     updateProgress(92, "מעדכן כתוביות בטיים-ליין...");
                     var srtEsc = escapeForEval(capResult.srtPath);
-                    csInterface.evalScript('importSubtitles("' + srtEsc + '", 0, true)', function () {
+                    csInterface.evalScript('importSubtitles("' + srtEsc + '", 0)', function () {
                         updateProgress(100, "הושלם!");
                         setBusy(false);
                         log("הכתוביות המתוקנות עודכנו בהצלחה בטיים-ליין!", "success");

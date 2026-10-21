@@ -561,7 +561,7 @@ var AutoCutHost = {
     /**
      * Import an SRT subtitle file into Premiere Pro and place it directly on the active sequence
      */
-    importSubtitles: function(srtPath, startOffset, replacePrevious) {
+    importSubtitles: function(srtPath, startOffset) {
         try {
             if (!app.project) {
                 return JSON.stringify({ error: "No project open" });
@@ -629,26 +629,6 @@ var AutoCutHost = {
 
             var inTimeline = false;
             var seq = app.project.activeSequence;
-            if (seq && replacePrevious) {
-                // Editing captions: remove caption clips created earlier by this plugin (captions_*.srt) so they don't stack
-                try {
-                    var capTracks = seq.captionTracks;
-                    if (capTracks) {
-                        for (var ct = capTracks.numTracks - 1; ct >= 0; ct--) {
-                            var capTrk = capTracks[ct];
-                            if (!capTrk || !capTrk.clips) continue;
-                            for (var cc = capTrk.clips.numItems - 1; cc >= 0; cc--) {
-                                var capClip = capTrk.clips[cc];
-                                var capName = "";
-                                try { capName = capClip.name || ""; } catch (nmErr) {}
-                                if (capName.indexOf("captions_") === 0) {
-                                    try { capClip.remove(false, false); } catch (rmErr) {}
-                                }
-                            }
-                        }
-                    }
-                } catch (capErr) {}
-            }
             if (seq) {
                 var format = (typeof Sequence !== "undefined" && Sequence.CAPTION_FORMAT_SUBTITLE) ? Sequence.CAPTION_FORMAT_SUBTITLE : "Subtitle";
                 // 1. Try createCaptionTrack with seconds number
@@ -2130,8 +2110,8 @@ function buildCutSequence(mediaPath, segmentsJson) {
     return safeBridgeEncode(AutoCutHost.buildCutSequence(mediaPath, segmentsJson));
 }
 
-function importSubtitles(srtPath, startOffset, replacePrevious) {
-    return safeBridgeEncode(AutoCutHost.importSubtitles(srtPath, startOffset, replacePrevious));
+function importSubtitles(srtPath, startOffset) {
+    return safeBridgeEncode(AutoCutHost.importSubtitles(srtPath, startOffset));
 }
 
 function importHighlightedSubtitles(manifestPath) {

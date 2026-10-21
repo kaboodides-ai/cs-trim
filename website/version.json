@@ -1,15 +1,15 @@
 {
-  "version": "1.0.23",
-  "versionCode": 123,
+  "version": "1.0.24",
+  "versionCode": 124,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.23: עוזר עזרה חכם בתוך הפאנל",
+  "title": "עדכון גרסה 1.0.24: כתוביות כטקסט שאפשר לערוך בפרמייר",
   "changelog": [
-    "נוסף כפתור \"?\" בכותרת הפאנל: עוזר AI בעברית שעוזר לפתור תקלות",
-    "העוזר מקבל את גרסת התוסף ושורות אחרונות מיומן הפעילות כדי לאבחן את הבעיה",
-    "אם העוזר לא פתר, כפתור \"דבר עם בן אדם\" שולח את השיחה כפידבק"
+    "כתוביות רגילות נוצרות כטקסט של פרמייר (Graphics): אפשר ללחוץ על כל שורה ולשנות טקסט, פונט, צבע וגודל ב-Essential Graphics",
+    "עריכת טקסט בתוסף מחליפה את הכתוביות בטיים-ליין בלי ליצור שכבות כפולות",
+    "מצב המרקר על מילים נשאר כמו קודם"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "0a8afe45a3a37c61e628c7fb221af21f4434ff648d6cbd873b2d10a2b99dec4c"
+  "bundleHash": "d01401ad54bf64bb8f18a344575169a5dd5e583540c7e9054ae8d9e545f2b731"
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS Trim</title>
-    <link rel="stylesheet" href="css/style.css?v=11">
+    <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
     <!-- Header -->
@@ -17,6 +17,9 @@
             <button type="button" id="topUpdateBadge" class="btn-top-update" onclick="openUpdateModal(event)" title="גרסה חדשה זמינה לעדכון" style="display:none;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
                 <span class="top-update-text">עדכון</span>
+            </button>
+            <button type="button" id="btnOpenSupport" class="icon-btn" onclick="openSupportChat(event)" title="עזרה">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5"/><line x1="12" y1="17.5" x2="12" y2="17.5"/></svg>
             </button>
             <button type="button" id="btnOpenFeedback" class="icon-btn" onclick="openFeedbackModal(event)" title="פידבק והצעות">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -458,11 +461,33 @@
         </div>
     </div>
 
+    <!-- Support Chat Modal -->
+    <div id="supportChatModal" class="modal-overlay" style="display:none;" onclick="handleSupportOverlayClick(event)">
+        <div class="modal-card support-card">
+            <div class="modal-header">
+                <div class="modal-title">עזרה</div>
+                <button type="button" class="btn-modal-close" onclick="closeSupportChat(event)" title="סגור">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="supportMessages" class="support-messages" dir="rtl"></div>
+            <form id="supportForm" class="support-form" onsubmit="sendSupportMessage(event)">
+                <input type="text" id="supportInput" class="pfb-input" maxlength="500" autocomplete="off" placeholder="תארו מה לא עובד...">
+                <button type="submit" id="supportSend" class="btn btn-primary"><span>שלח</span></button>
+            </form>
+            <div class="support-footer">
+                <span>העוזר משתמש בגרסה ובשורות האחרונות מיומן הפעילות כדי לעזור.</span>
+                <button type="button" class="support-human" onclick="supportToHuman(event)">דבר עם בן אדם</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/CSInterface.js?v=5"></script>
     <script src="js/updater.js?v=5"></script>
     <script src="js/audioAnalyzer.js?v=5"></script>
     <script src="js/captionGenerator.js?v=5"></script>
     <script src="js/textAnimator.js?v=5"></script>
     <script src="js/main.js?v=10"></script>
+    <script src="js/support.js?v=1"></script>
 </body>
 </html>

@@ -1393,3 +1393,15 @@ input[type="range"]#captionWordCount:hover::-webkit-slider-thumb { transform: sc
     background: #7f1d1d; color: #fff; font-size: 12px; line-height: 1.4;
     box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
+
+/* Support chat */
+.support-card { display: flex; flex-direction: column; max-height: 88vh; }
+.support-messages { flex: 1; min-height: 140px; max-height: 300px; overflow-y: auto; padding: 4px 2px; display: flex; flex-direction: column; gap: 6px; }
+.support-bubble { max-width: 88%; padding: 7px 10px; border-radius: var(--r); font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.support-bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); color: var(--text); }
+.support-user { align-self: flex-end; background: var(--accent-soft); color: var(--accent-text); }
+.support-form { display: flex; gap: 6px; margin-top: 10px; }
+.support-form .pfb-input { flex: 1 1 auto; width: auto; min-width: 0; }
+.support-form .btn { flex: 0 0 auto; width: auto; height: var(--h); padding: 0 14px; }
+.support-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; font-size: 10px; color: var(--text-3); }
+.support-human { background: none; border: none; color: var(--accent-text); cursor: pointer; font-size: 11px; padding: 0; font-family: inherit; text-decoration: underline; }

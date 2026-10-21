@@ -1,15 +1,14 @@
 {
-  "version": "1.0.29",
-  "versionCode": 129,
+  "version": "1.0.30",
+  "versionCode": 130,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.28: כתוביות רגילות של פרמייר",
+  "title": "עדכון גרסה 1.0.30: תיקוני יצירת כתוביות",
   "changelog": [
-    "כתוביות בלי מרקר נוצרות שוב כשכבת Captions רגילה של פרמייר: מהיר יותר ובלי חלונות טעינה",
-    "עריכת כתוביות רגילות: בפרמייר, Window > Text, לשונית Captions",
-    "כפתור עריכת הטקסט בתוסף זמין למצב המרקר"
+    "גרפיקות Motion Graphics ותמונות בטיימליין כבר לא מפילות את יצירת הכתוביות",
+    "גיבוי חיבור ל-Groq כשהחיבור הרגיל נכשל, עם הודעות שגיאה ברורות יותר"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "97235b00f9c35e1a6dbb202ee7f14649c9872bae93c2dffeb6a8edb197817c12"
+  "bundleHash": "83bd907c2cf35c18e170ca32efe57b71e28161f830ee50c8b08f27c8f058d182"
 }

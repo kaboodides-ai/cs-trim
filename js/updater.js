@@ -3,7 +3,7 @@
  * Cross-platform (macOS & Windows)
  */
 var AutoUpdater = {
-    CURRENT_VERSION: "1.0.29",
+    CURRENT_VERSION: "1.0.30",
     PRIMARY_URL: "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/version.json",
     FALLBACK_URL: "https://cstrim.vercel.app/version.json",
 

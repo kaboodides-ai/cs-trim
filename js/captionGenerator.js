@@ -1234,16 +1234,26 @@ var CaptionGenerator = {
             var uniquePaths = [];
             for (var i = 0; i < targetClips.length; i++) {
                 var p = targetClips[i].path;
+                // Skip graphics/templates/stills: they hold no speech and ffmpeg can't open them
+                if (p && /\.(aegraphic|mogrt|prproj|png|jpe?g|gif|bmp|tiff?|svg|psd|ai|webp|heic)$/i.test(p)) continue;
                 if (p && uniquePaths.indexOf(p) === -1) {
                     uniquePaths.push(p);
                 }
             }
 
+            if (uniquePaths.length === 0) {
+                return reject(new Error("לא נמצאו קליפי וידאו או אודיו עם דיבור בסיקוונס."));
+            }
+
             var whisperResultsByPath = {};
             var currentPathIdx = 0;
+            var lastExtractError = null;
 
             var processNextPath = function () {
                 if (currentPathIdx >= uniquePaths.length) {
+                    if (Object.keys(whisperResultsByPath).length === 0 && lastExtractError) {
+                        return reject(lastExtractError);
+                    }
                     var isInOut = (options && options.scope === "inout");
                     var targetLabel = isInOut ? "לטווח In/Out" : "לכל הסיקוונס";
                     onProgress(85, "מעבד ומסנכרן כתוביות " + targetLabel + "...");
@@ -1315,8 +1325,12 @@ var CaptionGenerator = {
                     return self.transcribe(audioInfo, apiKey, language, function (p, msg) {
                         onProgress(pctBase + 35 + Math.round(p * 0.4), msg);
                     });
+                }, function (extractErr) {
+                    // A file we can't read audio from (e.g. a graphic) shouldn't abort the whole sequence
+                    lastExtractError = extractErr;
+                    return null;
                 }).then(function (whisperResult) {
-                    whisperResultsByPath[mediaPath] = whisperResult;
+                    if (whisperResult) whisperResultsByPath[mediaPath] = whisperResult;
                     currentPathIdx++;
                     processNextPath();
                 }).catch(reject);

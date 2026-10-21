@@ -1281,9 +1281,12 @@ var AutoCutHost = {
                 return null;
             };
 
-            var isMatchingClip = function(qeItem) {
-                if (!qeItem) return false;
-                try { if (String(qeItem.type).toLowerCase() === "empty") return false; } catch (eTy) {}
+            // Score a QE item against the TrackItem: lower is better, -1 = no match.
+            // Captions often share one name and sit <1s apart, so the closest start time must win,
+            // not the first item that merely has the same name (that put the blur on the previous caption).
+            var matchScore = function(qeItem) {
+                if (!qeItem) return -1;
+                try { if (String(qeItem.type).toLowerCase() === "empty") return -1; } catch (eTy) {}
                 var qStart = -999999;
                 if (qeItem.start) {
                     if (typeof qeItem.start.secs === "number") qStart = qeItem.start.secs;
@@ -1291,32 +1294,37 @@ var AutoCutHost = {
                     else if (qeItem.start.ticks) qStart = Number(qeItem.start.ticks) / TICKS_PER_SECOND;
                     else if (typeof qeItem.start === "number") qStart = qeItem.start;
                 }
+                var known = qStart > -999000;
+                var dist = known ? Math.abs(qStart - cs) : 0;
 
-                // Match by start time within 0.1s
-                if (qStart > -999000 && Math.abs(qStart - cs) < 0.1) {
-                    return true;
-                }
-
-                // Match by clip name if start time is close
+                if (known && dist < 0.1) return dist;
                 if (clipName && qeItem.name && qeItem.name === clipName) {
-                    if (qStart > -999000) {
-                        if (Math.abs(qStart - cs) < 1.0) return true;
-                    } else {
-                        return true;
+                    if (!known) return 1000;
+                    if (dist < 1.0) return 100 + dist;
+                }
+                return -1;
+            };
+
+            var bestOnTrack = function(trk) {
+                var best = null, bestScore = -1;
+                var n = getTrackClipCount(trk);
+                for (var q = 0; q < n; q++) {
+                    var itm = getTrackClip(trk, q);
+                    var sc = matchScore(itm);
+                    if (sc >= 0 && (bestScore < 0 || sc < bestScore)) {
+                        best = itm;
+                        bestScore = sc;
                     }
                 }
-                return false;
+                return best;
             };
 
             // 1. Check preferred track first
             if (preferredTrackIdx >= 0 && preferredTrackIdx < numTracks) {
                 var trk = qeSeq.getVideoTrackAt(preferredTrackIdx);
                 if (trk) {
-                    var nClips = getTrackClipCount(trk);
-                    for (var q = 0; q < nClips; q++) {
-                        var itm = getTrackClip(trk, q);
-                        if (isMatchingClip(itm)) return itm;
-                    }
+                    var hit = bestOnTrack(trk);
+                    if (hit) return hit;
                 }
             }
 
@@ -1327,11 +1335,8 @@ var AutoCutHost = {
                 if (v === preferredTrackIdx) continue;
                 var trk2 = qeSeq.getVideoTrackAt(v);
                 if (!trk2) continue;
-                var nClips2 = getTrackClipCount(trk2);
-                for (var q2 = 0; q2 < nClips2; q2++) {
-                    var itm2 = getTrackClip(trk2, q2);
-                    if (isMatchingClip(itm2)) return itm2;
-                }
+                var hit2 = bestOnTrack(trk2);
+                if (hit2) return hit2;
             }
         } catch (eFindQe) {}
         return null;
@@ -1921,12 +1926,15 @@ var AutoCutHost = {
                     if (targetIdx < 0 && blurList.length > 0) targetIdx = blurList[0].index;
                 }
 
-                // Clear blur keyframes left by a previous preset (static, user-set blurs are left alone)
+                // Clear blur keyframes left by a previous preset. Static blurs of a different kind are
+                // user-set and left alone, but a second blur of the SAME kind as the target is a stacked
+                // duplicate (default values never animated back to 0) and is what leaves captions smeared.
                 for (var bz = 0; bz < blurList.length; bz++) {
                     if (blurList[bz].index === targetIdx) continue;
+                    var isDuplicate = (targetIdx >= 0 && wantBlur && blurList[bz].kind === wantKind);
                     var zbp = this.getBlurProperties(clip.components[blurList[bz].index]);
                     try {
-                        if (zbp.amount && zbp.amount.isTimeVarying()) {
+                        if (zbp.amount && (isDuplicate || zbp.amount.isTimeVarying())) {
                             zbp.amount.setTimeVarying(false);
                             zbp.amount.setValue(0, 1);
                         }

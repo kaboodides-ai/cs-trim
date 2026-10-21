@@ -1,14 +1,14 @@
 {
-  "version": "1.0.30",
-  "versionCode": 130,
+  "version": "1.0.31",
+  "versionCode": 131,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.30: תיקוני יצירת כתוביות",
+  "title": "עדכון גרסה 1.0.31: תיקון טשטוש תנועה",
   "changelog": [
-    "גרפיקות Motion Graphics ותמונות בטיימליין כבר לא מפילות את יצירת הכתוביות",
-    "גיבוי חיבור ל-Groq כשהחיבור הרגיל נכשל, עם הודעות שגיאה ברורות יותר"
+    "תוקן טשטוש תנועה שנתקע על כתוביות אחרי כמה משפטים",
+    "הפעלת אנימציה מחדש מנקה טשטוש כפול שנשאר מגרסאות קודמות"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "83bd907c2cf35c18e170ca32efe57b71e28161f830ee50c8b08f27c8f058d182"
+  "bundleHash": "cf186acf034b9ba2335a03e2c02e93b0392581a191e9c2197e0840ea71976357"
 }

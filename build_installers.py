@@ -49,6 +49,15 @@ if [ -n "$INSTALL_USER" ] && [ "$INSTALL_USER" != "root" ]; then
 fi
 xattr -d -r com.apple.quarantine "$INSTALL_DIR" 2>/dev/null
 
+# Remove an older per-user copy (from the zip installer) so Premiere can't load it instead of this version
+if [ -n "$INSTALL_USER" ] && [ "$INSTALL_USER" != "root" ]; then
+    USER_HOME=$(dscl . -read "/Users/$INSTALL_USER" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
+    OLD_COPY="$USER_HOME/Library/Application Support/Adobe/CEP/extensions/com.autocut.panel"
+    if [ -n "$USER_HOME" ] && [ -d "$OLD_COPY" ]; then
+        rm -rf "$OLD_COPY" 2>/dev/null
+    fi
+fi
+
 # Set PlayerDebugMode for all CSXS versions 7 through 17
 for v in 7 8 9 10 11 12 13 14 15 16 17; do
     defaults write /Library/Preferences/com.adobe.CSXS.$v PlayerDebugMode 1 2>/dev/null

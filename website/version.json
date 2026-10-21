@@ -1,14 +1,15 @@
 {
-  "version": "1.0.18",
-  "versionCode": 118,
+  "version": "1.0.19",
+  "versionCode": 119,
   "releaseDate": "2026-10-20",
-  "title": "עדכון גרסה 1.0.18: כתוביות לכל פורמט וידאו ב-Mac",
+  "title": "עדכון גרסה 1.0.19: התקנת Mac מנקה עותק ישן של התוסף",
   "changelog": [
-    "ffmpeg מצורף לחבילת ה-Mac: כתוביות עובדות עכשיו גם על MKV, AVI, TS ופורמטים נוספים, בלי התקנות",
-    "חילוץ האודיו ב-Mac עובר אוטומטית ל-ffmpeg כש-macOS לא מזהה את הקובץ",
-    "התקנה מחדש של ה-pkg נדרשת כדי לקבל את ffmpeg (העדכון האוטומטי לא כולל אותו)"
+    "ההתקנה ב-Mac מוחקת אוטומטית עותק ישן של התוסף מהתיקייה האישית, כך שפרמייר לא יטען גרסה ישנה",
+    "כולל ffmpeg מצורף: כתוביות על MKV, AVI, TS ופורמטים נוספים ב-Mac",
+    "התקנה מחדש של ה-pkg נדרשת כדי לקבל את השינויים (העדכון האוטומטי לא כולל אותם)"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
-  "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg"
+  "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
+  "bundleSha256": "d361892583ab7216c8109466477d2d5c7c1be41e834c0bc0e7e8297db55acf3c"
 }

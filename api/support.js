@@ -33,7 +33,11 @@ async function askGroq(apiKey, model, messages) {
         },
         body: JSON.stringify({ model, temperature: 0.2, max_tokens: 500, messages })
     });
-    if (!res.ok) throw new Error("Groq HTTP " + res.status);
+    if (!res.ok) {
+        let reason = "";
+        try { reason = ((await res.json()).error?.code || "").toString().slice(0, 60); } catch (e) { /* ignore */ }
+        throw new Error("Groq HTTP " + res.status + (reason ? " " + reason : ""));
+    }
     const data = await res.json();
     return (data.choices?.[0]?.message?.content || "").trim();
 }
@@ -84,17 +88,19 @@ export default async function handler(req, res) {
         ];
 
         let reply = "";
+        let lastError = "";
         for (const model of MODELS) {
             try {
                 reply = await askGroq(apiKey, model, [...systemMessages, ...history]);
                 if (reply) break;
             } catch (e) {
+                lastError = e.message;
                 console.warn("Support bot model failed:", model, e.message);
             }
         }
 
         if (!reply) {
-            return res.status(502).json({ error: "העוזר לא הצליח לענות כרגע. נסה שוב או שלח הודעה לבן אדם." });
+            return res.status(502).json({ error: "העוזר לא הצליח לענות כרגע. נסה שוב או שלח הודעה לבן אדם.", detail: lastError });
         }
         return res.status(200).json({ reply });
     } catch (err) {

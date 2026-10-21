@@ -1,15 +1,15 @@
 {
-  "version": "1.0.22",
-  "versionCode": 122,
+  "version": "1.0.23",
+  "versionCode": 123,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.22: תיקון שגיאה בעדכון האוטומטי",
+  "title": "עדכון גרסה 1.0.23: עוזר עזרה חכם בתוך הפאנל",
   "changelog": [
-    "תוקנה השגיאה \"crypto.createHash is not a function\" שמנעה עדכון אוטומטי",
-    "עריכת מילה בכתוביות מחליפה את שכבת הכתוביות בטיים-ליין במקום להוסיף שכבה חדשה",
-    "שכבת Captions ישנה שנוצרה לפני העדכון יש למחוק ידנית פעם אחת"
+    "נוסף כפתור \"?\" בכותרת הפאנל: עוזר AI בעברית שעוזר לפתור תקלות",
+    "העוזר מקבל את גרסת התוסף ושורות אחרונות מיומן הפעילות כדי לאבחן את הבעיה",
+    "אם העוזר לא פתר, כפתור \"דבר עם בן אדם\" שולח את השיחה כפידבק"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "8efac11aa3c5b82386fa81d867b2b0f5f168849e93af57a65bfd7c70b4ef212c"
+  "bundleHash": "0a8afe45a3a37c61e628c7fb221af21f4434ff648d6cbd873b2d10a2b99dec4c"
 }

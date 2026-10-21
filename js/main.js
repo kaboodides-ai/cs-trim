@@ -914,6 +914,10 @@ function initApp() {
             if (rowHighlightColor) {
                 rowHighlightColor.classList.toggle("is-disabled", !isOn);
             }
+            var markerStyleGroupEl = document.getElementById("markerStyleGroup");
+            if (markerStyleGroupEl) {
+                markerStyleGroupEl.classList.toggle("is-disabled", !isOn);
+            }
             updateCaptionsButtonLabel();
         }
 
@@ -1195,6 +1199,342 @@ function initApp() {
             }, { passive: false });
         }
 
+
+        // Marker style: font / size / position of the baked caption PNGs (only matters in marker mode)
+        var markerFontBtn = document.getElementById("markerFontBtn");
+        var markerFontPop = document.getElementById("markerFontPop");
+        var markerFontSearch = document.getElementById("markerFontSearch");
+        var markerFontList = document.getElementById("markerFontList");
+        var markerSizeEl = document.getElementById("markerSize");
+        var markerPosYEl = document.getElementById("markerPosY");
+        var markerPosXEl = document.getElementById("markerPosX");
+        var btnApplyMarkerStyle = document.getElementById("btnApplyMarkerStyle");
+
+        var MARKER_FONTS = [
+            { label: "Heebo עבה", family: "Heebo", weight: 900, bundled: true },
+            { label: "Heebo בינוני", family: "Heebo", weight: 500, bundled: true },
+            { label: "Arial", family: "Arial", weight: 700 },
+            { label: "Arial Hebrew", family: "Arial Hebrew", weight: 700 },
+            { label: "Helvetica Neue", family: "Helvetica Neue", weight: 700 },
+            { label: "Tahoma", family: "Tahoma", weight: 700 },
+            { label: "Segoe UI", family: "Segoe UI", weight: 700 },
+            { label: "Gisha", family: "Gisha", weight: 700 },
+            { label: "Calibri", family: "Calibri", weight: 700 },
+            { label: "David", family: "David", weight: 700 },
+            { label: "Miriam", family: "Miriam", weight: 700 },
+            { label: "Narkisim", family: "Narkisim", weight: 700 },
+            { label: "Times New Roman", family: "Times New Roman", weight: 700 }
+        ];
+
+        // A system font counts as installed when it draws Hebrew differently from both generic fallbacks
+        function isSystemFontInstalled(family) {
+            try {
+                var c = document.createElement("canvas").getContext("2d");
+                var sample = "אבגדהוזחטיכלמנסעפצקרשת";
+                var widthOf = function (stack) {
+                    c.font = "700 48px " + stack;
+                    return c.measureText(sample).width;
+                };
+                var q = "'" + family + "'";
+                return widthOf(q + ", monospace") !== widthOf("monospace") ||
+                       widthOf(q + ", serif") !== widthOf("serif");
+            } catch (e) {
+                return false;
+            }
+        }
+
+        var markerFonts = MARKER_FONTS.filter(function (f) { return f.bundled || isSystemFontInstalled(f.family); });
+        var markerStyle = { fontIdx: 0, size: 100, posY: 78, posX: 50 };
+        try {
+            var savedMs = JSON.parse(localStorage.getItem("autocut_marker_style") || "null");
+            if (savedMs && typeof savedMs === "object") {
+                if (isFinite(savedMs.fontIdx)) markerStyle.fontIdx = savedMs.fontIdx;
+                if (isFinite(savedMs.size)) markerStyle.size = savedMs.size;
+                if (isFinite(savedMs.posY)) markerStyle.posY = savedMs.posY;
+                if (isFinite(savedMs.posX)) markerStyle.posX = savedMs.posX;
+            }
+        } catch (eMs) {}
+        // Saved by label so a different font list on another machine can't shift the choice
+        try {
+            var savedFontLabel = localStorage.getItem("autocut_marker_font_label");
+            var foundIdx = markerFonts.map(function (f) { return f.label; }).indexOf(savedFontLabel);
+            markerStyle.fontIdx = foundIdx >= 0 ? foundIdx : 0;
+        } catch (eMf) { markerStyle.fontIdx = 0; }
+
+        function setRangeFill(el, val) {
+            var min = Number(el.min), max = Number(el.max);
+            el.style.setProperty("--slider-fill", (((val - min) / (max - min)) * 100).toFixed(1) + "%");
+        }
+
+        function renderMarkerStyleUI() {
+            if (markerSizeEl) {
+                markerSizeEl.value = markerStyle.size;
+                setRangeFill(markerSizeEl, markerStyle.size);
+                document.getElementById("markerSizeVal").textContent = markerStyle.size + "%";
+            }
+            if (markerPosYEl) {
+                markerPosYEl.value = markerStyle.posY;
+                setRangeFill(markerPosYEl, markerStyle.posY);
+                document.getElementById("markerPosYVal").textContent = markerStyle.posY + "%";
+            }
+            if (markerPosXEl) {
+                markerPosXEl.value = markerStyle.posX;
+                setRangeFill(markerPosXEl, markerStyle.posX);
+                document.getElementById("markerPosXVal").textContent = markerStyle.posX === 50 ? "מרכז" : markerStyle.posX + "%";
+            }
+        }
+
+        function saveMarkerStyle() {
+            try {
+                localStorage.setItem("autocut_marker_style", JSON.stringify(markerStyle));
+                localStorage.setItem("autocut_marker_font_label", (markerFonts[markerStyle.fontIdx] || markerFonts[0]).label);
+            } catch (eSv) {}
+        }
+
+        // Options the renderer reads (see CaptionGenerator.renderHighlightFrames)
+        function getMarkerStyleOptions() {
+            var f = markerFonts[markerStyle.fontIdx] || markerFonts[0];
+            return {
+                markerFontFamily: f.family,
+                markerFontWeight: f.weight,
+                markerFontScale: markerStyle.size / 100,
+                markerPosX: markerStyle.posX / 100,
+                markerPosY: markerStyle.posY / 100
+            };
+        }
+
+        function refreshApplyMarkerStyleBtn() {
+            if (!btnApplyMarkerStyle) return;
+            var hasCues = typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues && CaptionGenerator.lastGeneratedCues.length > 0 &&
+                CaptionGenerator.lastGeneratedOptions && CaptionGenerator.lastGeneratedOptions.highlightWords;
+            btnApplyMarkerStyle.style.display = hasCues ? "flex" : "none";
+        }
+
+        // The saved font may be a system font that only the full scan below can list
+        var pendingFontLabel = null;
+        try { pendingFontLabel = localStorage.getItem("autocut_marker_font_label"); } catch (ePf) {}
+
+        // Custom dropdown: the native <select> popup is unreliable inside CEP panels
+        function closeMarkerFontPop() {
+            if (markerFontPop) markerFontPop.style.display = "none";
+        }
+
+        function renderMarkerFontList() {
+            if (!markerFontList) return;
+            var q = markerFontSearch ? markerFontSearch.value.trim().toLowerCase() : "";
+            markerFontList.innerHTML = "";
+            var shown = 0;
+            markerFonts.forEach(function (f, i) {
+                if (q && f.label.toLowerCase().indexOf(q) < 0) return;
+                var item = document.createElement("div");
+                item.className = "font-picker-item" + (i === markerStyle.fontIdx ? " active" : "");
+                item.setAttribute("role", "option");
+                item.textContent = f.label;
+                item.style.fontFamily = "'" + f.family + "', sans-serif";
+                item.addEventListener("click", function () {
+                    markerStyle.fontIdx = i;
+                    pendingFontLabel = null;
+                    saveMarkerStyle();
+                    fillMarkerFontSelect();
+                    closeMarkerFontPop();
+                });
+                markerFontList.appendChild(item);
+                shown++;
+            });
+            if (!shown) {
+                var empty = document.createElement("div");
+                empty.className = "font-picker-empty";
+                empty.textContent = "לא נמצא פונט";
+                markerFontList.appendChild(empty);
+            }
+        }
+
+        function fillMarkerFontSelect() {
+            var label = document.getElementById("markerFontBtnLabel");
+            var cur = markerFonts[markerStyle.fontIdx] || markerFonts[0];
+            if (label) {
+                label.textContent = cur.label;
+                label.style.fontFamily = "'" + cur.family + "', sans-serif";
+            }
+            renderMarkerFontList();
+        }
+
+        if (markerFontBtn && markerFontPop) {
+            fillMarkerFontSelect();
+            markerFontBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var open = markerFontPop.style.display !== "none";
+                if (open) { closeMarkerFontPop(); return; }
+                if (markerFontSearch) markerFontSearch.value = "";
+                renderMarkerFontList();
+                markerFontPop.style.display = "block";
+                var act = markerFontList.querySelector(".active");
+                if (act && act.scrollIntoView) act.scrollIntoView({ block: "center" });
+                if (markerFontSearch) markerFontSearch.focus();
+            });
+            if (markerFontSearch) markerFontSearch.addEventListener("input", renderMarkerFontList);
+            markerFontPop.addEventListener("click", function (e) { e.stopPropagation(); });
+            document.addEventListener("click", closeMarkerFontPop);
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") closeMarkerFontPop();
+            });
+        }
+
+        // Replace the starter list with every installed font that draws Hebrew (read from the OS font folders)
+        function scanInstalledFonts(done) {
+            try {
+                var nodeReq = CaptionGenerator.getNodeRequire();
+                if (!nodeReq) return done([]);
+                var fs = nodeReq("fs"), path = nodeReq("path"), os = nodeReq("os");
+                var home = os.homedir();
+                var dirs = (os.platform() === "win32")
+                    ? [path.join(process.env.WINDIR || "C:\\Windows", "Fonts"), path.join(process.env.LOCALAPPDATA || path.join(home, "AppData", "Local"), "Microsoft", "Windows", "Fonts")]
+                    : ["/System/Library/Fonts", "/System/Library/Fonts/Supplemental", "/Library/Fonts", path.join(home, "Library", "Fonts")];
+
+                var files = [];
+                var walk = function (dir, depth) {
+                    var entries;
+                    try { entries = fs.readdirSync(dir); } catch (e) { return; }
+                    entries.forEach(function (name) {
+                        var full = path.join(dir, name);
+                        if (/\.(ttf|otf|ttc|otc)$/i.test(name)) { files.push(full); return; }
+                        if (depth < 2 && name.charAt(0) !== ".") {
+                            try { if (fs.statSync(full).isDirectory()) walk(full, depth + 1); } catch (e) {}
+                        }
+                    });
+                };
+                dirs.forEach(function (d) { walk(d, 0); });
+
+                var decode = function (buf, rec) {
+                    var raw = buf.slice(rec.off, rec.off + rec.len);
+                    if (rec.platform === 3 || rec.platform === 0) {
+                        var out = "";
+                        for (var i = 0; i + 1 < raw.length; i += 2) out += String.fromCharCode((raw[i] << 8) | raw[i + 1]);
+                        return out;
+                    }
+                    return raw.toString("latin1");
+                };
+
+                // Reads the 'name' table of every face in a font file: [{ family, legacyFamily, style }]
+                var readFaces = function (file) {
+                    var faces = [];
+                    var fd = fs.openSync(file, "r");
+                    try {
+                        var head = Buffer.alloc(12);
+                        fs.readSync(fd, head, 0, 12, 0);
+                        var offsets = [0];
+                        if (head.toString("latin1", 0, 4) === "ttcf") {
+                            var n = Math.min(head.readUInt32BE(8), 32);
+                            var offBuf = Buffer.alloc(n * 4);
+                            fs.readSync(fd, offBuf, 0, n * 4, 12);
+                            offsets = [];
+                            for (var o = 0; o < n; o++) offsets.push(offBuf.readUInt32BE(o * 4));
+                        }
+                        offsets.forEach(function (base) {
+                            var dirHead = Buffer.alloc(12);
+                            fs.readSync(fd, dirHead, 0, 12, base);
+                            var numTables = dirHead.readUInt16BE(4);
+                            if (numTables < 1 || numTables > 80) return;
+                            var dir = Buffer.alloc(numTables * 16);
+                            fs.readSync(fd, dir, 0, dir.length, base + 12);
+                            var nameOff = -1, nameLen = 0, os2Off = -1, os2Len = 0;
+                            for (var t = 0; t < numTables; t++) {
+                                var tag = dir.toString("latin1", t * 16, t * 16 + 4);
+                                if (tag === "name") {
+                                    nameOff = dir.readUInt32BE(t * 16 + 8);
+                                    nameLen = Math.min(dir.readUInt32BE(t * 16 + 12), 262144);
+                                } else if (tag === "OS/2") {
+                                    os2Off = dir.readUInt32BE(t * 16 + 8);
+                                    os2Len = dir.readUInt32BE(t * 16 + 12);
+                                }
+                            }
+                            if (nameOff < 0) return;
+                            // OS/2 ulUnicodeRange1 bit 11 = Hebrew coverage (unknown when the table is missing)
+                            var hebrew = null;
+                            if (os2Off >= 0 && os2Len >= 46) {
+                                var os2 = Buffer.alloc(46);
+                                fs.readSync(fd, os2, 0, 46, os2Off);
+                                hebrew = (os2.readUInt32BE(42) & (1 << 11)) !== 0;
+                            }
+                            var tbl = Buffer.alloc(nameLen);
+                            fs.readSync(fd, tbl, 0, nameLen, nameOff);
+                            var count = tbl.readUInt16BE(2), strOff = tbl.readUInt16BE(4);
+                            var byId = {};
+                            for (var r = 0; r < count; r++) {
+                                var p = 6 + r * 12;
+                                if (p + 12 > tbl.length) break;
+                                var rec = { platform: tbl.readUInt16BE(p), lang: tbl.readUInt16BE(p + 4), id: tbl.readUInt16BE(p + 6), len: tbl.readUInt16BE(p + 8), off: strOff + tbl.readUInt16BE(p + 10) };
+                                if ([1, 2, 16, 17].indexOf(rec.id) < 0 || rec.off + rec.len > tbl.length) continue;
+                                var val = decode(tbl, rec).trim();
+                                if (!val) continue;
+                                // Names come in several languages: take English first (style matching needs "Bold"), then Windows over Mac
+                                var rank = ((rec.platform === 3 && rec.lang === 0x409) || (rec.platform === 1 && rec.lang === 0)) ? 2 : (rec.platform === 3 ? 1 : 0);
+                                if (!byId[rec.id] || rank > byId[rec.id].rank) byId[rec.id] = { val: val, rank: rank };
+                            }
+                            var v = function (id) { return byId[id] ? byId[id].val : ""; };
+                            var fam = v(16) || v(1);
+                            if (fam) faces.push({ family: fam, legacyFamily: v(1) || fam, style: v(17) || v(2), hebrew: hebrew });
+                        });
+                    } finally {
+                        fs.closeSync(fd);
+                    }
+                    return faces;
+                };
+
+                var families = {};
+                var idx = 0;
+                var step = function () {
+                    var t0 = Date.now();
+                    while (idx < files.length && Date.now() - t0 < 30) {
+                        try {
+                            readFaces(files[idx]).forEach(function (f) {
+                                var e = families[f.family] || (families[f.family] = { family: f.family, legacy: f.legacyFamily, bold: false, hebrew: false, unknown: false });
+                                if (/bold|black|heavy/i.test(f.style)) e.bold = true;
+                                if (f.hebrew === true) e.hebrew = true;
+                                if (f.hebrew === null) e.unknown = true;
+                            });
+                        } catch (e) {}
+                        idx++;
+                    }
+                    if (idx < files.length) return setTimeout(step, 0);
+                    var list = [];
+                    Object.keys(families).forEach(function (k) {
+                        var e = families[k];
+                        if (/^\./.test(e.family)) return;
+                        // Fonts without an OS/2 table can't be checked from the file, so test how the canvas draws Hebrew in them
+                        var hasHebrew = e.hebrew || (e.unknown && (isSystemFontInstalled(e.family) || isSystemFontInstalled(e.legacy)));
+                        if (!hasHebrew) return;
+                        var name = (!isSystemFontInstalled(e.family) && isSystemFontInstalled(e.legacy)) ? e.legacy : e.family;
+                        list.push({ label: e.family, family: name, weight: e.bold ? 700 : 400 });
+                    });
+                    list.sort(function (a, b) { return a.label.localeCompare(b.label); });
+                    done(list);
+                };
+                step();
+            } catch (err) {
+                done([]);
+            }
+        }
+
+        scanInstalledFonts(function (found) {
+            if (!found.length) return;
+            var curLabel = pendingFontLabel || (markerFonts[markerStyle.fontIdx] || markerFonts[0]).label;
+            var bundled = MARKER_FONTS.filter(function (f) { return f.bundled; });
+            markerFonts = bundled.concat(found.filter(function (f) { return f.label !== "Heebo"; }));
+            var keep = markerFonts.map(function (f) { return f.label; }).indexOf(curLabel);
+            markerStyle.fontIdx = keep >= 0 ? keep : 0;
+            fillMarkerFontSelect();
+        });
+        [["size", markerSizeEl], ["posY", markerPosYEl], ["posX", markerPosXEl]].forEach(function (pair) {
+            if (!pair[1]) return;
+            pair[1].addEventListener("input", function () {
+                markerStyle[pair[0]] = parseInt(this.value, 10);
+                renderMarkerStyleUI();
+                saveMarkerStyle();
+            });
+        });
+        renderMarkerStyleUI();
+
         // Free Groq API Key link
         var linkGetApiKey = document.getElementById("linkGetApiKey");
         if (linkGetApiKey) {
@@ -1397,6 +1737,9 @@ function initApp() {
                             rangeEnd: rangeEnd
                         };
 
+                        var markerOpts = getMarkerStyleOptions();
+                        for (var mk in markerOpts) options[mk] = markerOpts[mk];
+
                         CaptionGenerator.generateCaptions(clips, apiKey, lang, options, function (pct, msg) {
                             updateProgress(pct, msg);
                         }).then(function (capResult) {
@@ -1412,6 +1755,8 @@ function initApp() {
                                     btnEdit.style.display = "none";
                                 }
                             }
+
+                            refreshApplyMarkerStyleBtn();
 
                             if (capResult.highlightManifestPath) {
                                 updateProgress(95, "מניח שכבות מרקר מילים " + destDesc + " בטיים-ליין...");
@@ -1572,6 +1917,53 @@ function initApp() {
             btnBackFromEditor.addEventListener("click", closeCaptionEditor);
         }
 
+        // Re-render the marker PNGs from cues (no transcription) and swap them into the managed track
+        function rerenderMarkerCaptions(updatedCues) {
+            var savedOpts = (CaptionGenerator.lastGeneratedOptions) ? CaptionGenerator.lastGeneratedOptions : {};
+            // The editor only exists for marker captions (a managed track it can replace)
+            savedOpts.highlightWords = true;
+            savedOpts.highlightColor = selectedHighlightColor || savedOpts.highlightColor || "#FACC15";
+            var markerOpts = getMarkerStyleOptions();
+            for (var mk in markerOpts) savedOpts[mk] = markerOpts[mk];
+    
+            setBusy(true);
+            closeCaptionEditor();
+            updateProgress(20, "מעדכן טקסט ומרקר בטיים-ליין...");
+    
+            CaptionGenerator.regenerateFromEditedCues(updatedCues, savedOpts, function (pct, msg) {
+                updateProgress(pct, msg);
+            }).then(function (capResult) {
+                updateProgress(92, "מחליף את שכבת הכתוביות בטיים-ליין עם הטקסט המתוקן...");
+                csInterface.evalScript('importHighlightedSubtitles("' + escapeForEval(capResult.highlightManifestPath) + '")', function (hlRes) {
+                    updateProgress(100, "הושלם!");
+                    setBusy(false);
+                    try {
+                        var hlData = JSON.parse(hlRes);
+                        if (hlData.success) {
+                            log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
+                        } else {
+                            log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
+                        }
+                    } catch (e) {
+                        log("הכתוביות המתוקנות עודכנו בהצלחה!", "success");
+                    }
+                });
+            }).catch(function (err) {
+                updateProgress(0, "");
+                setBusy(false);
+                log("שגיאה בעדכון כתוביות: " + err.message, "error");
+            });
+        }
+
+        if (btnApplyMarkerStyle) {
+            btnApplyMarkerStyle.addEventListener("click", function () {
+                var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];
+                if (!cues || cues.length === 0) return;
+                rerenderMarkerCaptions(cues);
+            });
+        }
+        refreshApplyMarkerStyleBtn();
+
         if (btnApplyCaptionEdits) {
             btnApplyCaptionEdits.addEventListener("click", function () {
                 var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];
@@ -1625,38 +2017,7 @@ function initApp() {
                     return;
                 }
 
-                var savedOpts = (CaptionGenerator.lastGeneratedOptions) ? CaptionGenerator.lastGeneratedOptions : {};
-                // The editor only exists for marker captions (a managed track it can replace)
-                savedOpts.highlightWords = true;
-                savedOpts.highlightColor = selectedHighlightColor || savedOpts.highlightColor || "#FACC15";
-
-                setBusy(true);
-                closeCaptionEditor();
-                updateProgress(20, "מעדכן טקסט ומרקר בטיים-ליין...");
-
-                CaptionGenerator.regenerateFromEditedCues(updatedCues, savedOpts, function (pct, msg) {
-                    updateProgress(pct, msg);
-                }).then(function (capResult) {
-                    updateProgress(92, "מחליף את שכבת הכתוביות בטיים-ליין עם הטקסט המתוקן...");
-                    csInterface.evalScript('importHighlightedSubtitles("' + escapeForEval(capResult.highlightManifestPath) + '")', function (hlRes) {
-                        updateProgress(100, "הושלם!");
-                        setBusy(false);
-                        try {
-                            var hlData = JSON.parse(hlRes);
-                            if (hlData.success) {
-                                log("הטקסט עודכן בהצלחה בטיים-ליין (הוחלפו " + (hlData.removedOld || 0) + " קליפים ישנים ב-" + (hlData.placedCount || capResult.highlightClipsCount) + " חדשים)!", "success");
-                            } else {
-                                log("שגיאה בעדכון שכבות המרקר: " + (hlData.error || hlRes), "error");
-                            }
-                        } catch (e) {
-                            log("הכתוביות המתוקנות עודכנו בהצלחה!", "success");
-                        }
-                    });
-                }).catch(function (err) {
-                    updateProgress(0, "");
-                    setBusy(false);
-                    log("שגיאה בעדכון כתוביות: " + err.message, "error");
-                });
+                rerenderMarkerCaptions(updatedCues);
             });
         }
 

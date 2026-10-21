@@ -991,8 +991,14 @@ var CaptionGenerator = {
                     fs.mkdirSync(outDir, { recursive: true });
                 }
 
-                var fontReadyPromise = (typeof document !== "undefined" && document.fonts && document.fonts.ready)
-                    ? document.fonts.ready
+                // A @font-face font renders as the fallback until it is requested, so load the chosen face first
+                var reqWeight = parseInt(options.markerFontWeight, 10) || 900;
+                var reqFamily = String(options.markerFontFamily || "Heebo").replace(/['"\\]/g, "");
+                var fontReadyPromise = (typeof document !== "undefined" && document.fonts && document.fonts.load)
+                    ? Promise.all([
+                        document.fonts.load(reqWeight + " 40px '" + reqFamily + "'", "אבג").catch(function () {}),
+                        document.fonts.ready
+                    ])
                     : Promise.resolve();
 
                 fontReadyPromise.then(function () {
@@ -1002,11 +1008,20 @@ var CaptionGenerator = {
                     var ctx = canvas.getContext("2d");
 
                     var minDim = Math.min(seqWidth, seqHeight);
-                    var fontSize = Math.round(minDim * 0.068);
+                    var fontScale = Number(options.markerFontScale);
+                    if (!(fontScale >= 0.5 && fontScale <= 2)) fontScale = 1;
+                    var fontSize = Math.round(minDim * 0.068 * fontScale);
+                    var fontWeight = parseInt(options.markerFontWeight, 10) || 900;
+                    var fontFamily = String(options.markerFontFamily || "Heebo").replace(/['"\\]/g, "");
+                    var fontCss = fontWeight + " " + fontSize + "px '" + fontFamily + "', 'Heebo', 'Arial', sans-serif";
+                    var posXFrac = Number(options.markerPosX);
+                    if (!(posXFrac >= 0.05 && posXFrac <= 0.95)) posXFrac = 0.5;
+                    var posYFrac = Number(options.markerPosY);
+                    if (!(posYFrac >= 0.03 && posYFrac <= 0.97)) posYFrac = 0.78;
                     var lineHeight = Math.round(fontSize * 1.38);
                     var spaceW = Math.round(fontSize * 0.32);
                     var maxLineWidth = Math.round(seqWidth * 0.84);
-                    var baseCenterY = Math.round(seqHeight * 0.78);
+                    var baseCenterY = Math.round(seqHeight * posYFrac);
 
                     var padX = Math.round(fontSize * 0.21);
                     var padY = Math.round(fontSize * 0.13);
@@ -1026,7 +1041,7 @@ var CaptionGenerator = {
                         }
                         if (wordsArr.length === 0) continue;
 
-                        ctx.font = "900 " + fontSize + "px 'Heebo', 'Arial', sans-serif";
+                        ctx.font = fontCss;
                         ctx.direction = "rtl";
                         ctx.textBaseline = "middle";
                         ctx.textAlign = "center";
@@ -1057,12 +1072,17 @@ var CaptionGenerator = {
                         // Compute locked coordinates for every word in this cue (Right-to-Left)
                         var wordLayouts = new Array(wordsArr.length);
                         var totalBlockHeight = (lines.length - 1) * lineHeight;
-                        var startLineY = baseCenterY - Math.round(totalBlockHeight / 2);
+                        // Keep the whole block inside the frame wherever the user parked it
+                        var halfBlockH = Math.round(totalBlockHeight / 2) + Math.round(lineHeight / 2);
+                        var blockCenterY = Math.max(halfBlockH, Math.min(seqHeight - halfBlockH, baseCenterY));
+                        var startLineY = blockCenterY - Math.round(totalBlockHeight / 2);
 
                         for (var lIdx = 0; lIdx < lines.length; lIdx++) {
                             var lineObj = lines[lIdx];
                             var lineY = startLineY + lIdx * lineHeight;
-                            var cursorRightX = Math.round((seqWidth + lineObj.totalWidth) / 2);
+                            var halfLineW = lineObj.totalWidth / 2 + padX;
+                            var lineCenterX = Math.max(halfLineW, Math.min(seqWidth - halfLineW, seqWidth * posXFrac));
+                            var cursorRightX = Math.round(lineCenterX + lineObj.totalWidth / 2);
 
                             for (var lw = 0; lw < lineObj.words.length; lw++) {
                                 var itemW = lineObj.words[lw];
@@ -1091,7 +1111,7 @@ var CaptionGenerator = {
                             if (!activeLayout) continue;
 
                             ctx.clearRect(0, 0, seqWidth, seqHeight);
-                            ctx.font = "900 " + fontSize + "px 'Heebo', 'Arial', sans-serif";
+                            ctx.font = fontCss;
                             ctx.direction = "rtl";
                             ctx.textBaseline = "middle";
                             ctx.textAlign = "center";

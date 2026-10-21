@@ -46,7 +46,7 @@
             <div class="update-banner-info">
                 <div class="update-title-line">
                     <span class="update-main-title">גרסה חדשה זמינה</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.31</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.32</span>
                 </div>
                 <div id="updateNotesPreview" class="update-notes-preview">עדכון בלחיצה אחת</div>
             </div>
@@ -133,7 +133,7 @@
                     <div class="slider-control-wrap" id="sliderWrap" title="גרירה או גלילה לשינוי (1-8)">
                         <span class="slider-badge" id="captionWordCountVal">3 מילים</span>
                         <div class="slider-track-wrap">
-                            <input type="range" id="captionWordCount" min="1" max="8" step="1" value="3" aria-label="מילים בשורה">
+                            <input type="range" id="captionWordCount" class="range-slim" min="1" max="8" step="1" value="3" aria-label="מילים בשורה">
                         </div>
                     </div>
                 </div>
@@ -175,6 +175,54 @@
                             <input type="color" id="captionHighlightColor" value="#FACC15" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden;" aria-label="בחירת צבע">
                         </div>
                     </div>
+                </div>
+
+                <div class="marker-style" id="markerStyleGroup">
+                    <div class="row">
+                        <label for="markerFont">פונט</label>
+                        <div class="font-picker" id="markerFontPicker">
+                            <button type="button" id="markerFontBtn" class="select-ctl font-picker-btn" aria-haspopup="listbox" aria-label="פונט הכתוביות">
+                                <span id="markerFontBtnLabel">Heebo עבה</span>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <div class="font-picker-pop" id="markerFontPop" style="display:none;">
+                                <input type="text" id="markerFontSearch" class="font-picker-search" placeholder="חיפוש פונט..." spellcheck="false" autocomplete="off" aria-label="חיפוש פונט">
+                                <div class="font-picker-list" id="markerFontList" role="listbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-slider">
+                        <label for="markerSize">גודל</label>
+                        <div class="slider-control-wrap">
+                            <span class="slider-badge" id="markerSizeVal">100%</span>
+                            <div class="slider-track-wrap">
+                                <input type="range" id="markerSize" class="range-slim" min="60" max="160" step="5" value="100" aria-label="גודל הטקסט">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-slider">
+                        <label for="markerPosY">גובה</label>
+                        <div class="slider-control-wrap">
+                            <span class="slider-badge" id="markerPosYVal">78%</span>
+                            <div class="slider-track-wrap">
+                                <input type="range" id="markerPosY" class="range-slim" min="8" max="94" step="1" value="78" aria-label="מיקום אנכי (מלמעלה)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-slider">
+                        <label for="markerPosX">צד</label>
+                        <div class="slider-control-wrap">
+                            <span class="slider-badge" id="markerPosXVal">מרכז</span>
+                            <div class="slider-track-wrap">
+                                <input type="range" id="markerPosX" class="range-slim" min="10" max="90" step="1" value="50" aria-label="מיקום אופקי">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnApplyMarkerStyle" class="btn btn-secondary btn-sm" style="display:none;">החל פונט ומיקום על הכתוביות הקיימות</button>
                 </div>
             </div>
 
@@ -368,7 +416,7 @@
         <span class="footer-credit">by Kaboodi</span>
         <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="handleFooterVersionClick(event)" title="בדיקת עדכונים">
             <span id="footerUpdatePing" class="version-update-ping" style="display:none;"></span>
-            <span id="footerVersionText">v1.0.31</span>
+            <span id="footerVersionText">v1.0.32</span>
             <svg id="footerCheckSpin" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         </button>
     </footer>
@@ -461,8 +509,8 @@
     <script src="js/CSInterface.js?v=5"></script>
     <script src="js/updater.js?v=5"></script>
     <script src="js/audioAnalyzer.js?v=5"></script>
-    <script src="js/captionGenerator.js?v=7"></script>
+    <script src="js/captionGenerator.js?v=8"></script>
     <script src="js/textAnimator.js?v=5"></script>
-    <script src="js/main.js?v=10"></script>
+    <script src="js/main.js?v=13"></script>
 </body>
 </html>

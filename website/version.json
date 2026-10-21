@@ -1,14 +1,15 @@
 {
-  "version": "1.0.31",
-  "versionCode": 131,
+  "version": "1.0.32",
+  "versionCode": 132,
   "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.31: תיקון טשטוש תנועה",
+  "title": "עדכון גרסה 1.0.32: פונט ומיקום לכתוביות מרקר",
   "changelog": [
-    "תוקן טשטוש תנועה שנתקע על כתוביות אחרי כמה משפטים",
-    "הפעלת אנימציה מחדש מנקה טשטוש כפול שנשאר מגרסאות קודמות"
+    "במצב מרקר אפשר לבחור פונט, גודל ומיקום (גובה וצד) לכתוביות",
+    "רשימת הפונטים נבנית ממה שמותקן במחשב, רק פונטים שתומכים בעברית",
+    "כפתור חדש מחיל פונט ומיקום על כתוביות קיימות בלי לתמלל מחדש"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "cf186acf034b9ba2335a03e2c02e93b0392581a191e9c2197e0840ea71976357"
+  "bundleHash": "03fe65829bafa309d2af4d969f304b9a63ec128cb3d0caea8e7eec4a22f9d558"
 }

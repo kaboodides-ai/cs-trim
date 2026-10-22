@@ -2025,20 +2025,6 @@ function initApp() {
             });
         }
 
-        // Animations tab "typing": re-render the existing captions word by word (exact, from the transcript timing)
-        window.CSTrimApplyTypeReveal = function (enabled) {
-            var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];
-            if (!cues || cues.length === 0) {
-                alert("אין כתוביות שנוצרו. צור כתוביות עם מרקר או הקלדה בטאב הכתוביות ואז החל.");
-                return false;
-            }
-            var tEl = document.getElementById("captionTypeReveal");
-            if (tEl) tEl.checked = !!enabled;
-            try { localStorage.setItem("autocut_type_reveal", enabled ? "true" : "false"); } catch (e) {}
-            rerenderMarkerCaptions(cues);
-            return true;
-        };
-
         if (btnApplyMarkerStyle) {
             btnApplyMarkerStyle.addEventListener("click", function () {
                 var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];

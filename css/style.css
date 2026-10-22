@@ -1083,7 +1083,6 @@ input[type="range"].range-slim:hover::-webkit-slider-thumb { transform: scale(1.
 .anim-sample-slide { animation: tileAnimSlide var(--anim-cycle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite; }
 .anim-sample-zoom { animation: tileAnimZoom var(--anim-cycle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite; }
 .anim-sample-fade { animation: tileAnimFade var(--anim-cycle-duration) cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-.anim-sample-type { animation: tileAnimType var(--anim-cycle-duration) steps(1, end) infinite; }
 
 .with-motion-blur .anim-sample-pop { animation-name: tileAnimPopBlur; }
 .with-motion-blur .anim-sample-slide { animation-name: tileAnimSlideBlur; }
@@ -1110,14 +1109,6 @@ input[type="range"].range-slim:hover::-webkit-slider-thumb { transform: scale(1.
     20%, 72% { transform: scale(1); opacity: 1; }
     86% { transform: scale(1.22); opacity: 0; }
     100% { transform: scale(0.6); opacity: 0; }
-}
-
-@keyframes tileAnimType {
-    0% { clip-path: inset(0 0 0 100%); }
-    10% { clip-path: inset(0 0 0 66%); }
-    22% { clip-path: inset(0 0 0 33%); }
-    34%, 72% { clip-path: inset(0 0 0 0); }
-    74%, 100% { clip-path: inset(0 0 0 100%); }
 }
 
 @keyframes tileAnimFade {
@@ -1556,5 +1547,3 @@ input[type="range"].range-slim:hover::-webkit-slider-thumb { transform: scale(1.
     background: #7f1d1d; color: #fff; font-size: 12px; line-height: 1.4;
     box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
-
-.anim-preview-card[data-preset="type"] { grid-column: 1 / -1; }

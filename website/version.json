@@ -1,14 +1,14 @@
 {
-  "version": "1.0.35",
-  "versionCode": 135,
-  "releaseDate": "2026-10-21",
-  "title": "עדכון גרסה 1.0.35: תיקון כתובות גיבוי",
+  "version": "1.0.36",
+  "versionCode": 136,
+  "releaseDate": "2026-10-22",
+  "title": "עדכון גרסה 1.0.36: הקלדה מילה אחרי מילה בכתוביות",
   "changelog": [
-    "משוב שנשלח מתוך הפאנל מגיע שוב לשרת",
-    "כתובות הגיבוי להורדת עדכונים, מנוע התמלול ורשימת התיקונים עודכנו לאתר הנוכחי"
+    "מתג חדש בטאב הכתוביות: הקלדה, מילה אחרי מילה. המילים מופיעות בדיוק כשהן נאמרות",
+    "אפשר להשתמש בו עם מרקר הצבע או בלעדיו"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "cbecaf465fc8f7e26f5746f3ce7329f2e29411cd1f4f6cdea84f21f389a21705"
+  "bundleHash": "3ae684a7091922954d756f7159384df0e43463edfefc46dc44756280b0ef7979"
 }

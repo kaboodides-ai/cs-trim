@@ -17,7 +17,8 @@ var TextAnimator = {
         pop: "פופ (Bounce)",
         slide_up: "החלקה למעלה",
         zoom_in: "זום פנימה",
-        fade: "עמעום חלק"
+        fade: "עמעום חלק",
+        type: "הקלדה (מילה אחרי מילה)"
     },
 
     escapeForEval: function (str) {
@@ -239,6 +240,11 @@ var TextAnimator = {
 
     applyAnimation: function () {
         var self = this;
+        // Typing is exact only when the captions are re-rendered from the transcript, not keyframed
+        if (self.state.preset === "type") {
+            if (typeof window.CSTrimApplyTypeReveal === "function") window.CSTrimApplyTypeReveal(true);
+            return;
+        }
         if (typeof csInterface === "undefined") {
             alert("CSInterface אינו זמין (פועל מחוץ לפרמייר)");
             return;

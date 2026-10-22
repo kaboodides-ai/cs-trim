@@ -1126,6 +1126,9 @@ var CaptionGenerator = {
                 var seqHeight = parseInt(options.seqHeight, 10) || 1920;
                 var highlightColor = options.highlightColor || "#FACC15";
                 var highlightOn = Boolean(options.highlightWords);
+                // Marker box behind the active word (off when only the typing reveal was asked for)
+                var markerBoxOn = highlightOn && options.markerBox !== false;
+                var typeRevealOn = highlightOn && Boolean(options.typeReveal);
 
                 var outDir = path.join(os.tmpdir(), "autocut_hl_" + Date.now());
                 if (!fs.existsSync(outDir)) {
@@ -1258,7 +1261,7 @@ var CaptionGenerator = {
                             ctx.textAlign = "center";
 
                             // 1. Draw the colored Marker Highlight box behind the active word
-                            if (highlightOn) {
+                            if (markerBoxOn) {
                                 var boxX = activeLayout.left - padX;
                                 var boxY = activeLayout.centerY - Math.round(fontSize * 0.52) - padY;
                                 var boxW = activeLayout.width + padX * 2;
@@ -1279,6 +1282,8 @@ var CaptionGenerator = {
                             for (var dIdx = 0; dIdx < wordLayouts.length; dIdx++) {
                                 var wl = wordLayouts[dIdx];
                                 if (!wl) continue;
+                                // Typing: words after the active one have not been said yet (positions stay locked)
+                                if (typeRevealOn && dIdx > activeIdx) continue;
 
                                 ctx.save();
                                 ctx.shadowColor = "rgba(0, 0, 0, 0.65)";

@@ -738,6 +738,10 @@ function initApp() {
 
         // Word Highlight (Marker) Toggle & Color Picker (Cross-platform Mac & Windows)
         var highlightInput = document.getElementById("captionWordHighlight");
+        var typeRevealInput = document.getElementById("captionTypeReveal");
+        if (typeRevealInput) {
+            try { typeRevealInput.checked = localStorage.getItem("autocut_type_reveal") === "true"; } catch (e) {}
+        }
         var rowHighlight = document.getElementById("rowWordHighlight");
         var rowHighlightColor = document.getElementById("rowHighlightColor");
         var highlightPreviewPill = document.getElementById("highlightPreviewPill");
@@ -1714,7 +1718,12 @@ function initApp() {
             var stretchEl = document.getElementById("captionStretchGaps");
             var stretchGaps = stretchEl ? stretchEl.checked : false;
             var highlightEl = document.getElementById("captionWordHighlight");
-            var highlightWords = highlightEl ? highlightEl.checked : false;
+            var markerBox = highlightEl ? highlightEl.checked : false;
+            var typeRevealEl = document.getElementById("captionTypeReveal");
+            var typeReveal = typeRevealEl ? typeRevealEl.checked : false;
+            try { localStorage.setItem("autocut_type_reveal", typeReveal ? "true" : "false"); } catch (e) {}
+            // Typing needs the per-word PNG frames the marker mode renders, with or without the marker box
+            var highlightWords = markerBox || typeReveal;
             var syncEl = document.getElementById("captionSync");
             var syncDelay = syncEl ? parseFloat(syncEl.value) : 0.12;
 
@@ -1780,6 +1789,8 @@ function initApp() {
                             includePunctuation: includePunctuation,
                             stretchGaps: stretchGaps,
                             highlightWords: highlightWords,
+                            markerBox: markerBox,
+                            typeReveal: typeReveal,
                             highlightColor: selectedHighlightColor || "#FACC15",
                             seqWidth: Number(data.frameWidth) || 1080,
                             seqHeight: Number(data.frameHeight) || 1920,
@@ -1977,6 +1988,11 @@ function initApp() {
             // The editor only exists for marker captions (a managed track it can replace)
             savedOpts.highlightWords = true;
             savedOpts.highlightColor = selectedHighlightColor || savedOpts.highlightColor || "#FACC15";
+            // Typing reveal and the marker box follow the toggles as they are now
+            var rrType = document.getElementById("captionTypeReveal");
+            var rrBox = document.getElementById("captionWordHighlight");
+            if (rrType) savedOpts.typeReveal = rrType.checked;
+            if (rrBox) savedOpts.markerBox = rrBox.checked;
             var markerOpts = getMarkerStyleOptions();
             for (var mk in markerOpts) savedOpts[mk] = markerOpts[mk];
     
@@ -2008,6 +2024,20 @@ function initApp() {
                 log("שגיאה בעדכון כתוביות: " + err.message, "error");
             });
         }
+
+        // Animations tab "typing": re-render the existing captions word by word (exact, from the transcript timing)
+        window.CSTrimApplyTypeReveal = function (enabled) {
+            var cues = (typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues) ? CaptionGenerator.lastGeneratedCues : [];
+            if (!cues || cues.length === 0) {
+                alert("אין כתוביות שנוצרו. צור כתוביות עם מרקר או הקלדה בטאב הכתוביות ואז החל.");
+                return false;
+            }
+            var tEl = document.getElementById("captionTypeReveal");
+            if (tEl) tEl.checked = !!enabled;
+            try { localStorage.setItem("autocut_type_reveal", enabled ? "true" : "false"); } catch (e) {}
+            rerenderMarkerCaptions(cues);
+            return true;
+        };
 
         if (btnApplyMarkerStyle) {
             btnApplyMarkerStyle.addEventListener("click", function () {

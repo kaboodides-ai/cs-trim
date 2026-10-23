@@ -287,45 +287,6 @@
                     <div class="guide-callout guide-callout-lead">
                         <strong>לא צריך מפתח:</strong> הכתוביות מתומללות במחשב שלכם עם מודל עברית מדויק, חינם ובלי הגבלה. בפעם הראשונה שמתמללים, הפאנל מוריד לבד מודל עברית חד־פעמי של 1.6GB (בערך 2 דקות), ומאז התמלול עובד גם בלי אינטרנט.
                     </div>
-
-                    <div class="guide-callout">
-                        <strong>מחשב חלש? אפשר לתמלל בענן:</strong> בראש לשונית הכתוביות בוחרים <strong>Groq בענן</strong>. זה מהיר גם במחשב ישן, אבל דורש מפתח Groq חינמי. כך פותחים אותו:
-                    </div>
-
-                    <ol class="guide-steps">
-                        <!-- Step 1 -->
-                        <li class="guide-step-card">
-                            <div class="step-header">
-                                <span class="step-badge-num">1</span>
-                                <h3 class="step-title">כניסה לאתר Groq</h3>
-                            </div>
-                            <div class="step-body">
-                                <p>היכנסו אל עמוד המפתחות בכתובת: <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-link" dir="ltr">console.groq.com/keys</a> והתחברו בלחיצה עם חשבון Google שלכם.</p>
-                            </div>
-                        </li>
-
-                        <!-- Step 2 -->
-                        <li class="guide-step-card">
-                            <div class="step-header">
-                                <span class="step-badge-num">2</span>
-                                <h3 class="step-title">הפקת המפתח</h3>
-                            </div>
-                            <div class="step-body">
-                                <p>לחצו על הכפתור <strong>Create API Key</strong>, תנו שם למפתח (למשל <code>CS-Trim</code>) והעתיקו את קוד המפתח שנוצר.</p>
-                            </div>
-                        </li>
-
-                        <!-- Step 3 -->
-                        <li class="guide-step-card">
-                            <div class="step-header">
-                                <span class="step-badge-num">3</span>
-                                <h3 class="step-title">הדבקה בפאנל</h3>
-                            </div>
-                            <div class="step-body">
-                                <p>בפאנל בפרמייר, עברו ללשונית <strong>כתוביות</strong>, בחרו <strong>Groq בענן</strong> והדביקו את המפתח בשדה שמופיע. המפתח נשמר במחשב שלכם ולא צריך להזין אותו שוב.</p>
-                            </div>
-                        </li>
-                    </ol>
                 </div>
 
                 <!-- Bottom Help Box -->
@@ -491,7 +452,7 @@
             var hash = window.location.hash.replace("#", "").toLowerCase();
             if (hash === "mac") {
                 switchGuide("mac");
-            } else if (hash === "api" || hash === "groq") {
+            } else if (hash === "api") {
                 switchGuide("api");
             } else if (hash === "win" || hash === "windows") {
                 switchGuide("win");

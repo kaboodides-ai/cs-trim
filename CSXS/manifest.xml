@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="7.0" ExtensionBundleId="com.autocut.panel" ExtensionBundleVersion="1.0.36"
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.autocut.panel" ExtensionBundleVersion="1.0.37"
     ExtensionBundleName="CS Trim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ExtensionList>
-        <Extension Id="com.autocut.panel" Version="1.0.36" />
+        <Extension Id="com.autocut.panel" Version="1.0.37" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>

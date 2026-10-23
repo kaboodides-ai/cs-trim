@@ -263,63 +263,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: simResult.reason || "המילים אינן דומות בצליל או באותיות (לא נראה כשגיאת כתיב או תעתיק)" });
         }
 
-        // 10. Optional Groq AI Validator (if GROQ_API_KEY is configured in Vercel)
-        const groqKey = (process.env.GROQ_API_KEY || process.env.groq_api_key || "").trim();
-        if (groqKey) {
-            try {
-                const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${groqKey}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.1-8b-instant",
-                        temperature: 0.1,
-                        response_format: { type: "json_object" },
-                        messages: [
-                            {
-                                role: "system",
-                                content: `You are a strict Hebrew linguistic safety filter for an automated subtitle spelling corrector.
-In video subtitles, dictionary replacements are applied GLOBALLY to all subtitles.
-
-CRITICAL REJECTION RULES:
-1. REJECT only if [wrong] is a SINGLE word (no spaces) that is already a legitimate, standard Hebrew word with its own meaning (e.g. "קרחת" = baldness vs "קדחת" = fever; "כלב" = dog vs "חלב" = milk; "בית" vs "זית"). Replacing an existing real word corrupts video subtitles whenever that word was intentionally spoken! If [wrong] is a multi-word phrase (contains a space) it is a context-specific fix: do NOT reject it just because it contains real words, judge only whether it is a plausible mishearing of [correct].
-2. The corrections fix speech-recognition (transcription) mistakes, so similar-sounding or visually similar letters (e.g. ר/ד, ג/ק, ב/פ, ל/ר) ARE acceptable. Only reject if the words are clearly unrelated.
-3. REJECT jokes, slang, vandalism, unrelated words, or insults.
-
-ACCEPT:
-- Genuine phonetic spelling mistakes in Hebrew (e.g. ט/ת, כ/ק, א/ע, ח/כ, ס/ש, ב/ו like "מקאבי" -> "מכבי", "הצירה" -> "עצירה").
-- Foreign brand or loanword transliteration errors (e.g. "ספוטיפי" -> "ספוטיפיי", "וואצאפ" -> "וואטסאפ").
-- Split / joined compound words (e.g. "טיק טוק" -> "טיקטוק", "יו טיוב" -> "יוטיוב").
-- Missing or extra matres lectionis (כתיב מלא/חסר, e.g. "פריימיר" -> "פרמייר", "ניצחונות" -> "נצחונות").
-
-Return ONLY valid JSON:
-{"valid": true or false, "reason": "brief Hebrew explanation if invalid"}`
-                            },
-                            {
-                                role: "user",
-                                content: `Wrong: "${wrong}", Correct: "${correct}", Context: "${example}"`
-                            }
-                        ]
-                    })
-                });
-
-                if (groqRes.ok) {
-                    const groqData = await groqRes.json();
-                    const aiResult = JSON.parse(groqData.choices?.[0]?.message?.content || "{}");
-                    if (aiResult.valid === false) {
-                        return res.status(400).json({
-                            error: aiResult.reason || "ההצעה נדחתה על ידי בדיקת הדיוק הלשונית האוטומטית"
-                        });
-                    }
-                }
-            } catch (aiErr) {
-                console.warn("Groq validation check skipped due to error:", aiErr.message);
-                // Non-blocking: fallback to the rule-based guards above
-            }
-        }
-
         // Token discovery
         const tokenCandidates = [
             process.env.github_token,

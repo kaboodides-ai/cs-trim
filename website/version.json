@@ -1,14 +1,14 @@
 {
-  "version": "1.0.36",
-  "versionCode": 136,
-  "releaseDate": "2026-10-22",
-  "title": "עדכון גרסה 1.0.36: הקלדה מילה אחרי מילה בכתוביות",
+  "version": "1.0.37",
+  "versionCode": 137,
+  "releaseDate": "2026-10-23",
+  "title": "עדכון גרסה 1.0.37: תמלול מקומי בלבד, בלי מפתח",
   "changelog": [
-    "מתג חדש בטאב הכתוביות: הקלדה, מילה אחרי מילה. המילים מופיעות בדיוק כשהן נאמרות",
-    "אפשר להשתמש בו עם מרקר הצבע או בלעדיו"
+    "התמלול רץ עכשיו רק במחשב שלכם, בלי מפתח ובלי ענן",
+    "מודל העברית יורד לבד ברקע בפעם הראשונה, כדי שהתמלול הראשון יהיה מיידי"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "3ae684a7091922954d756f7159384df0e43463edfefc46dc44756280b0ef7979"
+  "bundleHash": "66ab4636bee47397fdc60e7dc7efe25f2b7412d32645cc263396a15d6896dafa"
 }

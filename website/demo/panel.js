@@ -99,13 +99,6 @@
     syncHighlight();
 
     var cc = $('#customColorBtn'); if (cc) cc.addEventListener('click', function (e) { e.preventDefault(); });
-    var gk = $('#linkGetApiKey'); if (gk) gk.addEventListener('click', function (e) { e.preventDefault(); });
-    var tk = $('#btnToggleKey'), ki = $('#groqApiKey');
-    if (ki) ki.value = 'gsk_demo_key_not_real_0000';
-    if (tk) tk.addEventListener('click', function () {
-        ki.type = ki.type === 'password' ? 'text' : 'password';
-        tk.textContent = ki.type === 'password' ? 'הצג' : 'הסתר';
-    });
 
     // Actions → parent
     function act(id, name) {

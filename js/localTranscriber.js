@@ -276,16 +276,33 @@ var LocalTranscriber = {
         });
     },
 
+    // One install at a time: a background pre-download and a transcription started meanwhile share it
     ensureInstalled: function (onProgress) {
         var self = this;
-        return this.ensureEngine(onProgress).then(function () {
-            return self.ensureModel(onProgress);
-        });
+        if (this.isReady()) return Promise.resolve();
+        if (!this._listeners) this._listeners = [];
+        if (onProgress) this._listeners.push(onProgress);
+        if (!this._pending) {
+            var notify = function (pct, msg) {
+                for (var i = 0; i < self._listeners.length; i++) self._listeners[i](pct, msg);
+            };
+            this._pending = this.ensureEngine(notify).then(function () {
+                return self.ensureModel(notify);
+            }).then(function () {
+                self._pending = null;
+                self._listeners = [];
+            }, function (err) {
+                self._pending = null;
+                self._listeners = [];
+                throw err;
+            });
+        }
+        return this._pending;
     },
 
     /**
-     * Transcribe a 16 kHz WAV. Resolves in the same shape the Groq path returns ({ words, segments })
-     * so the caption builder handles both engines alike.
+     * Transcribe a 16 kHz WAV. Resolves in the Whisper verbose shape ({ words, segments })
+     * that the caption builder expects.
      */
     transcribe: function (audioInfo, onProgress) {
         var self = this;

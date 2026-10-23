@@ -1,27 +1,11 @@
 /**
- * CS Trim - Groq AI Whisper Caption Generator
- * Free, ultra-fast transcription using Groq Cloud API with Whisper Large v3.
+ * CS Trim - Caption Generator
+ * Local transcription (ivrit.ai Whisper model running on the user's machine), no cloud API.
  * Supports single media clips and entire cut sequences across all timeline clips.
  * Cross-platform (macOS & Windows).
  */
 
 var CaptionGenerator = {
-    STORAGE_KEY: "autocut_groq_api_key",
-
-    getApiKey: function () {
-        try {
-            return localStorage.getItem(this.STORAGE_KEY) || "";
-        } catch (e) {
-            return "";
-        }
-    },
-
-    saveApiKey: function (key) {
-        try {
-            localStorage.setItem(this.STORAGE_KEY, (key || "").trim());
-        } catch (e) {}
-    },
-
     // Built-in dictionary of Hebrew spelling and terminology corrections for Whisper
     HEBREW_CORRECTIONS: {
         "מקאבי": "מכבי",
@@ -51,7 +35,7 @@ var CaptionGenerator = {
     // like אבל / זה get dropped. A verbatim, colloquial sample keeps it writing what was actually said.
     SPEECH_STYLE_PROMPT: "אמאלה, אחשלי, זה היה מטורף. אבל רגע, תקשיב אחי, וואלה תכלס זה אשכרה עובד. יאללה סבבה, כפרה עליך, נו באמת, חבל על הזמן.",
 
-    // Groq caps the prompt at 224 tokens; a Hebrew character is at most one Whisper token
+    // Whisper caps the prompt at 224 tokens; a Hebrew character is at most one Whisper token
     PROMPT_MAX_CHARS: 220,
 
     /**
@@ -579,7 +563,7 @@ var CaptionGenerator = {
             var stats = null;
             try { stats = fs.statSync(mediaPath); } catch (e) {}
 
-            // Direct upload check: If media is already an audio file or small video supported directly by Groq (< 24 MB)
+            // Direct upload check: If media is already an audio file or small video supported directly (< 24 MB)
             var directAudioExts = [".mp3", ".m4a", ".wav", ".aac", ".ogg", ".flac"];
             var isDirectAudio = directAudioExts.indexOf(ext) !== -1;
             var isDirectVideo = (ext === ".mp4" || ext === ".webm" || ext === ".mpeg" || ext === ".mpga") && stats && stats.size < 24 * 1024 * 1024;
@@ -605,7 +589,7 @@ var CaptionGenerator = {
             var isWin = (os.platform() === "win32");
 
             if (isWin) {
-                // Windows extraction via bundled ffmpeg (compact 64kbps mono MP3/WAV so large files stay under Groq 25MB limit)
+                // Windows extraction via bundled ffmpeg (compact 64kbps mono MP3/WAV so large files stay small)
                 var tempWav = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".wav");
                 var ffmpegBin = self.getFfmpegPath();
                 var argsWin = ["-i", mediaPath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWav, "-y"];
@@ -693,7 +677,7 @@ var CaptionGenerator = {
 
                 if (wavOnly) return macWav();
 
-                // macOS extraction via afconvert (built-in): compact AAC for the Groq upload limit
+                // macOS extraction via afconvert (built-in): compact AAC
                 var tempAudio = path.join(os.tmpdir(), "autocut_caption_" + Date.now() + ".m4a");
                 var argsMac = ["-f", "m4af", "-d", "aac", "-c", "1", "-b", "64000", mediaPath, tempAudio];
 
@@ -702,147 +686,6 @@ var CaptionGenerator = {
                     resolve({ path: tempAudio, type: "audio/m4a", filename: "audio.m4a", isTemp: true });
                 });
             }
-        });
-    },
-
-    /**
-     * Send audio to Groq Whisper Large v3
-     */
-    transcribe: function (audioInfo, apiKey, language, onProgress) {
-        var self = this;
-        return new Promise(function (resolve, reject) {
-            var nodeReq = self.getNodeRequire();
-            var fs = nodeReq("fs");
-
-            var audioPath = (typeof audioInfo === "string") ? audioInfo : audioInfo.path;
-            var mimeType = audioInfo.type || "audio/wav";
-            var fileName = audioInfo.filename || "audio.wav";
-
-            if (!fs.existsSync(audioPath)) return reject(new Error("קובץ האודיו הזמני לא נמצא"));
-
-            onProgress(40, "מתמלל ב-Groq AI (Whisper Large v3)...");
-
-            var fileBuffer = fs.readFileSync(audioPath);
-            var blob = new Blob([fileBuffer], { type: mimeType });
-
-            var formData = new FormData();
-            formData.append("file", blob, fileName);
-            formData.append("model", "whisper-large-v3");
-            formData.append("response_format", "verbose_json");
-            formData.append("temperature", "0.0");
-            formData.append("timestamp_granularities[]", "word");
-            formData.append("timestamp_granularities[]", "segment");
-
-            if (language && language !== "auto") {
-                formData.append("language", language);
-            }
-
-            var hebrewPrompt = self.buildPrompt();
-            formData.append("prompt", hebrewPrompt);
-
-            var cleanup = function () {
-                if (audioInfo && audioInfo.isTemp !== false) {
-                    try { fs.unlinkSync(audioPath); } catch (e) {}
-                }
-            };
-
-            var httpError = function (status, errData) {
-                var msg = (errData && errData.error && errData.error.message) ? errData.error.message : ("HTTP " + status);
-                if (status === 401) {
-                    msg = "מפתח Groq API שגוי או לא בתוקף. אנא בדוק את המפתח שהזנת.";
-                }
-                return new Error(msg);
-            };
-
-            // Fallback: Node https with a hand-built multipart body. Used when Chromium's fetch
-            // fails at the network level ("Failed to fetch") - seen on some Macs (proxy/VPN/security software).
-            var nodeTranscribe = function (fetchErr) {
-                var nodeHttps;
-                try { nodeHttps = nodeReq("https"); } catch (e) { nodeHttps = null; }
-                if (!nodeHttps) { cleanup(); return reject(fetchErr); }
-
-                var boundary = "----cstrim" + Date.now().toString(16) + Math.random().toString(16).slice(2);
-                var parts = [];
-                var addField = function (name, value) {
-                    parts.push(Buffer.from("--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + name + "\"\r\n\r\n" + value + "\r\n", "utf8"));
-                };
-                parts.push(Buffer.from("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"\r\nContent-Type: " + mimeType + "\r\n\r\n", "utf8"));
-                parts.push(fileBuffer);
-                parts.push(Buffer.from("\r\n", "utf8"));
-                addField("model", "whisper-large-v3");
-                addField("response_format", "verbose_json");
-                addField("temperature", "0.0");
-                addField("timestamp_granularities[]", "word");
-                addField("timestamp_granularities[]", "segment");
-                if (language && language !== "auto") addField("language", language);
-                addField("prompt", hebrewPrompt);
-                parts.push(Buffer.from("--" + boundary + "--\r\n", "utf8"));
-                var body = Buffer.concat(parts);
-
-                var req = nodeHttps.request({
-                    method: "POST",
-                    hostname: "api.groq.com",
-                    path: "/openai/v1/audio/transcriptions",
-                    headers: {
-                        "Authorization": "Bearer " + apiKey.trim(),
-                        "Content-Type": "multipart/form-data; boundary=" + boundary,
-                        "Content-Length": body.length
-                    }
-                }, function (res) {
-                    var chunks = [];
-                    res.on("data", function (c) { chunks.push(c); });
-                    res.on("end", function () {
-                        var text = Buffer.concat(chunks).toString("utf8");
-                        var json = null;
-                        try { json = JSON.parse(text); } catch (e) {}
-                        if (res.statusCode >= 200 && res.statusCode < 300 && json) {
-                            cleanup();
-                            resolve(json);
-                        } else {
-                            cleanup();
-                            reject(httpError(res.statusCode, json));
-                        }
-                    });
-                });
-                req.on("error", function (e) {
-                    cleanup();
-                    reject(new Error("אין חיבור ל-Groq (" + (e && e.message ? e.message : "שגיאת רשת") + "). בדוק אינטרנט, VPN או חומת אש."));
-                });
-                req.setTimeout(300000, function () {
-                    req.abort();
-                });
-                req.write(body);
-                req.end();
-            };
-
-            fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + apiKey.trim()
-                },
-                body: formData
-            })
-            .then(function (res) {
-                if (!res.ok) {
-                    return res.json().catch(function () { return null; }).then(function (errData) {
-                        var e = httpError(res.status, errData);
-                        e.isHttp = true;
-                        throw e;
-                    });
-                }
-                return res.json();
-            })
-            .then(function (data) {
-                cleanup();
-                resolve(data);
-            })
-            .catch(function (err) {
-                if (err && err.isHttp) {
-                    cleanup();
-                    return reject(err);
-                }
-                nodeTranscribe(err);
-            });
         });
     },
 
@@ -1376,13 +1219,11 @@ var CaptionGenerator = {
     /**
      * Generate captions for the ENTIRE active sequence across all its clips
      */
-    generateCaptionsForSequence: function (timelineClips, apiKey, language, options, onProgress) {
+    generateCaptionsForSequence: function (timelineClips, language, options, onProgress) {
         var self = this;
         return new Promise(function (resolve, reject) {
-            var useLocal = Boolean(options && options.engine === "local") && typeof LocalTranscriber !== "undefined" && LocalTranscriber.isSupported();
-            var engineNote = null;
-            if (!useLocal && (!apiKey || !apiKey.trim())) {
-                return reject(new Error("נא להזין מפתח Groq API חינמי."));
+            if (typeof LocalTranscriber === "undefined" || !LocalTranscriber.isSupported()) {
+                return reject(new Error("התמלול המקומי לא זמין במחשב הזה."));
             }
             if (!timelineClips || timelineClips.length === 0) {
                 return reject(new Error("לא נמצאו קליפים בסיקוונס הפעיל."));
@@ -1470,8 +1311,7 @@ var CaptionGenerator = {
                         onProgress(86, hlOn ? "מייצר שכבות מרקר (הייליט) לכל מילה..." : "מייצר שכבת כתוביות...");
                         self.buildCaptionLayer(cues, options, srtPath, onProgress).then(function (layer) {
                             onProgress(100, (hlOn ? "כתוביות המרקר " : "הכתוביות ") + targetLabel + " מוכנות!");
-                            layer.engine = useLocal ? "local" : "groq";
-                            layer.engineNote = engineNote;
+                            layer.engine = "local";
                             layer.srtPath = srtPath;
                             layer.blocksCount = cues.length;
                             layer.cues = cues;
@@ -1490,26 +1330,10 @@ var CaptionGenerator = {
 
                 self.extractAudio(mediaPath, function (p, msg) {
                     onProgress(pctBase + Math.round(p * 0.3), msg);
-                }, useLocal).then(function (audioInfo) {
-                    if (useLocal) {
-                        onProgress(pctBase + 35, "מתמלל במחשב (" + (currentPathIdx + 1) + "/" + uniquePaths.length + ")...");
-                        return LocalTranscriber.transcribe(audioInfo, function (p, msg) {
-                            onProgress(Math.min(84, pctBase + 35 + Math.round(p * 0.45)), msg);
-                        }).catch(function (localErr) {
-                            // The engine can't run on this machine: with a Groq key, finish the job there instead
-                            if (!apiKey || !apiKey.trim()) throw localErr;
-                            useLocal = false;
-                            engineNote = "התמלול המקומי נכשל (" + localErr.message + "), לכן התמלול נעשה ב-Groq.";
-                            return self.extractAudio(mediaPath, function () {}).then(function (groqAudio) {
-                                return self.transcribe(groqAudio, apiKey, language, function (p, msg) {
-                                    onProgress(pctBase + 35 + Math.round(p * 0.4), msg);
-                                });
-                            });
-                        });
-                    }
-                    onProgress(pctBase + 35, "מתמלל ב-Groq AI (" + (currentPathIdx + 1) + "/" + uniquePaths.length + ")...");
-                    return self.transcribe(audioInfo, apiKey, language, function (p, msg) {
-                        onProgress(pctBase + 35 + Math.round(p * 0.4), msg);
+                }, true).then(function (audioInfo) {
+                    onProgress(pctBase + 35, "מתמלל במחשב (" + (currentPathIdx + 1) + "/" + uniquePaths.length + ")...");
+                    return LocalTranscriber.transcribe(audioInfo, function (p, msg) {
+                        onProgress(Math.min(84, pctBase + 35 + Math.round(p * 0.45)), msg);
                     });
                 }, function (extractErr) {
                     // A file we can't read audio from (e.g. a graphic) shouldn't abort the whole sequence
@@ -1522,14 +1346,9 @@ var CaptionGenerator = {
                 }).catch(reject);
             };
 
-            // The local engine and model download once; if that fails, a Groq key (when there is one) takes over
+            // The local engine and model download once
             var prepareEngine = function () {
-                if (!useLocal) return Promise.resolve();
-                return LocalTranscriber.ensureInstalled(onProgress).catch(function (err) {
-                    if (!apiKey || !apiKey.trim()) throw err;
-                    useLocal = false;
-                    engineNote = "התמלול המקומי לא זמין (" + err.message + "), לכן התמלול נעשה ב-Groq.";
-                });
+                return LocalTranscriber.ensureInstalled(onProgress);
             };
 
             // Ensure fresh remote corrections are loaded from cloud before transcription starts
@@ -1596,9 +1415,9 @@ var CaptionGenerator = {
     /**
      * Backward-compatible entrypoint
      */
-    generateCaptions: function (mediaPathOrClips, apiKey, language, options, onProgress) {
+    generateCaptions: function (mediaPathOrClips, language, options, onProgress) {
         if (Array.isArray(mediaPathOrClips)) {
-            return this.generateCaptionsForSequence(mediaPathOrClips, apiKey, language, options, onProgress);
+            return this.generateCaptionsForSequence(mediaPathOrClips, language, options, onProgress);
         }
 
         // If single mediaPath, wrap it as a single timeline clip
@@ -1609,6 +1428,6 @@ var CaptionGenerator = {
             inPoint: (options && options.clipInPoint) || 0,
             outPoint: 999999
         };
-        return this.generateCaptionsForSequence([clip], apiKey, language, options, onProgress);
+        return this.generateCaptionsForSequence([clip], language, options, onProgress);
     }
 };

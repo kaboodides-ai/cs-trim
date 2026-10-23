@@ -468,11 +468,18 @@ var AutoCutHost = {
             var backupCreated = false;
             if (typeof srcSeq.clone === "function") {
                 try {
+                    // The clone is not always the last sequence in the list: find it by the ID that is new
+                    var knownIds = {};
+                    var seqsBefore = app.project.sequences;
+                    for (var sb = 0; sb < seqsBefore.numSequences; sb++) knownIds[seqsBefore[sb].sequenceID] = true;
                     var cloneSuccess = srcSeq.clone();
                     if (cloneSuccess) {
                         var allSeqs = app.project.sequences;
-                        var backupSeq = allSeqs[allSeqs.length - 1];
-                        if (backupSeq) {
+                        var backupSeq = null;
+                        for (var sa = 0; sa < allSeqs.numSequences; sa++) {
+                            if (!knownIds[allSeqs[sa].sequenceID]) { backupSeq = allSeqs[sa]; break; }
+                        }
+                        if (backupSeq && backupSeq.sequenceID !== srcSeq.sequenceID) {
                             backupSeq.name = backupName;
                             backupCreated = true;
                         }

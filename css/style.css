@@ -1588,17 +1588,31 @@ input[type="range"].range-slim:hover::-webkit-slider-thumb { transform: scale(1.
 }
 
 
+/* Collapsible groups */
+.fold > summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 42px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text); user-select: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::after { content: ""; width: 7px; height: 7px; margin-inline-start: auto; border-right: 1.6px solid var(--text-3); border-bottom: 1.6px solid var(--text-3); transform: rotate(45deg); transition: transform 0.15s var(--ease); }
+.fold[open] > summary::after { transform: rotate(-135deg); }
+.fold > summary:hover .fold-title { color: var(--accent-hover); }
+.fold[open] > summary { border-bottom: 1px solid var(--line); }
+.fold > * + * { border-top: 1px solid var(--line); }
+.fold > summary + * { border-top: 0; }
+.fold-chip { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px; color: #4ADE80; background: rgba(74,222,128,0.12); }
+.fold-chip-accent { color: var(--accent-text); background: var(--accent-soft); }
+.fold-chip:empty { display: none; }
+.fold-chip.is-unsafe { color: #F87171; background: rgba(248,113,113,0.12); }
+.actions-sticky { position: sticky; bottom: 0; z-index: 5; padding: 10px 0 8px; margin-top: 4px; background: linear-gradient(to top, var(--bg) 70%, rgba(0,0,0,0)); animation: none !important; }
+
 /* Instagram safe zones */
-.safezone { display: flex; gap: 12px; align-items: stretch; margin-top: 10px; padding: 10px; border-radius: 10px; background: var(--surface-2); border: 1px solid rgba(255,255,255,0.06); }
-.safezone-phone { position: relative; flex: 0 0 54px; height: 96px; border-radius: 8px; background: #0F1218; border: 1px solid rgba(255,255,255,0.14); overflow: hidden; }
-.sz-zone { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(135deg, rgba(239,68,68,0.34) 0 3px, rgba(239,68,68,0.14) 3px 6px); }
+.safezone { display: flex; gap: 14px; align-items: center; padding: 12px 0; }
+.safezone-phone { position: relative; flex: 0 0 84px; height: 150px; border-radius: 10px; background: #0F1218; border: 1px solid rgba(255,255,255,0.14); overflow: hidden; cursor: crosshair; touch-action: none; }
+.sz-zone { position: absolute; left: 0; right: 0; pointer-events: none; background: repeating-linear-gradient(135deg, rgba(239,68,68,0.34) 0 3px, rgba(239,68,68,0.14) 3px 6px); }
 .sz-top { top: 0; height: 14%; }
 .sz-bottom { bottom: 0; height: 35%; }
-.sz-cap { position: absolute; width: 60%; height: 5px; border-radius: 3px; background: #fff; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px rgba(0,0,0,0.6); }
+.sz-cap { position: absolute; width: 56%; height: 7px; border-radius: 4px; background: #fff; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px rgba(0,0,0,0.6); pointer-events: none; }
 .safezone.is-unsafe .sz-cap { background: #F87171; }
 .safezone-side { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; min-width: 0; }
-.safezone-title { font-size: 11.5px; font-weight: 600; color: var(--text); }
-.safezone-status { font-size: 11px; color: #4ADE80; line-height: 1.35; }
+.safezone-status { font-size: 12px; font-weight: 700; color: #4ADE80; }
 .safezone.is-unsafe .safezone-status { color: #F87171; }
+.safezone-hint { font-size: 10.5px; color: var(--text-3); line-height: 1.35; }
 .safezone.is-unsafe #btnSzSnap { border-color: #F87171; }
-.safezone-note { font-size: 10.5px; color: var(--text-3); line-height: 1.35; }

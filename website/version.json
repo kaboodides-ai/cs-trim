@@ -1,15 +1,15 @@
 {
-  "version": "1.0.39",
-  "versionCode": 139,
+  "version": "1.0.40",
+  "versionCode": 140,
   "releaseDate": "2026-10-24",
-  "title": "עדכון גרסה 1.0.39: אזורים בטוחים לאינסטגרם",
+  "title": "עדכון גרסה 1.0.40: לשונית כתוביות נקייה ופשוטה",
   "changelog": [
-    "כתוביות בטוחות לאינסטגרם: מתג אוטומטי ממקם את הכתוביות מחוץ לאזורים שהאפליקציה מכסה",
-    "תצוגת טלפון בפאנל שמראה איפה הכתובית יושבת, וכפתור הצמדה לאזור בטוח",
-    "מדריך אזורים בטוחים שאפשר להציג על הטיימליין ולהסתיר"
+    "לשונית הכתוביות עברה פישוט: קבוצות מתקפלות (מרקר, עיצוב, מיקום), וכפתור היצירה תמיד גלוי",
+    "מיקום הכתובית בגרירה בתוך תצוגת טלפון, עם סימון אזורים בטוחים של אינסטגרם",
+    "מתג \"בטוח לאינסטגרם\": כתוביות רגילות נוצרות באזור הבטוח"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "1c1e80d5215a81287bf25f7e2d123ad6900f87f1c0fc3af4849829de692f36d6"
+  "bundleHash": "6e90894609d71bd953f54da7c28689ea5b3065153cc1193c899648f442c2448a"
 }

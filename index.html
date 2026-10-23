@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS Trim</title>
-    <link rel="stylesheet" href="css/style.css?v=19">
+    <link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
     <!-- Header -->
@@ -46,7 +46,7 @@
             <div class="update-banner-info">
                 <div class="update-title-line">
                     <span class="update-main-title">גרסה חדשה זמינה</span>
-                    <span id="updateVersionBadge" class="update-vtag">v1.0.39</span>
+                    <span id="updateVersionBadge" class="update-vtag">v1.0.40</span>
                 </div>
                 <div id="updateNotesPreview" class="update-notes-preview">עדכון בלחיצה אחת</div>
             </div>
@@ -101,7 +101,6 @@
     <!-- View: AI Captions -->
     <div id="view-captions" class="tab-view" style="display:none;">
         <section class="section">
-            <div class="section-title">הגדרות</div>
             <div class="card">
                 <div class="row">
                     <label id="lblCaptionScope">טווח</label>
@@ -135,8 +134,9 @@
         </section>
 
         <section class="section">
-            <div class="section-title">הדגשת מילים</div>
             <div class="card">
+                <details class="fold" id="foldMarker">
+                    <summary><span class="fold-title">מרקר</span><span class="fold-chip fold-chip-accent" id="markerChip"></span></summary>
                 <label class="row row-toggle" for="captionWordHighlight" id="rowWordHighlight">
                     <span class="toggle-label highlight-toggle-label">
                         <span>מרקר על המילה המדוברת</span>
@@ -149,7 +149,10 @@
                     <span class="toggle-label">הקלדה, מילה אחרי מילה</span>
                     <span class="switch"><input type="checkbox" id="captionTypeReveal"><span class="switch-track" aria-hidden="true"></span></span>
                 </label>
+                </details>
 
+                <details class="fold" id="foldStyle">
+                    <summary><span class="fold-title">עיצוב</span></summary>
                 <div class="row row-highlight-color" id="rowHighlightColor">
                     <label for="captionHighlightColor">צבע</label>
                     <div class="highlight-color-controls" id="highlightSwatches">
@@ -166,7 +169,7 @@
                     </div>
                 </div>
 
-                <div class="marker-style" id="markerStyleGroup">
+                    <div class="marker-style" id="markerStyleGroup">
                     <div class="row">
                         <label for="markerFont">פונט</label>
                         <div class="font-picker" id="markerFontPicker">
@@ -191,6 +194,31 @@
                         </div>
                     </div>
 
+                    <button type="button" id="btnApplyMarkerStyle" class="btn btn-secondary btn-sm" style="display:none;">החל פונט ומיקום על הכתוביות הקיימות</button>
+                    </div>
+                </details>
+
+                <details class="fold" id="foldPosition">
+                    <summary><span class="fold-title">מיקום</span><span class="fold-chip" id="szChip"></span></summary>
+                <label class="row row-toggle" for="captionSafeMode" id="rowSafeMode" title="כתוביות רגילות מצוירות כגרפיקה באזור הבטוח של אינסטגרם, במקום טראק כתוביות של Premiere">
+                    <span class="toggle-label">בטוח לאינסטגרם (אוטומטי)</span>
+                    <span class="switch"><input type="checkbox" id="captionSafeMode" checked><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
+
+                    <div class="safezone" id="safeZoneBox">
+                        <div class="safezone-phone" id="szPhone" title="גרור את הכתובית">
+                            <div class="sz-zone sz-top"></div>
+                            <div class="sz-zone sz-bottom"></div>
+                            <div class="sz-cap" id="szCap"></div>
+                        </div>
+                        <div class="safezone-side">
+                            <div class="safezone-status" id="szStatus">בטוח</div>
+                            <div class="safezone-hint">גרור את הכתובית בתוך הטלפון</div>
+                            <button type="button" id="btnSzSnap" class="btn btn-secondary btn-sm">הצמד לאזור בטוח</button>
+                            <button type="button" id="btnSzGuide" class="btn btn-secondary btn-sm">הצג מדריך בטיימליין</button>
+                        </div>
+                    </div>
+                    <div hidden>
                     <div class="row row-slider">
                         <label for="markerPosY">גובה</label>
                         <div class="slider-control-wrap">
@@ -210,29 +238,8 @@
                             </div>
                         </div>
                     </div>
-
-                    <button type="button" id="btnApplyMarkerStyle" class="btn btn-secondary btn-sm" style="display:none;">החל פונט ומיקום על הכתוביות הקיימות</button>
-                </div>
-
-                <label class="row row-toggle" for="captionSafeMode" id="rowSafeMode" title="כתוביות רגילות מצוירות כגרפיקה באזור הבטוח של אינסטגרם, במקום טראק כתוביות של Premiere">
-                    <span class="toggle-label">בטוח לאינסטגרם (אוטומטי)</span>
-                    <span class="switch"><input type="checkbox" id="captionSafeMode" checked><span class="switch-track" aria-hidden="true"></span></span>
-                </label>
-
-                <div class="safezone" id="safeZoneBox">
-                        <div class="safezone-phone" id="szPhone" aria-hidden="true">
-                            <div class="sz-zone sz-top"></div>
-                            <div class="sz-zone sz-bottom"></div>
-                            <div class="sz-cap" id="szCap"></div>
-                        </div>
-                        <div class="safezone-side">
-                            <div class="safezone-title">אזורים בטוחים באינסטגרם</div>
-                            <div class="safezone-note">כשהמתג דלוק, הכתוביות נוצרות כגרפיקה באזור הבטוח. כבוי: טראק כתוביות רגיל של Premiere (בתחתית).</div>
-                            <div class="safezone-status" id="szStatus">בתוך האזור הבטוח</div>
-                            <button type="button" id="btnSzSnap" class="btn btn-secondary btn-sm">הצמד לאזור בטוח</button>
-                            <button type="button" id="btnSzGuide" class="btn btn-secondary btn-sm">הצג מדריך בטיימליין</button>
-                        </div>
                     </div>
+                </details>
             </div>
 
             <!-- Custom Color Popover -->
@@ -289,7 +296,7 @@
             </div>
         </section>
 
-        <div class="actions">
+        <div class="actions actions-sticky">
             <button type="button" id="btnCaptions" class="btn btn-primary">יצירת כתוביות לכל הסיקוונס</button>
             <button type="button" id="btnEditCaptions" class="btn btn-secondary" style="display:none;">
                 <span>עריכת טקסט הכתוביות</span>
@@ -425,7 +432,7 @@
         <span class="footer-credit">by Kaboodi</span>
         <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" onclick="handleFooterVersionClick(event)" title="בדיקת עדכונים">
             <span id="footerUpdatePing" class="version-update-ping" style="display:none;"></span>
-            <span id="footerVersionText">v1.0.39</span>
+            <span id="footerVersionText">v1.0.40</span>
             <svg id="footerCheckSpin" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         </button>
     </footer>
@@ -521,6 +528,6 @@
     <script src="js/captionGenerator.js?v=10"></script>
     <script src="js/localTranscriber.js?v=2"></script>
     <script src="js/textAnimator.js?v=5"></script>
-    <script src="js/main.js?v=19"></script>
+    <script src="js/main.js?v=21"></script>
 </body>
 </html>

@@ -904,10 +904,6 @@ function initApp() {
             if (rowHighlightColor) {
                 rowHighlightColor.classList.toggle("is-disabled", !isOn);
             }
-            var markerStyleGroupEl = document.getElementById("markerStyleGroup");
-            if (markerStyleGroupEl) {
-                markerStyleGroupEl.classList.toggle("is-disabled", !isOn);
-            }
             updateCaptionsButtonLabel();
         }
 
@@ -1551,30 +1547,71 @@ function initApp() {
             };
         }
 
+        // Captions drawn by the plugin (marker / typing / safe mode) can be styled and placed; the native track cannot
+        function captionGraphicsOn() {
+            var ids = ["captionWordHighlight", "captionTypeReveal", "captionSafeMode"];
+            return ids.some(function (id) { var el = document.getElementById(id); return !!(el && el.checked); });
+        }
+
+        function updateCaptionControlVisibility() {
+            var m = document.getElementById("captionWordHighlight"), t = document.getElementById("captionTypeReveal");
+            var colorRow = document.getElementById("rowHighlightColor");
+            if (colorRow) colorRow.style.display = ((m && m.checked) || (t && t.checked)) ? "" : "none";
+            var mChip = document.getElementById("markerChip");
+            if (mChip) mChip.textContent = (m && m.checked) ? "מרקר" : ((t && t.checked) ? "הקלדה" : "");
+            var foldStyle = document.getElementById("foldStyle");
+            if (foldStyle) foldStyle.style.display = captionGraphicsOn() ? "" : "none";
+        }
+
         function renderSafeZone() {
             if (!szBox) return;
+            updateCaptionControlVisibility();
             var r = safeZoneRange();
             var y = markerStyle.posY, x = markerStyle.posX;
-            if (szCap) { szCap.style.top = y + "%"; szCap.style.left = x + "%"; }
-            var msg = "";
-            var safeModeEl = document.getElementById("captionSafeMode");
-            var markerOn = !!((document.getElementById("captionWordHighlight") || {}).checked || (document.getElementById("captionTypeReveal") || {}).checked || (safeModeEl && safeModeEl.checked));
-            var mg = document.getElementById("markerStyleGroup");
-            if (mg) mg.classList.toggle("is-disabled", !markerOn);
-            if (!markerOn) {
-                // Plain captions are placed by Premiere (bottom of the frame), the sliders above do not move them
+            var chip = document.getElementById("szChip");
+            var setStatus = function (msg, unsafe) {
+                szBox.classList.toggle("is-unsafe", unsafe);
+                szStatus.textContent = msg;
+                if (chip) { chip.textContent = unsafe ? "לא בטוח" : "בטוח"; chip.classList.toggle("is-unsafe", unsafe); }
+            };
+            if (!captionGraphicsOn()) {
+                // Native Premiere caption track: bottom of the frame, not movable from the plugin
                 if (szCap) { szCap.style.top = "92%"; szCap.style.left = "50%"; }
-                szBox.classList.add("is-unsafe");
-                szStatus.textContent = "טראק כתוביות של Premiere: הכתוביות בתחתית, בתוך האזור שאינסטגרם מכסה. הפעל את המתג כדי למקם אותן בטוח";
+                setStatus("טראק Premiere: הכתוביות בתחתית, באזור שאינסטגרם מכסה", true);
                 if (btnSzSnapEl) btnSzSnapEl.disabled = true;
                 return;
             }
+            if (szCap) { szCap.style.top = y + "%"; szCap.style.left = x + "%"; }
             if (btnSzSnapEl) btnSzSnapEl.disabled = false;
-            if (y < r.minY) msg = "הכתובית גבוהה מדי, אינסטגרם מכסה אותה בחלק העליון";
-            else if (y > r.maxY) msg = "הכתובית נמוכה מדי, הכיתוב והכפתורים של אינסטגרם יכסו אותה";
-            else if (x < r.minX || x > r.maxX) msg = "הכתובית קרובה מדי לקצה";
-            szBox.classList.toggle("is-unsafe", !!msg);
-            szStatus.textContent = msg || "בתוך האזור הבטוח";
+            if (y < r.minY) setStatus("גבוה מדי, אינסטגרם מכסה", true);
+            else if (y > r.maxY) setStatus("נמוך מדי, אינסטגרם מכסה", true);
+            else if (x < r.minX || x > r.maxX) setStatus("קרוב מדי לקצה", true);
+            else setStatus("בטוח", false);
+        }
+
+        // Drag the caption inside the phone to place it (replaces the height and side sliders)
+        var szPhoneEl = document.getElementById("szPhone");
+        if (szPhoneEl) {
+            var szDragging = false;
+            var szMove = function (ev) {
+                if (!szDragging || !captionGraphicsOn()) return;
+                var rect = szPhoneEl.getBoundingClientRect();
+                var py = Math.round(((ev.clientY - rect.top) / rect.height) * 100);
+                var px = Math.round(((ev.clientX - rect.left) / rect.width) * 100);
+                markerStyle.posY = Math.max(8, Math.min(94, py));
+                markerStyle.posX = Math.max(10, Math.min(90, px));
+                renderMarkerStyleUI();
+                saveMarkerStyle();
+            };
+            szPhoneEl.addEventListener("pointerdown", function (ev) {
+                szDragging = true;
+                try { szPhoneEl.setPointerCapture(ev.pointerId); } catch (ePc) {}
+                szMove(ev);
+            });
+            szPhoneEl.addEventListener("pointermove", szMove);
+            var szStop = function () { szDragging = false; };
+            szPhoneEl.addEventListener("pointerup", szStop);
+            szPhoneEl.addEventListener("pointercancel", szStop);
         }
 
         function snapToSafeZone(skipApply) {

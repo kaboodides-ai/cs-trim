@@ -1,15 +1,15 @@
 {
-  "version": "1.0.38",
-  "versionCode": 138,
-  "releaseDate": "2026-10-23",
-  "title": "עדכון גרסה 1.0.38: עיצוב פרימיום חדש לפאנל",
+  "version": "1.0.39",
+  "versionCode": 139,
+  "releaseDate": "2026-10-24",
+  "title": "עדכון גרסה 1.0.39: אזורים בטוחים לאינסטגרם",
   "changelog": [
-    "עיצוב חדש לפאנל: כהה ועמוק, עם גרדיאנטים, זוהר עדין וכרטיסים בשכבות",
-    "כפתורים, מתגים וסליידרים מעודנים, ומעברים חלקים בין הלשוניות",
-    "תיקון בזיהוי סיקוונס הגיבוי שנוצר בזמן חיתוך שקט"
+    "כתוביות בטוחות לאינסטגרם: מתג אוטומטי ממקם את הכתוביות מחוץ לאזורים שהאפליקציה מכסה",
+    "תצוגת טלפון בפאנל שמראה איפה הכתובית יושבת, וכפתור הצמדה לאזור בטוח",
+    "מדריך אזורים בטוחים שאפשר להציג על הטיימליין ולהסתיר"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "c0148f793729705be99683320c1cb554bf5fdc48b0b254639dffab959c51f1a4"
+  "bundleHash": "1c1e80d5215a81287bf25f7e2d123ad6900f87f1c0fc3af4849829de692f36d6"
 }

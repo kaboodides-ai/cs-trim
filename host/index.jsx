@@ -173,8 +173,16 @@ var AutoCutHost = {
 
             var bounds = AutoCutHost.extractSequenceBounds(seq);
 
+            var infoW = 0, infoH = 0;
+            try {
+                infoW = Number(seq.frameSizeHorizontal) || 0;
+                infoH = Number(seq.frameSizeVertical) || 0;
+            } catch (szErr) {}
+
             return JSON.stringify({
                 name: seq.name,
+                frameWidth: infoW,
+                frameHeight: infoH,
                 id: seq.sequenceID,
                 timebase: seq.timebase,
                 duration: bounds.duration,
@@ -874,6 +882,99 @@ var AutoCutHost = {
             });
         } catch (e) {
             return JSON.stringify({ error: "importHighlightedSubtitles error: " + e.toString() });
+        }
+    },
+
+    /**
+     * Show or hide the Instagram safe-zone guide: a transparent PNG on its own top video track.
+     * If a guide is already on the timeline it is removed, otherwise pngPath is imported and stretched over the sequence.
+     */
+    toggleSafeZoneGuide: function(pngPath) {
+        try {
+            if (!app.project || !app.project.activeSequence) {
+                return JSON.stringify({ error: "No active sequence open" });
+            }
+            var seq = app.project.activeSequence;
+            var isGuide = function(clip) {
+                try {
+                    if ((clip.name || "").indexOf("cstrim_safezone") === 0) return true;
+                    var pi = clip.projectItem;
+                    if (pi && (pi.name || "").indexOf("cstrim_safezone") === 0) return true;
+                } catch (e1) {}
+                return false;
+            };
+
+            var removed = 0;
+            for (var t = seq.videoTracks.numTracks - 1; t >= 0; t--) {
+                var trk = seq.videoTracks[t];
+                if (!trk || !trk.clips) continue;
+                for (var c = trk.clips.numItems - 1; c >= 0; c--) {
+                    if (isGuide(trk.clips[c])) {
+                        try { trk.clips[c].remove(false, false); removed++; } catch (rmErr) {}
+                    }
+                }
+            }
+            if (removed > 0) return JSON.stringify({ success: true, shown: false, removed: removed });
+
+            var f = new File(String(pngPath || "").replace(/\\/g, "/"));
+            if (!f.exists) f = new File(pngPath);
+            if (!f.exists) return JSON.stringify({ error: "Guide image not found" });
+
+            var rootBin = app.project.rootItem;
+            var guideBinName = "CS Trim - \u05d0\u05d6\u05d5\u05e8\u05d9\u05dd \u05d1\u05d8\u05d5\u05d7\u05d9\u05dd";
+            var guideBin = null;
+            for (var rb = 0; rb < rootBin.children.numItems; rb++) {
+                var rc = rootBin.children[rb];
+                if (rc && rc.name === guideBinName && rc.type === 2) { guideBin = rc; break; }
+            }
+            if (!guideBin) try { guideBin = rootBin.createBin(guideBinName); } catch (binErr) {}
+            if (!guideBin) guideBin = rootBin;
+            if (!app.project.importFiles([f.fsName ? f.fsName : pngPath], true, guideBin, false)) {
+                return JSON.stringify({ error: "Failed to import the guide image" });
+            }
+            var projItem = null;
+            for (var b = guideBin.children.numItems - 1; b >= 0; b--) {
+                var ch = guideBin.children[b];
+                if (ch && (ch.name || "").indexOf("cstrim_safezone") === 0) { projItem = ch; break; }
+            }
+            if (!projItem) return JSON.stringify({ error: "Guide image not found in project" });
+
+            // Topmost empty track above V1, else a new one
+            var track = null;
+            for (var vt = seq.videoTracks.numTracks - 1; vt >= 1; vt--) {
+                var cand = seq.videoTracks[vt];
+                if (cand && cand.clips && cand.clips.numItems === 0) { track = cand; break; }
+            }
+            if (!track) {
+                try {
+                    app.enableQE();
+                    var qeSeq = qe.project.getActiveSequence();
+                    if (qeSeq && typeof qeSeq.addTracks === "function") qeSeq.addTracks(1, seq.videoTracks.numTracks, 0, 0);
+                } catch (qeErr) {}
+                track = seq.videoTracks[seq.videoTracks.numTracks - 1];
+            }
+            if (!track) return JSON.stringify({ error: "No video track available" });
+
+            var st = new Time();
+            st.seconds = 0;
+            track.overwriteClip(projItem, st);
+
+            var endSec = 5;
+            try {
+                var bnd = AutoCutHost.extractSequenceBounds(seq);
+                endSec = Math.max(1, Number(bnd.outPoint) || Number(bnd.duration) || 5);
+            } catch (bErr) {}
+            for (var k = track.clips.numItems - 1; k >= 0; k--) {
+                if (isGuide(track.clips[k])) {
+                    var et = new Time();
+                    et.seconds = endSec;
+                    track.clips[k].end = et;
+                    break;
+                }
+            }
+            return JSON.stringify({ success: true, shown: true });
+        } catch (e) {
+            return JSON.stringify({ error: "toggleSafeZoneGuide error: " + e.toString() });
         }
     },
 
@@ -2145,6 +2246,10 @@ function importSubtitles(srtPath, startOffset) {
 
 function importHighlightedSubtitles(manifestPath) {
     return safeBridgeEncode(AutoCutHost.importHighlightedSubtitles(manifestPath));
+}
+
+function toggleSafeZoneGuide(pngPath) {
+    return safeBridgeEncode(AutoCutHost.toggleSafeZoneGuide(pngPath));
 }
 
 function undoLastCut() {

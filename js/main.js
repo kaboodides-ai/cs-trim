@@ -1296,7 +1296,7 @@ function initApp() {
         function refreshApplyMarkerStyleBtn() {
             if (!btnApplyMarkerStyle) return;
             var hasCues = typeof CaptionGenerator !== "undefined" && CaptionGenerator.lastGeneratedCues && CaptionGenerator.lastGeneratedCues.length > 0 &&
-                CaptionGenerator.lastGeneratedOptions && CaptionGenerator.lastGeneratedOptions.highlightWords;
+                CaptionGenerator.lastGeneratedOptions && (CaptionGenerator.lastGeneratedOptions.highlightWords || CaptionGenerator.lastGeneratedOptions.plainGraphics);
             btnApplyMarkerStyle.style.display = hasCues ? "flex" : "none";
         }
 
@@ -1525,6 +1525,131 @@ function initApp() {
         });
         renderMarkerStyleUI();
 
+        // ---- Instagram safe zones (Reels, 9:16): top 14% and bottom 35% are covered by the app UI ----
+        var SZ = { top: 0.14, bottom: 0.35, side: 0.06 };
+        var szBox = document.getElementById("safeZoneBox");
+        var szCap = document.getElementById("szCap");
+        var szStatus = document.getElementById("szStatus");
+        var btnSzSnapEl = document.getElementById("btnSzSnap");
+        var szMarkerToggle = document.getElementById("captionWordHighlight");
+        if (szMarkerToggle) szMarkerToggle.addEventListener("change", function () { renderSafeZone(); });
+        var szSafeToggle = document.getElementById("captionSafeMode");
+        try { var savedSafe = localStorage.getItem("autocut_safe_mode"); if (szSafeToggle && savedSafe !== null) szSafeToggle.checked = savedSafe === "true"; } catch (eSf) {}
+        if (szSafeToggle) szSafeToggle.addEventListener("change", function () { renderSafeZone(); });
+        var szTypeToggle = document.getElementById("captionTypeReveal");
+        if (szTypeToggle) szTypeToggle.addEventListener("change", function () { renderSafeZone(); });
+
+        // Allowed range for the caption centre, as % of the frame, for the current font size (one line, 9:16)
+        function safeZoneRange() {
+            var halfH = 0.0264 * (markerStyle.size / 100);
+            var halfW = 0.42;
+            return {
+                minY: Math.ceil((SZ.top + halfH) * 100),
+                maxY: Math.floor((1 - SZ.bottom - halfH) * 100),
+                minX: Math.ceil((SZ.side + halfW * 0.6) * 100),
+                maxX: Math.floor((1 - SZ.side - halfW * 0.6) * 100)
+            };
+        }
+
+        function renderSafeZone() {
+            if (!szBox) return;
+            var r = safeZoneRange();
+            var y = markerStyle.posY, x = markerStyle.posX;
+            if (szCap) { szCap.style.top = y + "%"; szCap.style.left = x + "%"; }
+            var msg = "";
+            var safeModeEl = document.getElementById("captionSafeMode");
+            var markerOn = !!((document.getElementById("captionWordHighlight") || {}).checked || (document.getElementById("captionTypeReveal") || {}).checked || (safeModeEl && safeModeEl.checked));
+            var mg = document.getElementById("markerStyleGroup");
+            if (mg) mg.classList.toggle("is-disabled", !markerOn);
+            if (!markerOn) {
+                // Plain captions are placed by Premiere (bottom of the frame), the sliders above do not move them
+                if (szCap) { szCap.style.top = "92%"; szCap.style.left = "50%"; }
+                szBox.classList.add("is-unsafe");
+                szStatus.textContent = "טראק כתוביות של Premiere: הכתוביות בתחתית, בתוך האזור שאינסטגרם מכסה. הפעל את המתג כדי למקם אותן בטוח";
+                if (btnSzSnapEl) btnSzSnapEl.disabled = true;
+                return;
+            }
+            if (btnSzSnapEl) btnSzSnapEl.disabled = false;
+            if (y < r.minY) msg = "הכתובית גבוהה מדי, אינסטגרם מכסה אותה בחלק העליון";
+            else if (y > r.maxY) msg = "הכתובית נמוכה מדי, הכיתוב והכפתורים של אינסטגרם יכסו אותה";
+            else if (x < r.minX || x > r.maxX) msg = "הכתובית קרובה מדי לקצה";
+            szBox.classList.toggle("is-unsafe", !!msg);
+            szStatus.textContent = msg || "בתוך האזור הבטוח";
+        }
+
+        function snapToSafeZone(skipApply) {
+            var r = safeZoneRange();
+            var oldY = markerStyle.posY, oldX = markerStyle.posX;
+            markerStyle.posY = Math.max(r.minY, Math.min(r.maxY, markerStyle.posY));
+            markerStyle.posX = Math.max(r.minX, Math.min(r.maxX, markerStyle.posX));
+            renderMarkerStyleUI();
+            saveMarkerStyle();
+            renderSafeZone();
+            // Captions already on the timeline move too
+            var changed = oldY !== markerStyle.posY || oldX !== markerStyle.posX;
+            if (skipApply !== true && changed && btnApplyMarkerStyle && btnApplyMarkerStyle.style.display !== "none") btnApplyMarkerStyle.click();
+        }
+
+        var szRenderUI = renderMarkerStyleUI;
+        renderMarkerStyleUI = function () { szRenderUI(); renderSafeZone(); };
+        renderSafeZone();
+
+        var btnSzSnap = document.getElementById("btnSzSnap");
+        if (btnSzSnap) btnSzSnap.addEventListener("click", function () { snapToSafeZone(); });
+
+        // Draw the guide at the sequence's own size and toggle it on the timeline
+        var btnSzGuide = document.getElementById("btnSzGuide");
+        function drawSafeZoneGuide(w, h) {
+            var c = document.createElement("canvas");
+            c.width = w; c.height = h;
+            var g = c.getContext("2d");
+            var topH = Math.round(h * SZ.top), botH = Math.round(h * SZ.bottom), sideW = Math.round(w * SZ.side);
+            g.fillStyle = "rgba(239,68,68,0.28)";
+            g.fillRect(0, 0, w, topH);
+            g.fillRect(0, h - botH, w, botH);
+            g.fillStyle = "rgba(239,68,68,0.16)";
+            g.fillRect(0, topH, sideW, h - topH - botH);
+            g.fillRect(w - sideW, topH, sideW, h - topH - botH);
+            g.strokeStyle = "rgba(255,255,255,0.85)";
+            g.lineWidth = Math.max(2, Math.round(w / 540));
+            g.setLineDash([Math.round(w / 36), Math.round(w / 54)]);
+            g.beginPath();
+            g.moveTo(0, topH); g.lineTo(w, topH);
+            g.moveTo(0, h - botH); g.lineTo(w, h - botH);
+            g.stroke();
+            g.setLineDash([]);
+            g.fillStyle = "rgba(255,255,255,0.9)";
+            g.font = "700 " + Math.round(w * 0.034) + "px 'Heebo', Arial, sans-serif";
+            g.textAlign = "center";
+            g.fillText("אינסטגרם מכסה כאן", w / 2, Math.round(topH / 2) + 10);
+            g.fillText("אינסטגרם מכסה כאן", w / 2, h - Math.round(botH / 2));
+            return c.toDataURL("image/png").replace(/^data:image\/png;base64,/, "");
+        }
+
+        if (btnSzGuide) btnSzGuide.addEventListener("click", function () {
+            var self = this;
+            self.disabled = true;
+            csInterface.evalScript("getSequenceInfo()", function (infoRaw) {
+                var info = null;
+                try { info = JSON.parse(infoRaw); } catch (e1) {}
+                if (!info || info.error) { self.disabled = false; log((info && info.error) || "אין סיקוונס פתוח", "error"); return; }
+                try {
+                    var nodeReq = CaptionGenerator.getNodeRequire();
+                    var fs = nodeReq("fs"), path = nodeReq("path"), os = nodeReq("os");
+                    var w = info.frameWidth || 1080, h = info.frameHeight || 1920;
+                    var pngPath = path.join(os.tmpdir(), "cstrim_safezone.png");
+                    fs.writeFileSync(pngPath, Buffer.from(drawSafeZoneGuide(w, h), "base64"));
+                    csInterface.evalScript('toggleSafeZoneGuide("' + escapeForEval(pngPath) + '")', function (res) {
+                        self.disabled = false;
+                        var r = null;
+                        try { r = JSON.parse(res); } catch (e3) {}
+                        if (r && r.success) self.textContent = r.shown ? "הסתר מדריך מהטיימליין" : "הצג מדריך בטיימליין";
+                        else log((r && r.error) || "שגיאה", "error");
+                    });
+                } catch (e5) { self.disabled = false; }
+            });
+        });
+
         // Profile buttons
         var buttons = document.querySelectorAll(".profile");
         for (var i = 0; i < buttons.length; i++) {
@@ -1643,6 +1768,12 @@ function initApp() {
             try { localStorage.setItem("autocut_type_reveal", typeReveal ? "true" : "false"); } catch (e) {}
             // Typing needs the per-word PNG frames the marker mode renders, with or without the marker box
             var highlightWords = markerBox || typeReveal;
+            var safeEl = document.getElementById("captionSafeMode");
+            var safeOn = safeEl ? safeEl.checked : false;
+            try { localStorage.setItem("autocut_safe_mode", safeOn ? "true" : "false"); } catch (e) {}
+            // Safe mode draws plain captions as graphics too (the native caption track cannot be moved)
+            var plainGraphics = safeOn && !highlightWords;
+            if (safeOn && typeof snapToSafeZone === "function") snapToSafeZone(true);
             var syncEl = document.getElementById("captionSync");
             var syncDelay = syncEl ? parseFloat(syncEl.value) : 0.12;
 
@@ -1710,6 +1841,7 @@ function initApp() {
                             highlightWords: highlightWords,
                             markerBox: markerBox,
                             typeReveal: typeReveal,
+                            plainGraphics: plainGraphics,
                             highlightColor: selectedHighlightColor || "#FACC15",
                             seqWidth: Number(data.frameWidth) || 1080,
                             seqHeight: Number(data.frameHeight) || 1920,
@@ -1728,7 +1860,7 @@ function initApp() {
                                                 // Plain captions are a native caption track the plugin cannot replace, so they are edited in Premiere itself
                             var btnEdit = document.getElementById("btnEditCaptions");
                             if (btnEdit) {
-                                if (capResult.highlightWords && capResult.cues && capResult.cues.length > 0) {
+                                if ((capResult.highlightWords || capResult.plainGraphics) && capResult.cues && capResult.cues.length > 0) {
                                     btnEdit.style.display = "flex";
                                     btnEdit.innerHTML = "<span>עריכת טקסט הכתוביות · " + capResult.cues.length + " שורות</span>";
                                 } else {
@@ -1808,7 +1940,7 @@ function initApp() {
                         if (savedOptsRaw) {
                             try { CaptionGenerator.lastGeneratedOptions = JSON.parse(savedOptsRaw) || {}; } catch (e2) {}
                         }
-                        if (btnEditCaptions && CaptionGenerator.lastGeneratedOptions && CaptionGenerator.lastGeneratedOptions.highlightWords) {
+                        if (btnEditCaptions && CaptionGenerator.lastGeneratedOptions && (CaptionGenerator.lastGeneratedOptions.highlightWords || CaptionGenerator.lastGeneratedOptions.plainGraphics)) {
                             btnEditCaptions.style.display = "flex";
                             btnEditCaptions.innerHTML = "<span>עריכת טקסט הכתוביות · " + parsedCues.length + " שורות</span>";
                         }
@@ -1901,7 +2033,13 @@ function initApp() {
         function rerenderMarkerCaptions(updatedCues) {
             var savedOpts = (CaptionGenerator.lastGeneratedOptions) ? CaptionGenerator.lastGeneratedOptions : {};
             // The editor only exists for marker captions (a managed track it can replace)
-            savedOpts.highlightWords = true;
+            var rrSafe = document.getElementById("captionSafeMode");
+            var rrMarkerNow = document.getElementById("captionWordHighlight");
+            var rrTypeNow = document.getElementById("captionTypeReveal");
+            var rrGfxWords = !!((rrMarkerNow && rrMarkerNow.checked) || (rrTypeNow && rrTypeNow.checked));
+            var rrPlain = !!(rrSafe && rrSafe.checked) && !rrGfxWords;
+            savedOpts.plainGraphics = rrPlain;
+            savedOpts.highlightWords = !rrPlain;
             savedOpts.highlightColor = selectedHighlightColor || savedOpts.highlightColor || "#FACC15";
             // Typing reveal and the marker box follow the toggles as they are now
             var rrType = document.getElementById("captionTypeReveal");

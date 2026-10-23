@@ -1192,6 +1192,8 @@ var CaptionGenerator = {
         var self = this;
         options = options || {};
         var hlOn = Boolean(options.highlightWords);
+        // Plain captions drawn as one safe-zone frame per line (instead of a native caption track)
+        var plainGfx = !hlOn && Boolean(options.plainGraphics);
 
         var renderFrames = function () {
             return self.renderHighlightFrames(cues, options, onProgress).then(function (hlData) {
@@ -1206,13 +1208,14 @@ var CaptionGenerator = {
                 }), "utf8");
                 return {
                     highlightWords: hlOn,
+                    plainGraphics: plainGfx,
                     highlightManifestPath: manifestPath,
                     highlightClipsCount: hlData.items.length
                 };
             });
         };
 
-        if (!hlOn) return Promise.resolve({ highlightWords: false });
+        if (!hlOn && !plainGfx) return Promise.resolve({ highlightWords: false });
         return renderFrames();
     },
 

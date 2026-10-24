@@ -1,6 +1,6 @@
 /**
  * CS Trim - Caption Generator
- * Local transcription (ivrit.ai Whisper model running on the user's machine), no cloud API.
+ * Local transcription (Hebrew speech model running on the user's machine), no cloud API.
  * Supports single media clips and entire cut sequences across all timeline clips.
  * Cross-platform (macOS & Windows).
  */
@@ -30,6 +30,19 @@ var CaptionGenerator = {
         "דגדק": "דגדג"
     },
 
+    // Words that are both valid Hebrew: swapped only when a context word shows up within CONTEXT_WINDOW words
+    CONTEXT_CORRECTIONS: [
+        {
+            wrong: "אורחים",
+            correct: "עורכים",
+            context: ["עריכה", "עריכת", "עורך", "עורכת", "עורכים", "וידאו", "ווידאו", "סרטון", "סרטונים", "קליפ", "פרמייר", "אפטר", "אפקטס", "קאפקאט", "קפקאט", "תוסף", "תוספים", "כתוביות", "רילס", "טיקטוק", "יוטיוב", "יוצרי", "תוכן", "סאונד", "אודיו", "מונטאז'", "טיימליין", "קאט", "קאטים", "בעברית", "עברית", "פלאגין", "תוכנה", "כלי", "כלים", "אדיטור", "אדיטורים", "מונטאג", "חדש"]
+        }
+    ],
+    CONTEXT_WINDOW: 15,
+
+    // Terms fed to Whisper in every prompt so it prefers them when it is torn between two real words
+    BUILTIN_VOCAB: ["עורכים"],
+
     // Whisper reads the prompt as the transcript that came before the audio and copies its style.
     // A formal prompt makes it "clean up" speech: slang gets swapped for standard words and short words
     // like אבל / זה get dropped. A verbatim, colloquial sample keeps it writing what was actually said.
@@ -49,6 +62,14 @@ var CaptionGenerator = {
         var seen = {};
         var vocab = [];
         var used = 0;
+        for (var b = 0; b < this.BUILTIN_VOCAB.length; b++) {
+            var bt = this.BUILTIN_VOCAB[b];
+            if (style.indexOf(bt) === -1 && used + bt.length + 2 <= budget) {
+                seen[bt] = true;
+                vocab.push(bt);
+                used += bt.length + 2;
+            }
+        }
         for (var key in custom) {
             if (!Object.prototype.hasOwnProperty.call(custom, key)) continue;
             var term = String(custom[key] || "").trim();
@@ -371,6 +392,33 @@ var CaptionGenerator = {
         try {
             localStorage.setItem("autocut_caption_corrections", JSON.stringify(map || {}));
         } catch (e) {}
+    },
+
+    /**
+     * Fix ambiguous words using the words around them. Works on the timeline word list (objects with .word).
+     */
+    applyContextCorrections: function (words) {
+        var rules = this.CONTEXT_CORRECTIONS || [];
+        var win = this.CONTEXT_WINDOW;
+        var strip = function (w) { return String(w || "").replace(/[^\u05D0-\u05EA'"׳״]/g, ""); };
+        for (var r = 0; r < rules.length; r++) {
+            var rule = rules[r];
+            var re = new RegExp("^([ובשמכלה]{0,3})" + rule.wrong + "$");
+            for (var i = 0; i < words.length; i++) {
+                var bare = strip(words[i].word);
+                var m = re.exec(bare);
+                if (!m) continue;
+                var found = false;
+                for (var j = Math.max(0, i - win); j <= Math.min(words.length - 1, i + win) && !found; j++) {
+                    if (j === i) continue;
+                    var nb = strip(words[j].word);
+                    for (var c = 0; c < rule.context.length; c++) {
+                        if (nb.replace(/^[ובשמכלה]{0,2}/, "") === rule.context[c] || nb === rule.context[c]) { found = true; break; }
+                    }
+                }
+                if (found) words[i].word = words[i].word.replace(rule.wrong, rule.correct);
+            }
+        }
     },
 
     correctHebrewSpelling: function (text) {
@@ -745,7 +793,8 @@ var CaptionGenerator = {
                             allTimelineWords.push({
                                 word: wordClean,
                                 start: wStart,
-                                end: wEnd
+                                end: wEnd,
+                                endsSentence: /[.!?…]["'”’)\]]*$/.test(String(wordObj.word || "").trim())
                             });
                         }
                     }
@@ -776,7 +825,8 @@ var CaptionGenerator = {
                                 allTimelineWords.push({
                                     word: segWordsList[sw],
                                     start: pwStart,
-                                    end: pwEnd
+                                    end: pwEnd,
+                                    endsSentence: sw === segWordsList.length - 1 || /[.!?…]["'”’)\]]*$/.test(segWordsList[sw])
                                 });
                             }
                         }
@@ -787,6 +837,7 @@ var CaptionGenerator = {
 
         // Sort all mapped words across the entire sequence chronologically
         allTimelineWords.sort(function (a, b) { return a.start - b.start; });
+        self.applyContextCorrections(allTimelineWords);
 
         if (allTimelineWords.length === 0) {
             return options && options._returnCuesOnly ? [] : "";
@@ -798,8 +849,18 @@ var CaptionGenerator = {
         var cues = [];
         var prevEnd = 0;
 
-        for (var i = 0; i < allTimelineWords.length; i += wordCount) {
-            var chunk = allTimelineWords.slice(i, i + wordCount);
+        // Never mix words from two sentences in one cue: a cue ends at a sentence end or a long pause
+        var SENTENCE_GAP = 0.6;
+        var i = 0;
+        while (i < allTimelineWords.length) {
+            var j = i + 1;
+            while (j < allTimelineWords.length && j - i < wordCount) {
+                var prevW = allTimelineWords[j - 1];
+                if (prevW.endsSentence || allTimelineWords[j].start - prevW.end > SENTENCE_GAP) break;
+                j++;
+            }
+            var chunk = allTimelineWords.slice(i, j);
+            i = j;
             var rawStart = chunk[0].start;
             var rawEnd = chunk[chunk.length - 1].end;
 
@@ -1007,7 +1068,7 @@ var CaptionGenerator = {
                     if (!(posYFrac >= 0.03 && posYFrac <= 0.97)) posYFrac = 0.78;
                     var lineHeight = Math.round(fontSize * 1.38);
                     var spaceW = Math.round(fontSize * 0.32);
-                    var maxLineWidth = Math.round(seqWidth * 0.84);
+                    var maxLineWidth = Math.round(seqWidth * (options.markerSafe ? Math.min(0.84, 1 - options.markerSafe.left - options.markerSafe.right - 0.02) : 0.84));
                     var baseCenterY = Math.round(seqHeight * posYFrac);
 
                     var padX = Math.round(fontSize * 0.21);
@@ -1061,14 +1122,20 @@ var CaptionGenerator = {
                         var totalBlockHeight = (lines.length - 1) * lineHeight;
                         // Keep the whole block inside the frame wherever the user parked it
                         var halfBlockH = Math.round(totalBlockHeight / 2) + Math.round(lineHeight / 2);
-                        var blockCenterY = Math.max(halfBlockH, Math.min(seqHeight - halfBlockH, baseCenterY));
+                        // Safe mode: the whole block stays clear of the strips the app covers (options.markerSafe fractions)
+                        var minBlockY = options.markerSafe ? Math.round(seqHeight * options.markerSafe.top) + halfBlockH : halfBlockH;
+                        var maxBlockY = options.markerSafe ? Math.round(seqHeight * (1 - options.markerSafe.bottom)) - halfBlockH : seqHeight - halfBlockH;
+                        var blockCenterY = Math.max(minBlockY, Math.min(Math.max(minBlockY, maxBlockY), baseCenterY));
                         var startLineY = blockCenterY - Math.round(totalBlockHeight / 2);
 
                         for (var lIdx = 0; lIdx < lines.length; lIdx++) {
                             var lineObj = lines[lIdx];
                             var lineY = startLineY + lIdx * lineHeight;
                             var halfLineW = lineObj.totalWidth / 2 + padX;
-                            var lineCenterX = Math.max(halfLineW, Math.min(seqWidth - halfLineW, seqWidth * posXFrac));
+                            var marginL = options.markerSafe ? Math.round(seqWidth * options.markerSafe.left) : 0;
+                            var marginR = options.markerSafe ? Math.round(seqWidth * options.markerSafe.right) : 0;
+                            var minCX = halfLineW + marginL, maxCX = seqWidth - halfLineW - marginR;
+                            var lineCenterX = minCX <= maxCX ? Math.max(minCX, Math.min(maxCX, seqWidth * posXFrac)) : (marginL + seqWidth - marginR) / 2;
                             var cursorRightX = Math.round(lineCenterX + lineObj.totalWidth / 2);
 
                             for (var lw = 0; lw < lineObj.words.length; lw++) {

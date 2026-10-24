@@ -1285,7 +1285,8 @@ function initApp() {
                 markerFontWeight: f.weight,
                 markerFontScale: markerStyle.size / 100,
                 markerPosX: markerStyle.posX / 100,
-                markerPosY: markerStyle.posY / 100
+                markerPosY: markerStyle.posY / 100,
+                markerSafe: !!(document.getElementById("captionSafeMode") && document.getElementById("captionSafeMode").checked) ? { top: SZ.top, bottom: SZ.bottom, left: SZ.left, right: SZ.right } : null
             };
         }
 
@@ -1522,30 +1523,54 @@ function initApp() {
         renderMarkerStyleUI();
 
         // ---- Instagram safe zones (Reels, 9:16): top 14% and bottom 35% are covered by the app UI ----
-        var SZ = { top: 0.14, bottom: 0.35, side: 0.06 };
+        var SZ_PLATFORMS = {
+            instagram: { name: "אינסטגרם", top: 0.14, bottom: 0.35, left: 0.06, right: 0.06 },
+            tiktok:    { name: "טיקטוק", top: 0.13, bottom: 0.27, left: 0.06, right: 0.15 },
+            shorts:    { name: "יוטיוב שורטס", top: 0.12, bottom: 0.25, left: 0.06, right: 0.14 }
+        };
+        var szPlatform = "instagram";
+        try { var savedPlat = localStorage.getItem("autocut_safe_platform"); if (savedPlat && SZ_PLATFORMS[savedPlat]) szPlatform = savedPlat; } catch (ePl) {}
+        var SZ = SZ_PLATFORMS[szPlatform];
         var szBox = document.getElementById("safeZoneBox");
         var szCap = document.getElementById("szCap");
         var szStatus = document.getElementById("szStatus");
-        var btnSzSnapEl = document.getElementById("btnSzSnap");
         var szMarkerToggle = document.getElementById("captionWordHighlight");
         if (szMarkerToggle) szMarkerToggle.addEventListener("change", function () { renderSafeZone(); });
         var szSafeToggle = document.getElementById("captionSafeMode");
         try { var savedSafe = localStorage.getItem("autocut_safe_mode"); if (szSafeToggle && savedSafe !== null) szSafeToggle.checked = savedSafe === "true"; } catch (eSf) {}
-        if (szSafeToggle) szSafeToggle.addEventListener("change", function () { renderSafeZone(); });
+        if (szSafeToggle) szSafeToggle.addEventListener("change", function () { if (szSafeToggle.checked) snapToSafeZone(); else renderSafeZone(); });
         var szTypeToggle = document.getElementById("captionTypeReveal");
         if (szTypeToggle) szTypeToggle.addEventListener("change", function () { renderSafeZone(); });
 
-        // Allowed range for the caption centre, as % of the frame, for the current font size (one line, 9:16)
+        // Allowed range for the caption centre, as % of the frame. Sized for two lines (the usual case in 9:16);
+        // the renderer clamps the real block, so longer captions still stay inside the safe area.
         function safeZoneRange() {
-            var halfH = 0.0264 * (markerStyle.size / 100);
-            var halfW = 0.42;
+            var halfH = 0.053 * (markerStyle.size / 100);
             return {
                 minY: Math.ceil((SZ.top + halfH) * 100),
                 maxY: Math.floor((1 - SZ.bottom - halfH) * 100),
-                minX: Math.ceil((SZ.side + halfW * 0.6) * 100),
-                maxX: Math.floor((1 - SZ.side - halfW * 0.6) * 100)
+                minX: Math.ceil(SZ.left * 100) + 15,
+                maxX: Math.floor((1 - SZ.right) * 100) - 15
             };
         }
+
+        // Phone preview strips follow the chosen platform
+        function applyPlatformToPreview() {
+            var t = szBox && szBox.querySelector(".sz-top"), b = szBox && szBox.querySelector(".sz-bottom");
+            if (t) t.style.height = (SZ.top * 100) + "%";
+            if (b) b.style.height = (SZ.bottom * 100) + "%";
+            ["l", "r"].forEach(function (k) {
+                var el = szBox && szBox.querySelector(".sz-side-" + k);
+                if (!el) return;
+                el.style.top = (SZ.top * 100) + "%";
+                el.style.bottom = (SZ.bottom * 100) + "%";
+                el.style.width = ((k === "l" ? SZ.left : SZ.right) * 100) + "%";
+            });
+            var btns = document.querySelectorAll("#szPlatforms .sz-plat");
+            for (var i = 0; i < btns.length; i++) btns[i].classList.toggle("active", btns[i].getAttribute("data-plat") === szPlatform);
+        }
+
+        function safeModeOn() { return !!(szSafeToggle && szSafeToggle.checked); }
 
         // Captions drawn by the plugin (marker / typing / safe mode) can be styled and placed; the native track cannot
         function captionGraphicsOn() {
@@ -1566,9 +1591,9 @@ function initApp() {
         function renderSafeZone() {
             if (!szBox) return;
             updateCaptionControlVisibility();
-            var r = safeZoneRange();
-            var y = markerStyle.posY, x = markerStyle.posX;
             var chip = document.getElementById("szChip");
+            var hint = document.getElementById("szHint");
+            applyPlatformToPreview();
             var setStatus = function (msg, unsafe) {
                 szBox.classList.toggle("is-unsafe", unsafe);
                 szStatus.textContent = msg;
@@ -1577,16 +1602,35 @@ function initApp() {
             if (!captionGraphicsOn()) {
                 // Native Premiere caption track: bottom of the frame, not movable from the plugin
                 if (szCap) { szCap.style.top = "92%"; szCap.style.left = "50%"; }
-                setStatus("טראק Premiere: הכתוביות בתחתית, באזור שאינסטגרם מכסה", true);
-                if (btnSzSnapEl) btnSzSnapEl.disabled = true;
+                setStatus("כתוביות Premiere רגילות: בתחתית, באזור שהאפליקציה מכסה", true);
+                if (hint) hint.textContent = "כדי להזיז אותן, הפעל את המתג למעלה.";
                 return;
             }
+            if (safeModeOn()) clampToSafeZone();
+            var y = markerStyle.posY, x = markerStyle.posX;
             if (szCap) { szCap.style.top = y + "%"; szCap.style.left = x + "%"; }
-            if (btnSzSnapEl) btnSzSnapEl.disabled = false;
-            if (y < r.minY) setStatus("גבוה מדי, אינסטגרם מכסה", true);
-            else if (y > r.maxY) setStatus("נמוך מדי, אינסטגרם מכסה", true);
-            else if (x < r.minX || x > r.maxX) setStatus("קרוב מדי לקצה", true);
-            else setStatus("בטוח", false);
+            var r = safeZoneRange();
+            var unsafe = y < r.minY || y > r.maxY;
+            if (safeModeOn()) {
+                setStatus("בטוח", false);
+                if (hint) hint.textContent = "הכתוביות נשארות באזור הבטוח. גרור את הפס הלבן כדי להזיז.";
+            } else {
+                setStatus(unsafe ? "חלק מהכתובית מכוסה על ידי " + SZ.name : "בטוח", unsafe);
+                if (hint) hint.textContent = "מיקום חופשי. האזורים האדומים מכוסים על ידי " + SZ.name + ".";
+            }
+        }
+
+        // Keep the caption centre inside the safe area (only changes markerStyle when it was outside)
+        function clampToSafeZone() {
+            var r = safeZoneRange();
+            var ny = Math.max(r.minY, Math.min(r.maxY, markerStyle.posY));
+            var nx = Math.max(r.minX, Math.min(r.maxX, markerStyle.posX));
+            if (ny === markerStyle.posY && nx === markerStyle.posX) return false;
+            markerStyle.posY = ny;
+            markerStyle.posX = nx;
+            szRenderUI();
+            saveMarkerStyle();
+            return true;
         }
 
         // Drag the caption inside the phone to place it (replaces the height and side sliders)
@@ -1614,25 +1658,38 @@ function initApp() {
             szPhoneEl.addEventListener("pointercancel", szStop);
         }
 
+        // Captions already on the timeline follow when the safe area moves them
         function snapToSafeZone(skipApply) {
-            var r = safeZoneRange();
-            var oldY = markerStyle.posY, oldX = markerStyle.posX;
-            markerStyle.posY = Math.max(r.minY, Math.min(r.maxY, markerStyle.posY));
-            markerStyle.posX = Math.max(r.minX, Math.min(r.maxX, markerStyle.posX));
-            renderMarkerStyleUI();
-            saveMarkerStyle();
+            var changed = clampToSafeZone();
             renderSafeZone();
-            // Captions already on the timeline move too
-            var changed = oldY !== markerStyle.posY || oldX !== markerStyle.posX;
             if (skipApply !== true && changed && btnApplyMarkerStyle && btnApplyMarkerStyle.style.display !== "none") btnApplyMarkerStyle.click();
         }
+
+        // Platform picker: re-clamp, and move captions already on the timeline
+        Array.prototype.forEach.call(document.querySelectorAll("#szPlatforms .sz-plat"), function (btn) {
+            btn.addEventListener("click", function () {
+                var plat = btn.getAttribute("data-plat");
+                if (!SZ_PLATFORMS[plat]) return;
+                szPlatform = plat;
+                SZ = SZ_PLATFORMS[plat];
+                try { localStorage.setItem("autocut_safe_platform", plat); } catch (e) {}
+                snapToSafeZone();
+                // A guide already on the timeline is redrawn for the new platform
+                if (btnSzGuide && !btnSzGuide.disabled) ensureGuideHost(function () {
+                    csInterface.evalScript('toggleSafeZoneGuide("status")', function (stRaw) {
+                        var st = null;
+                        try { st = JSON.parse(stRaw); } catch (e) {}
+                        if (!(st && st.success && st.shown)) return;
+                        csInterface.evalScript('toggleSafeZoneGuide("")', function () { btnSzGuide.click(); });
+                    });
+                });
+            });
+        });
 
         var szRenderUI = renderMarkerStyleUI;
         renderMarkerStyleUI = function () { szRenderUI(); renderSafeZone(); };
         renderSafeZone();
 
-        var btnSzSnap = document.getElementById("btnSzSnap");
-        if (btnSzSnap) btnSzSnap.addEventListener("click", function () { snapToSafeZone(); });
 
         // Draw the guide at the sequence's own size and toggle it on the timeline
         var btnSzGuide = document.getElementById("btnSzGuide");
@@ -1640,13 +1697,13 @@ function initApp() {
             var c = document.createElement("canvas");
             c.width = w; c.height = h;
             var g = c.getContext("2d");
-            var topH = Math.round(h * SZ.top), botH = Math.round(h * SZ.bottom), sideW = Math.round(w * SZ.side);
+            var topH = Math.round(h * SZ.top), botH = Math.round(h * SZ.bottom), sideL = Math.round(w * SZ.left), sideR = Math.round(w * SZ.right);
             g.fillStyle = "rgba(239,68,68,0.28)";
             g.fillRect(0, 0, w, topH);
             g.fillRect(0, h - botH, w, botH);
             g.fillStyle = "rgba(239,68,68,0.16)";
-            g.fillRect(0, topH, sideW, h - topH - botH);
-            g.fillRect(w - sideW, topH, sideW, h - topH - botH);
+            g.fillRect(0, topH, sideL, h - topH - botH);
+            g.fillRect(w - sideR, topH, sideR, h - topH - botH);
             g.strokeStyle = "rgba(255,255,255,0.85)";
             g.lineWidth = Math.max(2, Math.round(w / 540));
             g.setLineDash([Math.round(w / 36), Math.round(w / 54)]);
@@ -1658,32 +1715,79 @@ function initApp() {
             g.fillStyle = "rgba(255,255,255,0.9)";
             g.font = "700 " + Math.round(w * 0.034) + "px 'Heebo', Arial, sans-serif";
             g.textAlign = "center";
-            g.fillText("אינסטגרם מכסה כאן", w / 2, Math.round(topH / 2) + 10);
-            g.fillText("אינסטגרם מכסה כאן", w / 2, h - Math.round(botH / 2));
+            g.fillText(SZ.name + " מכסה כאן", w / 2, Math.round(topH / 2) + 10);
+            g.fillText(SZ.name + " מכסה כאן", w / 2, h - Math.round(botH / 2));
             return c.toDataURL("image/png").replace(/^data:image\/png;base64,/, "");
         }
+
+        // Premiere keeps the host script it loaded first, so after an update it must be evaluated again once per panel load
+        var guideHostFresh = false;
+        function ensureGuideHost(cb) {
+            if (guideHostFresh) { cb(); return; }
+            var extDir = csInterface.getSystemPath("extension") || "";
+            var cleanDir = extDir.replace(/^file:\/\/\/?/i, "").replace(/^\/([a-zA-Z]:)/, "$1").replace(/\\/g, "/");
+            csInterface.evalScript('$.evalFile(new File("' + cleanDir + '/host/index.jsx"))', function () {
+                guideHostFresh = true;
+                cb();
+            });
+        }
+
+        function setGuideLabel(shown) {
+            if (btnSzGuide) btnSzGuide.textContent = shown ? "הסתר קווי עזר מהטיימליין" : "הצג קווי עזר בטיימליין";
+        }
+        // The label follows what is really on the timeline, not what was last clicked
+        function syncGuideButton() {
+            if (!btnSzGuide) return;
+            ensureGuideHost(function () {
+                csInterface.evalScript('toggleSafeZoneGuide("status")', function (res) {
+                    var r = null;
+                    try { r = JSON.parse(res); } catch (e) {}
+                    if (r && r.success) setGuideLabel(r.shown);
+                });
+            });
+        }
+        syncGuideButton();
+        window.addEventListener("focus", syncGuideButton);
 
         if (btnSzGuide) btnSzGuide.addEventListener("click", function () {
             var self = this;
             self.disabled = true;
-            csInterface.evalScript("getSequenceInfo()", function (infoRaw) {
-                var info = null;
-                try { info = JSON.parse(infoRaw); } catch (e1) {}
-                if (!info || info.error) { self.disabled = false; log((info && info.error) || "אין סיקוונס פתוח", "error"); return; }
-                try {
-                    var nodeReq = CaptionGenerator.getNodeRequire();
-                    var fs = nodeReq("fs"), path = nodeReq("path"), os = nodeReq("os");
-                    var w = info.frameWidth || 1080, h = info.frameHeight || 1920;
-                    var pngPath = path.join(os.tmpdir(), "cstrim_safezone.png");
-                    fs.writeFileSync(pngPath, Buffer.from(drawSafeZoneGuide(w, h), "base64"));
-                    csInterface.evalScript('toggleSafeZoneGuide("' + escapeForEval(pngPath) + '")', function (res) {
-                        self.disabled = false;
-                        var r = null;
-                        try { r = JSON.parse(res); } catch (e3) {}
-                        if (r && r.success) self.textContent = r.shown ? "הסתר מדריך מהטיימליין" : "הצג מדריך בטיימליין";
-                        else log((r && r.error) || "שגיאה", "error");
+            var done = function () { self.disabled = false; };
+            ensureGuideHost(function () {
+                // Hiding needs no image: remove first, and only draw the guide when nothing was there
+                csInterface.evalScript('toggleSafeZoneGuide("status")', function (stRaw) {
+                    var st = null;
+                    try { st = JSON.parse(stRaw); } catch (e0) {}
+                    if (st && st.success && st.shown) {
+                        csInterface.evalScript('toggleSafeZoneGuide("")', function (res) {
+                            done();
+                            var r = null;
+                            try { r = JSON.parse(res); } catch (e2) {}
+                            if (r && r.success) setGuideLabel(r.shown);
+                            else log((r && r.error) || "שגיאה בהסתרת קווי העזר", "error");
+                        });
+                        return;
+                    }
+                    csInterface.evalScript("getSequenceInfo()", function (infoRaw) {
+                        var info = null;
+                        try { info = JSON.parse(infoRaw); } catch (e1) {}
+                        if (!info || info.error) { done(); log((info && info.error) || "אין סיקוונס פתוח", "error"); return; }
+                        try {
+                            var nodeReq = CaptionGenerator.getNodeRequire();
+                            var fs = nodeReq("fs"), path = nodeReq("path"), os = nodeReq("os");
+                            var w = info.frameWidth || 1080, h = info.frameHeight || 1920;
+                            var pngPath = path.join(os.tmpdir(), "cstrim_safezone_" + szPlatform + "_" + w + "x" + h + ".png");
+                            fs.writeFileSync(pngPath, Buffer.from(drawSafeZoneGuide(w, h), "base64"));
+                            csInterface.evalScript('toggleSafeZoneGuide("' + escapeForEval(pngPath) + '")', function (res) {
+                                done();
+                                var r = null;
+                                try { r = JSON.parse(res); } catch (e3) {}
+                                if (r && r.success) setGuideLabel(r.shown);
+                                else log((r && r.error) || "שגיאה בהצגת קווי העזר", "error");
+                            });
+                        } catch (e5) { done(); log("שגיאה ביצירת קווי העזר", "error"); }
                     });
-                } catch (e5) { self.disabled = false; }
+                });
             });
         });
 

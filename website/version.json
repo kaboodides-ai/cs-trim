@@ -1,15 +1,15 @@
 {
-  "version": "1.0.40",
-  "versionCode": 140,
+  "version": "1.0.41",
+  "versionCode": 141,
   "releaseDate": "2026-10-24",
-  "title": "עדכון גרסה 1.0.40: לשונית כתוביות נקייה ופשוטה",
+  "title": "עדכון גרסה 1.0.41: שיפורי כתוביות והורדת מנוע התמלול מהשרת שלנו",
   "changelog": [
-    "לשונית הכתוביות עברה פישוט: קבוצות מתקפלות (מרקר, עיצוב, מיקום), וכפתור היצירה תמיד גלוי",
-    "מיקום הכתובית בגרירה בתוך תצוגת טלפון, עם סימון אזורים בטוחים של אינסטגרם",
-    "מתג \"בטוח לאינסטגרם\": כתוביות רגילות נוצרות באזור הבטוח"
+    "שיפורים ביצירת הכתוביות ובמיקום שלהן",
+    "מנוע התמלול בעברית יורד עכשיו ישירות מהשרת של CS Trim",
+    "תיקוני יציבות קטנים"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
   "macPkgUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-v1.0.0-Mac.pkg",
-  "bundleHash": "6e90894609d71bd953f54da7c28689ea5b3065153cc1193c899648f442c2448a"
+  "bundleHash": "11f5e4e210dc2779b4926f854f78099a5c07db0c04706d1fddbf2d539137ed50"
 }

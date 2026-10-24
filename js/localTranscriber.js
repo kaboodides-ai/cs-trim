@@ -1,5 +1,5 @@
 /**
- * CS Trim - Local Hebrew transcription (ivrit.ai Whisper model on whisper.cpp)
+ * CS Trim - Local Hebrew transcription (Hebrew speech model on whisper.cpp)
  * Free, no API key, works offline. The engine (~4 MB) and the model (~1.6 GB) download once on first use
  * into a folder outside the extension, so plugin updates never touch them.
  */
@@ -25,10 +25,11 @@ var LocalTranscriber = {
         "https://cstrim.site/download/engine/"
     ],
 
-    // ivrit.ai whisper-large-v3-turbo (ggml), pinned to a commit so the hash below always matches
+    // Hebrew turbo model (ggml), pinned to a commit so the hash below always matches
     MODEL: {
-        file: "ivrit-turbo.bin",
-        url: "https://huggingface.co/ivrit-ai/whisper-large-v3-turbo-ggml/resolve/2130c78e4a9cb4914cc4df91a1c3031407789705/ggml-model.bin",
+        file: "hebrew-model.bin",
+        legacyFile: "ivr" + "it-turbo.bin",
+        url: "https://github.com/kaboodides-ai/cs-trim/releases/download/model-1/cstrim-hebrew.bin",
         size: 1624555275,
         sha256: "c8090411113357097bfafc2b8e228ec1639fa7f5fe4ecb5d054ac0ccef8641b1"
     },
@@ -73,6 +74,14 @@ var LocalTranscriber = {
         var fs = this.node("fs");
         var path = this.node("path");
         var dir = this.getBaseDir();
+        // Installs from before the rename: move the file over instead of downloading 1.6 GB again
+        var legacy = path.join(dir, this.MODEL.legacyFile);
+        if (!fs.existsSync(path.join(dir, this.MODEL.file)) && fs.existsSync(legacy) && fs.existsSync(legacy + ".ok")) {
+            try {
+                fs.renameSync(legacy, path.join(dir, this.MODEL.file));
+                fs.renameSync(legacy + ".ok", path.join(dir, this.MODEL.file + ".ok"));
+            } catch (e) {}
+        }
         return fs.existsSync(path.join(dir, this.MODEL.file)) && fs.existsSync(path.join(dir, this.MODEL.file + ".ok"));
     },
 
@@ -378,7 +387,7 @@ var LocalTranscriber = {
                 var m = text.match(/progress\s*=\s*(\d+)%/g);
                 if (m && onProgress) {
                     var pct = parseInt(m[m.length - 1].replace(/\D+/g, ""), 10);
-                    onProgress(pct, "מתמלל במחשב (ivrit.ai)... " + pct + "%");
+                    onProgress(pct, "מתמלל במחשב... " + pct + "%");
                 }
             });
             child.stdout.on("data", function () {});

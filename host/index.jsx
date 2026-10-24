@@ -904,17 +904,55 @@ var AutoCutHost = {
                 return false;
             };
 
-            var removed = 0;
-            for (var t = seq.videoTracks.numTracks - 1; t >= 0; t--) {
-                var trk = seq.videoTracks[t];
-                if (!trk || !trk.clips) continue;
-                for (var c = trk.clips.numItems - 1; c >= 0; c--) {
-                    if (isGuide(trk.clips[c])) {
-                        try { trk.clips[c].remove(false, false); removed++; } catch (rmErr) {}
+            // Every guide clip on the timeline (by clip name or by its media file)
+            var countGuides = function() {
+                var n = 0;
+                for (var t = 0; t < seq.videoTracks.numTracks; t++) {
+                    var trk = seq.videoTracks[t];
+                    if (!trk || !trk.clips) continue;
+                    for (var c = 0; c < trk.clips.numItems; c++) {
+                        if (isGuide(trk.clips[c])) n++;
                     }
                 }
+                return n;
+            };
+            var before = countGuides();
+
+            if (pngPath === "status") {
+                return JSON.stringify({ success: true, shown: before > 0 });
             }
-            if (removed > 0) return JSON.stringify({ success: true, shown: false, removed: removed });
+
+            if (before > 0) {
+                for (var t2 = seq.videoTracks.numTracks - 1; t2 >= 0; t2--) {
+                    var trk2 = seq.videoTracks[t2];
+                    if (!trk2 || !trk2.clips) continue;
+                    try { if (trk2.isLocked && trk2.isLocked()) trk2.setLocked(false); } catch (lkErr) {}
+                    for (var c2 = trk2.clips.numItems - 1; c2 >= 0; c2--) {
+                        if (isGuide(trk2.clips[c2])) {
+                            try { trk2.clips[c2].remove(false, false); } catch (rmErr) {}
+                        }
+                    }
+                }
+                // Fallback: QE removes by name when the DOM remove did nothing
+                if (countGuides() > 0) {
+                    try {
+                        app.enableQE();
+                        var qeSeq2 = qe.project.getActiveSequence();
+                        for (var qt = 0; qt < qeSeq2.numVideoTracks; qt++) {
+                            var qTrack = qeSeq2.getVideoTrackAt(qt);
+                            for (var qi = qTrack.numItems - 1; qi >= 0; qi--) {
+                                var qItem = qTrack.getItemAt(qi);
+                                if (qItem && String(qItem.name || "").indexOf("cstrim_safezone") === 0) {
+                                    try { qItem.remove(false, false); } catch (qrErr) {}
+                                }
+                            }
+                        }
+                    } catch (qe2Err) {}
+                }
+                var left = countGuides();
+                if (left > 0) return JSON.stringify({ error: "Could not remove the guide from the timeline (" + left + " left). Delete the cstrim_safezone clip by hand." });
+                return JSON.stringify({ success: true, shown: false, removed: before });
+            }
 
             var f = new File(String(pngPath || "").replace(/\\/g, "/"));
             if (!f.exists) f = new File(pngPath);
@@ -932,10 +970,17 @@ var AutoCutHost = {
             if (!app.project.importFiles([f.fsName ? f.fsName : pngPath], true, guideBin, false)) {
                 return JSON.stringify({ error: "Failed to import the guide image" });
             }
-            var projItem = null;
+            // The item for this exact file (each platform and frame size has its own image name)
+            var projItem = null, wantName = String(f.name || "");
             for (var b = guideBin.children.numItems - 1; b >= 0; b--) {
                 var ch = guideBin.children[b];
-                if (ch && (ch.name || "").indexOf("cstrim_safezone") === 0) { projItem = ch; break; }
+                if (ch && (ch.name || "") === wantName) { projItem = ch; break; }
+            }
+            if (!projItem) {
+                for (var b2 = guideBin.children.numItems - 1; b2 >= 0; b2--) {
+                    var ch2 = guideBin.children[b2];
+                    if (ch2 && (ch2.name || "").indexOf("cstrim_safezone") === 0) { projItem = ch2; break; }
+                }
             }
             if (!projItem) return JSON.stringify({ error: "Guide image not found in project" });
 

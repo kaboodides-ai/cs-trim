@@ -3,7 +3,7 @@
  * Cross-platform (macOS & Windows)
  */
 var AutoUpdater = {
-    CURRENT_VERSION: "1.0.40",
+    CURRENT_VERSION: "1.0.41",
     PRIMARY_URL: "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/version.json",
     FALLBACK_URL: "https://cstrim.site/version.json",
 

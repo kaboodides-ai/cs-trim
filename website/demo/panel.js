@@ -88,14 +88,99 @@
     toggle('#captionWordHighlight', 'highlight');
     toggle('#animMotionBlur', 'blur');
 
+    var typeReveal = $('#captionTypeReveal'), safeMode = $('#captionSafeMode');
     function syncHighlight() {
-        var row = $('#rowHighlightColor');
-        if (row) row.style.opacity = state.highlight ? '1' : '.4';
         var pill = $('#highlightPreviewPill');
         if (pill) pill.style.background = state.highlight ? state.color : '';
         if (pill) pill.style.color = state.highlight ? '#111' : '';
+        var row = $('#rowHighlightColor');
+        if (row) row.style.display = (state.highlight || typeReveal.checked) ? '' : 'none';
+        var chip = $('#markerChip');
+        if (chip) chip.textContent = state.highlight ? 'מרקר' : (typeReveal.checked ? 'הקלדה' : '');
+        $('#foldStyle').style.display = (state.highlight || typeReveal.checked || safeMode.checked) ? '' : 'none';
+        renderSafe();
     }
     $('#highlightSwatches').addEventListener('click', function () { syncHighlight(); });
+    typeReveal.addEventListener('change', syncHighlight);
+    safeMode.addEventListener('change', syncHighlight);
+
+    // Safe zones (same numbers as the real panel)
+    var PLATS = {
+        instagram: { name: 'אינסטגרם', top: .14, bottom: .35, left: .06, right: .06 },
+        tiktok: { name: 'טיקטוק', top: .13, bottom: .27, left: .06, right: .15 },
+        shorts: { name: 'יוטיוב שורטס', top: .12, bottom: .25, left: .06, right: .14 }
+    };
+    var plat = 'instagram', cap = { y: 59, x: 50 };
+    function renderSafe() {
+        var SZ = PLATS[plat], box = $('#safeZoneBox'), halfH = .053;
+        var minY = Math.ceil((SZ.top + halfH) * 100), maxY = Math.floor((1 - SZ.bottom - halfH) * 100);
+        var minX = Math.ceil(SZ.left * 100) + 15, maxX = Math.floor((1 - SZ.right) * 100) - 15;
+        $('.sz-top', box).style.height = SZ.top * 100 + '%';
+        $('.sz-bottom', box).style.height = SZ.bottom * 100 + '%';
+        [['l', SZ.left], ['r', SZ.right]].forEach(function (k) {
+            var el = $('.sz-side-' + k[0], box);
+            el.style.top = SZ.top * 100 + '%'; el.style.bottom = SZ.bottom * 100 + '%'; el.style.width = k[1] * 100 + '%';
+        });
+        $$('#szPlatforms .sz-plat').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-plat') === plat); });
+        var graphics = state.highlight || typeReveal.checked || safeMode.checked;
+        var cp = $('#szCap'), status = $('#szStatus'), hint = $('#szHint'), chip = $('#szChip');
+        function set(msg, unsafe) {
+            box.classList.toggle('is-unsafe', unsafe); status.textContent = msg;
+            chip.textContent = unsafe ? 'לא בטוח' : 'בטוח'; chip.classList.toggle('is-unsafe', unsafe);
+        }
+        if (!graphics) {
+            cp.style.top = '92%'; cp.style.left = '50%';
+            set('כתוביות Premiere רגילות: בתחתית, באזור שהאפליקציה מכסה', true);
+            hint.textContent = 'כדי להזיז אותן, הפעל את המתג למעלה.';
+            return;
+        }
+        if (safeMode.checked) {
+            cap.y = Math.max(minY, Math.min(maxY, cap.y)); cap.x = Math.max(minX, Math.min(maxX, cap.x));
+        }
+        cp.style.top = cap.y + '%'; cp.style.left = cap.x + '%';
+        var unsafe = cap.y < minY || cap.y > maxY;
+        if (safeMode.checked) {
+            set('בטוח', false);
+            hint.textContent = 'הכתוביות נשארות באזור הבטוח. גרור את הפס הלבן כדי להזיז.';
+        } else {
+            set(unsafe ? 'חלק מהכתובית מכוסה על ידי ' + SZ.name : 'בטוח', unsafe);
+            hint.textContent = 'מיקום חופשי. האזורים האדומים מכוסים על ידי ' + SZ.name + '.';
+        }
+    }
+    $$('#szPlatforms .sz-plat').forEach(function (b) {
+        b.addEventListener('click', function () { plat = b.getAttribute('data-plat'); renderSafe(); });
+    });
+    var phone = $('#szPhone'), dragging = false;
+    function drag(ev) {
+        if (!dragging || !(state.highlight || typeReveal.checked || safeMode.checked)) return;
+        var r = phone.getBoundingClientRect();
+        cap.y = Math.max(8, Math.min(94, Math.round((ev.clientY - r.top) / r.height * 100)));
+        cap.x = Math.max(10, Math.min(90, Math.round((ev.clientX - r.left) / r.width * 100)));
+        renderSafe();
+    }
+    phone.addEventListener('pointerdown', function (ev) { dragging = true; try { phone.setPointerCapture(ev.pointerId); } catch (e) {} drag(ev); });
+    phone.addEventListener('pointermove', drag);
+    phone.addEventListener('pointerup', function () { dragging = false; });
+    phone.addEventListener('pointercancel', function () { dragging = false; });
+    var guide = $('#btnSzGuide');
+    guide.addEventListener('click', function () {
+        var on = guide.getAttribute('data-on') !== '1';
+        guide.setAttribute('data-on', on ? '1' : '0');
+        guide.textContent = on ? 'הסתר קווי עזר בטיימליין' : 'הצג קווי עזר בטיימליין';
+    });
+
+    // Font picker + size
+    var fonts = ['Heebo עבה', 'Heebo בינוני', 'Arial', 'Tahoma', 'Segoe UI', 'Gisha'];
+    var fpop = $('#markerFontPop'), flist = $('#markerFontList'), flabel = $('#markerFontBtnLabel');
+    fonts.forEach(function (f) {
+        var d = document.createElement('div'); d.className = 'font-picker-item'; d.textContent = f;
+        d.addEventListener('click', function () { flabel.textContent = f; fpop.style.display = 'none'; });
+        flist.appendChild(d);
+    });
+    $('#markerFontBtn').addEventListener('click', function () { fpop.style.display = fpop.style.display === 'none' ? 'block' : 'none'; });
+    var msz = $('#markerSize');
+    msz.addEventListener('input', function () { $('#markerSizeVal').textContent = msz.value + '%'; });
+
     syncHighlight();
 
     var cc = $('#customColorBtn'); if (cc) cc.addEventListener('click', function (e) { e.preventDefault(); });

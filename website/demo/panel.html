@@ -62,7 +62,6 @@
     <!-- View: AI Captions -->
     <div id="view-captions" class="tab-view" style="display:none;">
         <section class="section">
-            <div class="section-title">הגדרות</div>
             <div class="card">
                 <div class="row">
                     <label id="lblCaptionScope">טווח</label>
@@ -78,7 +77,7 @@
                     <div class="slider-control-wrap" id="sliderWrap" title="גרירה או גלילה לשינוי (1-8)">
                         <span class="slider-badge" id="captionWordCountVal">3 מילים</span>
                         <div class="slider-track-wrap">
-                            <input type="range" id="captionWordCount" min="1" max="8" step="1" value="3" aria-label="מילים בשורה">
+                            <input type="range" id="captionWordCount" class="range-slim" min="1" max="8" step="1" value="3" aria-label="מילים בשורה">
                         </div>
                     </div>
                 </div>
@@ -96,8 +95,9 @@
         </section>
 
         <section class="section">
-            <div class="section-title">הדגשת מילים</div>
             <div class="card">
+                <details class="fold" id="foldMarker">
+                    <summary><span class="fold-title">מרקר</span><span class="fold-chip fold-chip-accent" id="markerChip"></span></summary>
                 <label class="row row-toggle" for="captionWordHighlight" id="rowWordHighlight">
                     <span class="toggle-label highlight-toggle-label">
                         <span>מרקר על המילה המדוברת</span>
@@ -106,6 +106,14 @@
                     <span class="switch"><input type="checkbox" id="captionWordHighlight"><span class="switch-track" aria-hidden="true"></span></span>
                 </label>
 
+                <label class="row row-toggle" for="captionTypeReveal" id="rowTypeReveal" title="המילים מופיעות אחת אחרי השנייה, בזמן שהן נאמרות">
+                    <span class="toggle-label">הקלדה, מילה אחרי מילה</span>
+                    <span class="switch"><input type="checkbox" id="captionTypeReveal"><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
+                </details>
+
+                <details class="fold" id="foldStyle">
+                    <summary><span class="fold-title">עיצוב</span></summary>
                 <div class="row row-highlight-color" id="rowHighlightColor">
                     <label for="captionHighlightColor">צבע</label>
                     <div class="highlight-color-controls" id="highlightSwatches">
@@ -121,6 +129,85 @@
                         </div>
                     </div>
                 </div>
+
+                    <div class="marker-style" id="markerStyleGroup">
+                    <div class="row">
+                        <label for="markerFont">פונט</label>
+                        <div class="font-picker" id="markerFontPicker">
+                            <button type="button" id="markerFontBtn" class="select-ctl font-picker-btn" aria-haspopup="listbox" aria-label="פונט הכתוביות">
+                                <span id="markerFontBtnLabel">Heebo עבה</span>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <div class="font-picker-pop" id="markerFontPop" style="display:none;">
+                                <input type="text" id="markerFontSearch" class="font-picker-search" placeholder="חיפוש פונט..." spellcheck="false" autocomplete="off" aria-label="חיפוש פונט">
+                                <div class="font-picker-list" id="markerFontList" role="listbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-slider">
+                        <label for="markerSize">גודל</label>
+                        <div class="slider-control-wrap">
+                            <span class="slider-badge" id="markerSizeVal">100%</span>
+                            <div class="slider-track-wrap">
+                                <input type="range" id="markerSize" class="range-slim" min="60" max="160" step="5" value="100" aria-label="גודל הטקסט">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnApplyMarkerStyle" class="btn btn-secondary btn-sm" style="display:none;">החל פונט ומיקום על הכתוביות הקיימות</button>
+                    </div>
+                </details>
+
+                <details class="fold" id="foldPosition">
+                    <summary><span class="fold-title">מיקום</span><span class="fold-chip" id="szChip"></span></summary>
+                <label class="row row-toggle" for="captionSafeMode" id="rowSafeMode" title="הכתובית תישאר מחוץ לאזורים שהאפליקציה מכסה בכפתורים ובטקסט">
+                    <span class="toggle-label">להישאר באזור בטוח</span>
+                    <span class="switch"><input type="checkbox" id="captionSafeMode" checked><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
+
+                    <div class="sz-platforms" id="szPlatforms" role="group" aria-label="פלטפורמה">
+                        <button type="button" class="sz-plat active" data-plat="instagram">אינסטגרם</button>
+                        <button type="button" class="sz-plat" data-plat="tiktok">טיקטוק</button>
+                        <button type="button" class="sz-plat" data-plat="shorts">יוטיוב שורטס</button>
+                    </div>
+
+                    <div class="safezone" id="safeZoneBox">
+                        <div class="safezone-phone" id="szPhone" title="גרור את הכתובית">
+                            <div class="sz-zone sz-top"></div>
+                            <div class="sz-zone sz-bottom"></div>
+                            <div class="sz-zone sz-side sz-side-l"></div>
+                            <div class="sz-zone sz-side sz-side-r"></div>
+                            <div class="sz-cap" id="szCap"></div>
+                        </div>
+                        <div class="safezone-side">
+                            <div class="safezone-status" id="szStatus"></div>
+                            <div class="safezone-hint" id="szHint">גרור את הפס הלבן כדי להזיז את הכתוביות. האזורים האדומים מכוסים באפליקציה.</div>
+                            <button type="button" id="btnSzGuide" class="btn btn-secondary btn-sm">הצג קווי עזר בטיימליין</button>
+                        </div>
+                    </div>
+                    <div hidden>
+                    <div class="row row-slider">
+                        <label for="markerPosY">גובה</label>
+                        <div class="slider-control-wrap">
+                            <span class="slider-badge" id="markerPosYVal">78%</span>
+                            <div class="slider-track-wrap">
+                                <input type="range" id="markerPosY" class="range-slim" min="8" max="94" step="1" value="78" aria-label="מיקום אנכי (מלמעלה)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-slider">
+                        <label for="markerPosX">צד</label>
+                        <div class="slider-control-wrap">
+                            <span class="slider-badge" id="markerPosXVal">מרכז</span>
+                            <div class="slider-track-wrap">
+                                <input type="range" id="markerPosX" class="range-slim" min="10" max="90" step="1" value="50" aria-label="מיקום אופקי">
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </details>
             </div>
 
             <!-- Custom Color Popover -->
@@ -177,7 +264,7 @@
             </div>
         </section>
 
-        <div class="actions">
+        <div class="actions actions-sticky">
             <button type="button" id="btnCaptions" class="btn btn-primary">יצירת כתוביות לכל הסיקוונס</button>
             <button type="button" id="btnEditCaptions" class="btn btn-secondary" style="display:none;">
                 <span>עריכת טקסט הכתוביות</span>
@@ -267,9 +354,8 @@
         <span class="footer-credit">by Kaboodi</span>
         <button type="button" id="btnManualUpdateCheck" class="btn-version-pill" title="בדיקת עדכונים">
             <span id="footerUpdatePing" class="version-update-ping" style="display:none;"></span>
-            <span id="footerVersionText">v1.0.30</span>
+            <span id="footerVersionText">v1.0.41</span>
             <svg id="footerCheckSpin" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         </button>
     </footer>
-
     <script src="panel.js"></script></body></html>

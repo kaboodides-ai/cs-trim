@@ -1916,7 +1916,7 @@ function initApp() {
             var plainGraphics = safeOn && !highlightWords;
             if (safeOn && typeof snapToSafeZone === "function") snapToSafeZone(true);
             var syncEl = document.getElementById("captionSync");
-            var syncDelay = syncEl ? parseFloat(syncEl.value) : 0.12;
+            var syncDelay = syncEl ? parseFloat(syncEl.value) : 0;
 
             setBusy(true);
             log(highlightWords ? "מתחיל ביצירת כתוביות AI עם מרקר מילים מסונכרן..." : "מתחיל ביצירת כתוביות AI מסונכרנות...", "info");

@@ -212,6 +212,8 @@ var AutoCutHost = {
                 for (var a = 0; a < seq.audioTracks.numTracks; a++) {
                     var aTrack = seq.audioTracks[a];
                     if (!aTrack || !aTrack.clips) continue;
+                    var aTrackMuted = false;
+                    try { aTrackMuted = Boolean(aTrack.isMuted && aTrack.isMuted()); } catch (muteErr) {}
                     for (var ac = 0; ac < aTrack.clips.numItems; ac++) {
                         var aClip = aTrack.clips[ac];
                         if (aClip && aClip.projectItem) {
@@ -229,7 +231,8 @@ var AutoCutHost = {
                                         end: aEndSec,
                                         inPoint: aInPointSec,
                                         outPoint: aOutPointSec,
-                                        type: "audio"
+                                        type: "audio",
+                                        muted: aTrackMuted || Boolean(aClip.disabled)
                                     });
                                 }
                             } catch (audioClipErr) {}

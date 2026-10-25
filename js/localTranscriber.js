@@ -309,6 +309,119 @@ var LocalTranscriber = {
         return this._pending;
     },
 
+    // Measured against speech onsets in real voice-overs: DTW times land ~0.1s after the word is heard,
+    // the decoder's own timestamps ~0.09s after (and much worse at segment starts)
+    DTW_LEAD: 0.1,
+    OFFSET_LEAD: 0.08,
+
+    /**
+     * Loudness of a 16-bit PCM WAV in 10 ms frames (dB), with the level that separates speech from silence.
+     */
+    loudnessEnvelope: function (buf) {
+        var pos = 12, dataStart = -1, dataLen = 0, rate = 16000, channels = 1;
+        while (pos + 8 <= buf.length) {
+            var id = buf.toString("ascii", pos, pos + 4);
+            var len = buf.readUInt32LE(pos + 4);
+            if (id === "fmt ") {
+                channels = buf.readUInt16LE(pos + 10) || 1;
+                rate = buf.readUInt32LE(pos + 12) || 16000;
+            } else if (id === "data") {
+                dataStart = pos + 8;
+                dataLen = Math.min(len, buf.length - dataStart);
+                break;
+            }
+            pos += 8 + len + (len % 2);
+        }
+        if (dataStart < 0) return null;
+
+        var hop = Math.round(rate / 100) * channels;
+        var count = Math.floor(dataLen / 2);
+        var db = [];
+        for (var i = 0; i + hop <= count; i += hop) {
+            var sum = 0;
+            for (var k = 0; k < hop; k++) {
+                var v = buf.readInt16LE(dataStart + (i + k) * 2);
+                sum += v * v;
+            }
+            db.push(10 * Math.log10(sum / hop + 1e-9));
+        }
+        if (db.length < 10) return null;
+        var sorted = db.slice().sort(function (a, b) { return a - b; });
+        var floor = sorted[Math.floor(sorted.length * 0.1)];
+        var loud = sorted[Math.floor(sorted.length * 0.9)];
+        return { db: db, threshold: floor + 0.4 * (loud - floor) };
+    },
+
+    /**
+     * Build timed words from whisper.cpp's full JSON: a word starts at its first token's DTW time
+     * and runs until the next word, or, before a pause, until the voice actually stops.
+     */
+    wordsFromTokens: function (segments, envelope) {
+        var self = this;
+        var words = [];
+        for (var s = 0; s < segments.length; s++) {
+            var seg = segments[s];
+            var segEnd = ((seg.offsets && seg.offsets.to) || 0) / 1000;
+            var segWords = [];
+            var cur = null;
+            var tokens = seg.tokens || [];
+            for (var t = 0; t < tokens.length; t++) {
+                var tk = tokens[t];
+                var text = String(tk.text || "");
+                if (/^\[_.*\]$/.test(text.trim())) continue;
+                var hasDtw = typeof tk.t_dtw === "number" && tk.t_dtw >= 0;
+                var time = hasDtw
+                    ? tk.t_dtw / 100 - self.DTW_LEAD
+                    : (((tk.offsets && tk.offsets.from) || 0) / 1000) - self.OFFSET_LEAD;
+                if (!cur || /^\s/.test(text)) {
+                    if (cur) segWords.push(cur);
+                    cur = { word: "", start: Math.max(0, time), end: 0 };
+                }
+                cur.word += text;
+            }
+            if (cur) segWords.push(cur);
+
+            for (var w = 0; w < segWords.length; w++) {
+                var word = segWords[w];
+                word.word = word.word.trim();
+                if (w + 1 < segWords.length) {
+                    word.end = Math.max(word.start + 0.05, segWords[w + 1].start);
+                } else {
+                    word.end = self.voiceEnd(envelope, word.start, Math.max(segEnd, word.start + 0.3));
+                }
+                if (word.word && !/^\[.*\]$/.test(word.word)) words.push(word);
+            }
+        }
+        // Keep words in order even where DTW times jitter across a segment boundary
+        for (var i = 1; i < words.length; i++) {
+            if (words[i].start < words[i - 1].start) words[i].start = words[i - 1].start;
+            if (words[i - 1].end > words[i].start && words[i - 1].end - words[i].start < 1) {
+                words[i - 1].end = Math.max(words[i - 1].start + 0.05, words[i].start);
+            }
+        }
+        return words;
+    },
+
+    /**
+     * Where the voice stops after a word that ends a segment: the first 150 ms of silence, bounded by the segment end.
+     */
+    voiceEnd: function (envelope, start, limit) {
+        if (!envelope) return limit;
+        var db = envelope.db;
+        var from = Math.floor((start + 0.15) * 100);
+        var to = Math.min(db.length, Math.ceil(limit * 100));
+        var quiet = 0;
+        for (var f = from; f < to; f++) {
+            if (db[f] < envelope.threshold) {
+                quiet++;
+                if (quiet >= 15) return Math.max(start + 0.15, (f - quiet + 1) / 100);
+            } else {
+                quiet = 0;
+            }
+        }
+        return limit;
+    },
+
     /**
      * Transcribe a 16 kHz WAV. Resolves in the Whisper verbose shape ({ words, segments })
      * that the caption builder expects.
@@ -346,10 +459,11 @@ var LocalTranscriber = {
                 "-l", "he",
                 // Greedy decoding: beam search dropped whole short phrases in tests
                 "-bs", "1", "-bo", "1",
-                // One output segment per word, split only at spaces, so every word gets its own timing
-                "-ml", "1", "-sow",
+                // Word timing from the attention alignment (DTW): the decoder's own timestamps run late and bunch
+                // several words onto one moment at the start of a segment. DTW needs flash attention off.
+                "-nfa", "-dtw", "large.v3.turbo",
                 "-t", String(threads),
-                "-oj", "-of", jobName,
+                "-oj", "-ojf", "-of", jobName,
                 "-np", "-pp"
             ];
 
@@ -406,24 +520,19 @@ var LocalTranscriber = {
                     }
                     return reject(new Error("מנוע התמלול נכשל (קוד " + code + "): " + errTail.trim().split("\n").slice(-3).join(" ")));
                 }
-                var json;
+                var json, envelope = null;
                 try {
                     json = JSON.parse(fs.readFileSync(path.join(dir, jobName + ".json"), "utf8"));
                 } catch (e) {
                     cleanup();
                     return reject(new Error("לא ניתן לקרוא את תוצאת התמלול: " + e.message));
                 }
+                try {
+                    envelope = self.loudnessEnvelope(fs.readFileSync(path.join(dir, wavName)));
+                } catch (e) {}
                 cleanup();
 
-                var words = [];
-                var items = json.transcription || [];
-                for (var i = 0; i < items.length; i++) {
-                    var w = String(items[i].text || "").trim();
-                    if (!w || /^\[.*\]$/.test(w)) continue;
-                    var off = items[i].offsets || {};
-                    words.push({ word: w, start: (off.from || 0) / 1000, end: (off.to || 0) / 1000 });
-                }
-                resolve({ words: words, segments: [] });
+                resolve({ words: self.wordsFromTokens(json.transcription || [], envelope), segments: [] });
             });
         });
     }

@@ -746,7 +746,9 @@ var CaptionGenerator = {
     buildTimelineSrt: function (whisperResultsByPath, timelineClips, options) {
         var self = this;
         options = options || {};
-        var syncDelay = (typeof options.syncDelay !== "undefined") ? Number(options.syncDelay) : 0.12;
+        // Word times already match the voice; this only nudges every cue for users who want them earlier or later
+        var syncDelay = (typeof options.syncDelay !== "undefined") ? Number(options.syncDelay) : 0;
+        if (isNaN(syncDelay)) syncDelay = 0;
         var wordCount = options.wordCount ? parseInt(options.wordCount, 10) : 3;
         if (isNaN(wordCount) || wordCount < 1) wordCount = 3;
         var includePunctuation = (typeof options.includePunctuation !== "undefined") ? Boolean(options.includePunctuation) : true;
@@ -794,7 +796,8 @@ var CaptionGenerator = {
                                 word: wordClean,
                                 start: wStart,
                                 end: wEnd,
-                                endsSentence: /[.!?…]["'”’)\]]*$/.test(String(wordObj.word || "").trim())
+                                endsSentence: /[.!?…]["'”’)\]]*$/.test(String(wordObj.word || "").trim()),
+                                endsClause: /[,;:—]["'”’)\]]*$/.test(String(wordObj.word || "").trim())
                             });
                         }
                     }
@@ -826,7 +829,8 @@ var CaptionGenerator = {
                                     word: segWordsList[sw],
                                     start: pwStart,
                                     end: pwEnd,
-                                    endsSentence: sw === segWordsList.length - 1 || /[.!?…]["'”’)\]]*$/.test(segWordsList[sw])
+                                    endsSentence: sw === segWordsList.length - 1 || /[.!?…]["'”’)\]]*$/.test(segWordsList[sw]),
+                                    endsClause: /[,;:—]["'”’)\]]*$/.test(segWordsList[sw])
                                 });
                             }
                         }
@@ -849,30 +853,46 @@ var CaptionGenerator = {
         var cues = [];
         var prevEnd = 0;
 
-        // Never mix words from two sentences in one cue: a cue ends at a sentence end or a long pause
-        var SENTENCE_GAP = 0.6;
-        var i = 0;
-        while (i < allTimelineWords.length) {
-            var j = i + 1;
-            while (j < allTimelineWords.length && j - i < wordCount) {
-                var prevW = allTimelineWords[j - 1];
-                if (prevW.endsSentence || allTimelineWords[j].start - prevW.end > SENTENCE_GAP) break;
-                j++;
+        // Cues follow the speech: a phrase ends at a sentence end, a comma, or a pause, and never shares a cue
+        // with the next one. A phrase longer than wordCount is split into even parts (5 words -> 3+2, not 3 + a
+        // lone word), so no cue is a single leftover word that flashes by.
+        var PAUSE_GAP = 0.35;
+        var chunks = [];
+        var p0 = 0;
+        for (var pw = 0; pw < allTimelineWords.length; pw++) {
+            var wCur = allTimelineWords[pw];
+            var wNext = allTimelineWords[pw + 1];
+            var phraseEnds = !wNext || wCur.endsSentence || wNext.start - wCur.end > PAUSE_GAP ||
+                (wCur.endsClause && pw - p0 + 1 >= 2);
+            if (!phraseEnds) continue;
+            var phrase = allTimelineWords.slice(p0, pw + 1);
+            var parts = Math.ceil(phrase.length / wordCount);
+            var base = Math.floor(phrase.length / parts);
+            var extra = phrase.length % parts;
+            var at = 0;
+            for (var pp = 0; pp < parts; pp++) {
+                var size = base + (pp < extra ? 1 : 0);
+                chunks.push({ words: phrase.slice(at, at + size), lastInPhrase: pp === parts - 1 });
+                at += size;
             }
-            var chunk = allTimelineWords.slice(i, j);
-            i = j;
+            p0 = pw + 1;
+        }
+
+        for (var ci = 0; ci < chunks.length; ci++) {
+            var chunk = chunks[ci].words;
             var rawStart = chunk[0].start;
             var rawEnd = chunk[chunk.length - 1].end;
 
             var startTime = Math.max(0, rawStart + syncDelay);
             var endTime = Math.max(startTime + Math.max(0.35, chunk.length * 0.14), rawEnd + syncDelay);
+            var nextStart = chunks[ci + 1] ? Math.max(0, chunks[ci + 1].words[0].start + syncDelay) : Infinity;
+            // Inside a phrase the next cue takes over the moment its first word starts, so text never blinks out mid-phrase
+            if (!chunks[ci].lastInPhrase) endTime = nextStart;
+            // A cue gives way to the next one instead of pushing it later, so a fast talker never builds up a delay
+            endTime = Math.min(endTime, nextStart);
 
-            if (startTime < prevEnd) {
-                startTime = prevEnd;
-                if (endTime <= startTime) {
-                    endTime = startTime + Math.max(0.35, chunk.length * 0.14);
-                }
-            }
+            if (startTime < prevEnd) startTime = prevEnd;
+            if (endTime < startTime + 0.05) endTime = startTime + 0.05;
             prevEnd = endTime;
 
             var text = chunk.map(function (w) { return w.word; }).join(" ");
@@ -1299,9 +1319,18 @@ var CaptionGenerator = {
                 return reject(new Error("לא נמצאו קליפים בסיקוונס הפעיל."));
             }
 
-            var targetClips = timelineClips;
+            // Speech comes from what is heard on the timeline: when the sequence has audio clips, video clips
+            // without linked audio (b-roll, footage under a voice-over) are not transcribed, and neither are muted ones
+            var hasAudioClips = timelineClips.some(function (clip) { return clip.type === "audio"; });
+            var targetClips = timelineClips.filter(function (clip) {
+                if (clip.muted) return false;
+                return !(hasAudioClips && clip.type === "video");
+            });
+            if (targetClips.length === 0) {
+                return reject(new Error("כל קליפי האודיו בסיקוונס מושתקים."));
+            }
             if (options && options.scope === "inout" && typeof options.rangeStart === "number" && typeof options.rangeEnd === "number") {
-                targetClips = timelineClips.filter(function (clip) {
+                targetClips = targetClips.filter(function (clip) {
                     return clip.end > options.rangeStart + 0.01 && clip.start < options.rangeEnd - 0.01;
                 });
                 if (targetClips.length === 0) {

@@ -1,12 +1,13 @@
 {
   "version": "1.0.42",
   "versionCode": 142,
-  "releaseDate": "2026-10-24",
-  "title": "עדכון גרסה 1.0.41: שיפורי כתוביות והורדת מנוע התמלול מהשרת שלנו",
+  "releaseDate": "2026-10-25",
+  "title": "עדכון גרסה 1.0.42: כתוביות מסונכרנות לדיבור",
   "changelog": [
-    "שיפורים ביצירת הכתוביות ובמיקום שלהן",
-    "מנוע התמלול בעברית יורד עכשיו ישירות מהשרת של CS Trim",
-    "תיקוני יציבות קטנים"
+    "הכתוביות מופיעות בדיוק כשהמילה נאמרת, בלי דיליי",
+    "הכתוביות מתחלקות לפי משפטים ופסיקים, בלי מילה בודדת שקופצת",
+    "קליפי וידאו שלא שומעים בעריכה (למשל מתחת לקריינות) כבר לא מתומללים",
+    "טראקים מושתקים וקליפים מכובים לא נכנסים לכתוביות"
   ],
   "bundleUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/cs-trim-update.zip",
   "winSetupUrl": "https://raw.githubusercontent.com/kaboodides-ai/cs-trim/main/website/download/CS-Trim-Setup.exe",
